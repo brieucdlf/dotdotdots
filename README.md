@@ -5,7 +5,7 @@
 
 ---
 
-- Labtops: :penguin: XPS 13 7390 (late 2019) | :apple: Macbook Pro tb (early 2017)
+- Labtops: XPS 13 7390 (late 2019) | Macbook Pro tb (early 2017)
 - OS: Arch
 - WM: i3-gaps
 - Terminals: urxvt | Termite
