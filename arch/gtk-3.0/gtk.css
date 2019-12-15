@@ -1,0 +1,16 @@
+/** Termite custom styles */
+VteTerminal, vte-terminal {
+	padding: 10px;
+}
+
+/** Textboxes */
+GtkEntry {
+	padding: 6px;
+	border-width: 4px;
+	border-style: solid;
+	border-radius: 20px;
+	border-color: #DEE6E7;
+	box-shadow: none;
+	font-family: monospace;
+	font-size: 9pt;
+}
