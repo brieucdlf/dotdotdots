@@ -13,7 +13,6 @@
 ### Issues found
 ---
 Seems that electron apps not working correctly if I do not disable the gpu
-If I take the Code app
 
 ```shell
 code --disable-gpu
