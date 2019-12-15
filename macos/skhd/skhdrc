@@ -1,0 +1,67 @@
+# Shortcuts.
+cmd + alt - e : open -a Finder
+cmd + alt - t : open -a iTerm
+cmd + alt - b : open -a Firefox
+
+
+# close focused window
+#alt - w : chunkc tiling::window --close
+
+# General.
+cmd + shift - m : chunkc tiling::window -t fullscreen
+cmd + alt + shift - m : chunkc tiling::window -t parent
+cmd + shift - space : chunkc tiling::window -t float
+
+# Select window.
+cmd + alt - h : chunkc tiling::window -f west
+cmd + alt - j : chunkc tiling::window -f south
+cmd + alt - k : chunkc tiling::window -f north
+cmd + alt - l : chunkc tiling::window -f east
+
+# equalize size of windows
+shift + alt - 0 : chunkc tiling::desktop --equalize
+
+# move window
+shift + cmd - h : chunkc tiling::window --warp west
+shift + cmd - j : chunkc tiling::window --warp south
+shift + cmd - k : chunkc tiling::window --warp north
+shift + cmd - l : chunkc tiling::window --warp east
+
+# destroy desktop
+cmd + alt - w : chunkc tiling::desktop --annihilate
+
+# send window to desktop and follow focus
+shift + cmd - 0x2B : chunkc tiling::window --send-to-desktop prev; chunkc tiling::desktop --focus prev
+shift + cmd - 0x2F : chunkc tiling::window --send-to-desktop next; chunkc tiling::desktop --focus next
+
+# send window to monitor and follow focus
+ctrl + cmd - z  : chunkc tiling::window --send-to-monitor prev; chunkc tiling::monitor -f prev
+ctrl + cmd - c  : chunkc tiling::window --send-to-monitor next; chunkc tiling::monitor -f next
+shift + cmd - 1  : chunkc tiling::window --send-to-monitor 1; chunkc tiling::monitor -f 1
+shift + cmd - 2  : chunkc tiling::window --send-to-monitor 2; chunkc tiling::monitor -f 2
+shift + cmd - 3  : chunkc tiling::window --send-to-monitor 3; chunkc tiling::monitor -f 3
+
+# increase region size
+#shift + alt - a : chunkc tiling::window --use-temporary-ratio 0.1 --adjust-window-edge west
+#shift + alt - s : chunkc tiling::window --use-temporary-ratio 0.1 --adjust-window-edge south
+#shift + alt - w : chunkc tiling::window --use-temporary-ratio 0.1 --adjust-window-edge north
+#shift + alt - d : chunkc tiling::window --use-temporary-ratio 0.1 --adjust-window-edge east
+
+# Window size.
+shift + alt - h : chunkc tiling::window -r -0.025 -e west  -e east
+shift + alt - j : chunkc tiling::window -r  0.025 -e north -e south
+shift + alt - k : chunkc tiling::window -r -0.025 -e north -e south
+shift + alt - l : chunkc tiling::window -r  0.025 -e west  -e east
+
+# Layout manipulation.
+cmd + alt - r : chunkc tiling::desktop -r 270
+cmd + alt - s : chunkc tiling::window -t split
+
+# make floating window fill screen
+shift + alt - up     : chunkc tiling::window --grid-layout 1:1:0:0:1:1
+
+# make floating window fill left-half of screen
+shift + alt - left   : chunkc tiling::window --grid-layout 1:2:0:0:1:1
+
+# make floating window fill right-half of screen
+shift + alt - right : chunkc tiling::window --grid-layout 1:2:1:0:1:1
