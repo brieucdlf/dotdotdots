@@ -1,0 +1,54 @@
+*background:	#323F4E
+*foreground:	#F8F8F2
+*cursorColor:	#F8F8F2
+*color0:	#3D4C5F
+*color1:	#F48FB1
+*color2:	#A1EFD3
+*color3:	#F1FA8C
+*color4:	#92B6F4
+*color5:	#BD99FF
+*color6:	#87DFEB
+*color7:	#F8F8F2
+*color8:	#56687E
+*color9:	#EE4F84
+*color10:	#53E2AE
+*color11:	#F1FF52
+*color12:	#6498EF
+*color13:	#985EFF
+*color14:	#24D1E7
+*color15:	#E5E5E5
+
+URxvt*scrollBar:		false
+URxvt*letterSpace:		-1
+URxvt*internalBorder:		10
+URxvt*font:			xft:FuraCode Nerd Font:style=Regular:size=14:antialias=true;hinting=true,xft:Symbola
+URxvt*boldFont:			xtf:FuraCode Nerd Font:style=bold:size=14:antialias=true;hinting=true;xft:Symbola
+URxvt*cursorBlink:		true
+URxvt*iso14755:			false
+URxvt*utf8:			true
+Urxvt*keysym.C-equal:		resize-font:bigger
+URxvt*keysym.C-parenright:	resize-font:smaller
+
+Xft.dpi:	96
+Xft.antialias:	true
+Xft.rgba:	subpixel
+Xft.hinting:	true
+Xft.hintstyle:	hintslight
+
+rofi.fullscreen: true
+rofi.color-enabled: true
+rofi.color-window: argb:e8222D32,argb:00292f37,#EBCB8B
+rofi.color-normal: argb:02000000,#D8DEE9,argb:02000000,argb:02000000,#EBCB8B
+rofi.color-active: argb:02000000,#D8DEE9,argb:02000000,argb:02000000,#D8DEE9
+rofi.color-urgent: argb:02000000,#D8DEE9,argb:02000000,argb:02000000,#D8DEE9
+
+rofi.font: System San Francisco Display 14
+rofi.eh: 1
+rofi.line-margin: 20
+rofi.separator-style: solid
+rofi.hide-scrollbar: true
+rofi.lines: 3
+rofi.width: 100
+rofi.padding: 200
+rofi.bw: 0
+rofi.show-icons: true
