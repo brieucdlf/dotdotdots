@@ -1,0 +1,45 @@
+# Author: brieucdlf
+# Zsh aliases
+
+# Zsh
+alias confzsh="nvim ~/.zshrc"
+alias sourcezsh="source ~/.zshrc"
+
+# Basic commands
+alias ll="ls -l"
+alias la="ls -la"
+alias cl="clear"
+alias scmod="stat -f '%OLp'" # display chmod number
+
+# Ncmpcpp
+alias ncmpcpp="ncm"
+
+# Ubersicht
+alias confubersicht="cd ~/Library/Application\ Support/Übersicht/widgets/Pecan"
+
+# Tmux
+alias conftmux="nvim ~/.tmux.conf"
+alias sourcetmux="tmux source ~/.tmux.conf"
+
+# Nvim
+alias confnvim="nvim ~/.config/nvim/init.vim"
+alias vim="nvim"
+alias v="nvim"
+
+# StartupFlow
+alias nrnd="nf run -e .env.local nodemon dev"
+alias sflow="cd ~/Documents/02-Startupflow/03-Dev"
+alias api="cd ~/Documents/02-Startupflow/03-Dev/sflow-api"
+alias web="cd ~/Documents/02-Startupflow/03-Dev/sflow-webapp"
+alias dot="cd ~/Documents/04-dev/dotfiles"
+
+# React Native
+alias runios="react-native run-ios"
+alias runandroid="react-native run-android"
+
+# Git
+alias g="git"
+alias glog="git log --oneline -10"
+alias ga="git add ."
+alias gc="git commit"
+alias gcm="git commit -am"
