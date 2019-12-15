@@ -5,15 +5,15 @@
 
 ---
 
-- Labtops: XPS 13 7390 (late 2019) | Macbook Pro tb (early 2017)
+- Labtops: :penguin: XPS 13 7390 (late 2019) | :apple: Macbook Pro tb (early 2017)
 - OS: Arch
 - WM: i3-gaps
-- Terminal: urxvt | Termite
+- Terminals: urxvt | Termite
 - File Manager: Thunar
 - Launcher: Rofi
-- Editor: Vim | Code
+- Editors: Vim | Code
 - Browser: Firefox
-- Theme: [Nord](https://github.com/arcticicestudio/nord) | [Challenger-deep](https://github.com/challenger-deep-theme) | [Ephemeral](https://github.com/elenapan/dotfiles/blob/master/.xfiles/ephemeral)
+- Themes: [Nord](https://github.com/arcticicestudio/nord) | [Challenger-deep](https://github.com/challenger-deep-theme) | [Ephemeral](https://github.com/elenapan/dotfiles/blob/master/.xfiles/ephemeral)
 
 
 ### Issues found
