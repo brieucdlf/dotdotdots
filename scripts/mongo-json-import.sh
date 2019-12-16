@@ -13,8 +13,8 @@ usage() {
   echo "   ./mongo-json-import"
   echo "   ./mongo-json-import -h"
   echo "   ./mongo-json-import --help"
-  echo "   ./mongo-json-import -c <ABSOLUTE PATH OF YOUR COLLECTIONS>"
-  echo "   ./mongo-json-import -collections_path <ABSOLUTE PATH OF YOUR COLLECTIONS>"
+  echo "   ./mongo-json-import -c=<ABSOLUTE PATH OF YOUR COLLECTIONS>"
+  echo "   ./mongo-json-import -collections_path=<ABSOLUTE PATH OF YOUR COLLECTIONS>"
   exit 1
 }
 
