@@ -24,3 +24,12 @@ Seems that electron apps not working correctly if I do not disable the gpu
 ```shell
 code --disable-gpu
 ```
+
+Cannot connect to some wifi with wifi-menu. Instead use:
+```zsh
+nmcli dev wifi list
+```
+
+```zsh
+nmcli dev wifi connect <SSID> password <PWD>
+```
