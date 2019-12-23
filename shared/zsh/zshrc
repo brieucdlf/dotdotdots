@@ -43,6 +43,7 @@ plugins=(
   git
   dotenv
   bundler
+  zsh-autosuggestions
 )
 
 # Enable syntax highlighting
