@@ -6,66 +6,76 @@ endif
 
 " Plugins
 call plug#begin('~/.local/share/nvim/plugged')
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug '/usr/local/opt/fzf'
+Plug 'junegunn/fzf.vim'
 
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-surround'
 Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-sensible'
+
+Plug 'machakann/vim-highlightedyank'
+Plug 'vimwiki/vimwiki'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'scrooloose/nerdtree'
-Plug 'bling/vim-airline'
-Plug 'plasticboy/vim-markdown'
+Plug 'Xuyuanp/nerdtree-git-plugin'
 Plug 'airblade/vim-gitgutter'
+Plug 'plasticboy/vim-markdown'
+Plug 'nelstrom/vim-markdown-folding'
 Plug 'jiangmiao/auto-pairs'
 Plug 'ntpeters/vim-better-whitespace'
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-Plug 'junegunn/fzf.vim'
-Plug 'junegunn/vim-easy-align'
 Plug 'terryma/vim-multiple-cursors'
+Plug 'junegunn/vim-easy-align'
 Plug 'ryanoasis/vim-devicons'
-Plug 'tpope/vim-sensible'
+Plug 'sheerun/vim-polyglot'
+Plug 'pangloss/vim-javascript'
+Plug 'leafgarland/typescript-vim'
+Plug 'vim-syntastic/syntastic'
 
 Plug 'challenger-deep-theme/vim', { 'as': 'challenger-deep' }
 Plug 'arcticicestudio/nord-vim'
-
-Plug 'pangloss/vim-javascript'
-Plug 'leafgarland/typescript-vim'
-Plug 'sheerun/vim-polyglot'
-
-" Language Protocol Server and autocompelete
-Plug 'prabirshrestha/async.vim'
-Plug 'prabirshrestha/vim-lsp'
-Plug 'ncm2/ncm2'
-Plug 'roxma/nvim-yarp'
-Plug 'ncm2/ncm2-vim-lsp'
-
+Plug 'itchyny/lightline.vim'
 call plug#end()
+
+" Auto set currentdir
+:set autochdir
+
+" Shell
+set shell=/bin/zsh
+
+" mouse enable
+set mouse=a
+
+" Highlight current line
+set cursorline
+
+" Lightline : do not show mode under it
+set noshowmode
+
+" Macos clipboard sharing
+set clipboard=unnamed
+
+" Deoplete
+let g:deoplete#enable_at_startup = 1
+inoremap <expr><tab> pumvisible() ? "\<c-n>" : "\<tab>"
 
 " set Vim-specific sequences for RGB colors
 let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
 let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 
-"Use 24-bit (true-color) mode in Vim/Neovim when outside tmux.
-"If you're using tmux version 2.2 or later, you can remove the outermost $TMUX check and use tmux's 24-bit color support
-"(see < http://sunaku.github.io/tmux-24bit-color.html#usage > for more information.)
-if (empty($TMUX))
- if (has("nvim"))
-    "For Neovim 0.1.3 and 0.1.4 < https://github.com/neovim/neovim/pull/2198 >
-  let $NVIM_TUI_ENABLE_TRUE_COLOR=1
- endif
-  "For Neovim > 0.1.5 and Vim > patch 7.4.1799 < https://github.com/vim/vim/commit/61be73bb0f965a895bfb064ea3e55476ac175162 >
-  "Based on Vim patch 7.4.1770 (`guicolors` option) < https://github.com/vim/vim/commit/8a633e3427b47286869aa4b96f2bfc1fe65b25cd >
-  " < https://github.com/neovim/neovim/wiki/Following-HEAD#20160511 >
-  if (has("termguicolors"))
-   set termguicolors
-  endif
-endif
+" Markdown
+let g:markdown_fold_style = 'nested'
+let g:vimwiki_global_ext=0
+let g:vimwiki_table_mappings=0
+let g:vimwiki_folding='expr'
 
+" Highlighted yank
+let g:highlightedyank_highlight_duration = 400
+
+" ColorSheme
 colorscheme nord
 " let g:challenger_deep_termcolors=16
-
-" In many terminal emulators the mouse works just fine, thus enable it.
-set mouse=a
-
-" macOS clipboard sharing
-set clipboard=unnamed
 
 " better vertial movement for wrapped lines
 nnoremap j gj
@@ -117,20 +127,6 @@ nnoremap / /\v
 vnoremap / /\v
 set ignorecase
 set smartcase
-
-" LSP and autocomplete
-" enable ncm2 for all buffers
-autocmd BufEnter * call ncm2#enable_for_buffer()
-set completeopt=noinsert,menuone,noselect
-" When the <Enter> key is pressed while the popup menu is visible, it only
-" hides the menu. Use this mapping to close the menu and also start a new
-" line.
-inoremap <expr> <CR> (pumvisible() ? "\<c-y>\<cr>" : "\<CR>")
-" suppress the annoying 'match x of y', 'The only match' and 'Pattern not
-" found' messages
-set shortmess+=cI
-nnoremap <leader>e :LspHover<cr>
-nnoremap <leader>d :LspDefinition<cr>
 
 " Git status
 nnoremap <leader>w :Gstatus<cr>
