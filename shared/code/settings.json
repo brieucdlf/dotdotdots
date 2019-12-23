@@ -22,9 +22,11 @@
         "strings": false
     },
     "editor.tabCompletion": "onlySnippets",
-    "editor.wordWrapColumn": 80,
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wrappingIndent": "same",
+    "editor.wordWrapColumn": 100,
     "editor.tabSize": 2,
-    "editor.rulers": [80],
+    "editor.rulers": [100],
     "editor.minimap.enabled": false,
     "explorer.autoReveal": true,
     "explorer.incrementalNaming": "smart",
