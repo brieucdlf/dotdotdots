@@ -76,7 +76,7 @@ master-mixer = Master
 format-volume = <ramp-volume> <label-volume>
 label-volume = %percentage%%
 format-muted = <label-muted>
-label-muted = %{T2}ﱝ%{T-}
+label-muted = %{F#bf616a}ﱝ %{F- T-}
 ramp-volume-0 = %{T2}%{T-}
 ramp-volume-1 = %{T2}%{T-}
 ramp-volume-2 = %{T2}墳%{T-}
@@ -86,18 +86,15 @@ ramp-volume-2 = %{T2}墳%{T-}
 type = internal/network
 interface = "wlan0"
 interval = 1
-format-connected = <label-connected>
-format-disconnected = <label-disconnected>
-label-connected = %{T2} %{T-} %downspeed% %{T2} %{T-} %upspeed%
-label-disconnected = %{T2}睊 %{T-}
-label-disconnected-foreground = ${colors.nord-red}
+format-connected = %{T2}%{F#a3be8c}直 %{F- T-}<label-connected>
+format-disconnected = %{T2}%{F#bf616a}睊 %{F- T-} <label-disconnected>
+label-connected = %essid%
 
 
 [module/backlight]
 type = internal/xbacklight
 card = gmux_backlight
-format = 盛 %{T-} <label>
-# format-underline = ${colors.nord-yellow}
+format = %{F#ebcb8b}盛 %{F- T-} <label>
 format-padding = -1
 label = %percentage%%
 
@@ -116,15 +113,15 @@ format-charging = <ramp-capacity> <label-charging>
 format-discharging = <ramp-capacity> <label-discharging> 
 
 ramp-capacity-0 = %{T2}%{F#bf616a} %{F- T-}
-ramp-capacity-1 = %{T2} %{T-}
-ramp-capacity-2 = %{T2} %{T-}
-ramp-capacity-3 = %{T2} %{T-}
-ramp-capacity-4 = %{T2} %{T-}
-ramp-capacity-5 = %{T2} %{T-}
-ramp-capacity-6 = %{T2} %{T-}
-ramp-capacity-7 = %{T2} %{T-}
-ramp-capacity-8 = %{T2} %{T-}
-ramp-capacity-9 = %{T2} %{T-}
+ramp-capacity-1 = %{T2}%{F#d08770} %{F- T-}
+ramp-capacity-2 = %{T2}%{F#d08770} %{F- T-}
+ramp-capacity-3 = %{T2}%{F#a3be8c} %{F- T-}
+ramp-capacity-4 = %{T2}%{F#a3be8c} %{F- T-}
+ramp-capacity-5 = %{T2}%{F#a3be8c} %{F- T-}
+ramp-capacity-6 = %{T2}%{F#a3be8c} %{F- T-}
+ramp-capacity-7 = %{T2}%{F#a3be8c} %{F- T-}
+ramp-capacity-8 = %{T2}%{F#a3be8c} %{F- T-}
+ramp-capacity-9 = %{T2}%{F#a3be8c} %{F- T-}
 
 
 [module/cpu]
