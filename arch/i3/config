@@ -2,8 +2,7 @@
 set $mod Mod4
 
 # Font
-font pango:DejaVu 14
-# font pango:Source Code Pro 14
+font pango:Source Code Pro 12
 
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
 # screen before suspend. Use loginctl lock-session to lock your screen.
@@ -178,7 +177,7 @@ mode "resize" {
 }
 
 bindsym $mod+r mode "resize"
-bindsym $mod+shift+x exec betterlockscreen -l blur
+bindsym $mod+shift+x exec betterlockscreen -l blur -r 1920x1080 -t "Chouquettes ?"
 
 for_window [class="."] border pixel 2
 for_window [class="."] title_format " %title"
@@ -221,8 +220,8 @@ client.background	    $nord-grey1
 
 exec        --no-startup-id compton
 exec_always --no-startup-id sh ~/.scripts/bg.sh
-exec        --no-startup-id betterlockscreen -w blur
-exec        --no-startup-id source ~/.fehbg
+exec_always --no-startup-id source ~/.fehbg
+exec        --no-startup-id betterlockscreen -l blur -r 1920x1080
 exec        --no-startup-id redshift -l 48.8412:2.3003 -t 6500:3500 -l manual
 exec        --no-startup-id firefox
 exec        --no-startup-id termite
