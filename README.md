@@ -13,7 +13,7 @@
 - Launcher: Rofi
 - Editors: Vim | Code
 - Browser: Firefox
-- Themes: [Nord](https://github.com/arcticicestudio/nord) | [Challenger-deep](https://github.com/challenger-deep-theme) | [Ephemeral](https://github.com/elenapan/dotfiles/blob/master/.xfiles/ephemeral)
+- Themes: [Nord](https://github.com/arcticicestudio/nord)
 
 
 ### Issues found
