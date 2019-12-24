@@ -13,6 +13,8 @@ export NVM_DIR="$HOME/.nvm"
 # Loads locals
 export LC_ALL=fr_FR.UTF-8
 
+test -r "~/.dir_colors" && eval $(dircolors ~/.dir_colors)
+
 # Autoloads nvmrc
 autoload -U add-zsh-hook
 load-nvmrc() {
@@ -36,7 +38,7 @@ add-zsh-hook chpwd load-nvmrc
 load-nvmrc
 
 # Theme
-ZSH_THEME="ys"
+ZSH_THEME="bira"
 
 # Plugins
 plugins=(
