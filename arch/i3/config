@@ -30,8 +30,7 @@ bindsym $mod+Shift+q kill
 
 # start dmenu (a program launcher)
 bindsym $mod+d exec rofi -show drun
-bindsym $mod+n exec networkmanager_dmenu
-bindsym $mod+c exec rofi -show calc -modi calc -no-show-match -no-sort -no-bold
+bindsym $mod+c exec rofi -show run
 
 # Take a screenshot of a screen region and copy it to a clipboard
 bindsym --release Shift+Print exec "scregcp -s $HOME/Images/screenshots/"
