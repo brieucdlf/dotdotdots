@@ -33,10 +33,10 @@ bindsym $mod+d exec rofi -show drun
 bindsym $mod+c exec rofi -show run
 
 # Take a screenshot of a screen region and copy it to a clipboard
-bindsym --release Shift+Print exec "scregcp -s $HOME/Images/screenshots/"
+bindsym --release Shift+Print exec "~/.scripts/screenshot.sh -s /home/brieucdlf/Images/screenshots/"
 
 # Take a screenshot of a whole window and copy it to a clipboard
-bindsym --release Print exec "scregcp $HOME/Images/screenshots/"
+bindsym --release Print exec "~/.scripts/screenshot.sh /home/brieucdlf/Images/screenshots/"
 
 # change focus
 bindsym $mod+j focus left
