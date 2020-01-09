@@ -1,6 +1,8 @@
 # dotdotdots
 
-![alt text](https://github.com/brieucdlf/dotdotdots/blob/master/screenshots/2019-12-26_12-07-41_screenshot.png "Desktop")
+![alt text](https://github.com/brieucdlf/dotdotdots/blob/master/screenshots/2019-12-26_12-18-57_screenshot.png "Desktop")
+![alt text](https://github.com/brieucdlf/dotdotdots/blob/master/screenshots/2019-12-26_12-07-41_screenshot.png "Desktop1")
+
 
 ### Some details
 
