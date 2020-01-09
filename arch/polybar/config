@@ -56,14 +56,14 @@ label-mode-padding = 1
 label-mode-foreground = ${colors.nord-grey1}
 label-mode-background = ${colors.nord-white1}
 index-sort = true
-ws-icon-0 = 1;%{T2} %{T-}
-ws-icon-1 = 2;%{T2} %{T-}
-ws-icon-2 = 3;%{T2} %{T-}
-ws-icon-3 = 4;%{T2} %{T-}
-ws-icon-4 = 5;%{T2} %{T-}
-ws-icon-5 = 6;%{T2} %{T-}
+ws-icon-0 = 1;%{T2} %{T-}
+ws-icon-1 = 2;%{T2} %{T-}
+ws-icon-2 = 3;%{T2} %{T-}
+ws-icon-3 = 4;%{T2}聆 %{T-}
+ws-icon-4 = 5;%{T2}%{T-}
+ws-icon-5 = 6;%{T2}ﭮ %{T-}
 ws-icon-6 = 7;%{T2} %{T-}
-ws-icon-7 = 8;%{T2} %{T-}
+ws-icon-7 = 8;%{T2} %{T-}
 ws-icon-default = %{T2} %{T-}
 
 
@@ -87,7 +87,7 @@ type = internal/network
 interface = "wlan0"
 interval = 1
 format-connected = %{T2}%{F#a3be8c}直 %{F- T-}<label-connected>
-format-disconnected = %{T2}%{F#bf616a}睊 %{F- T-} <label-disconnected>
+format-disconnected = %{T2}%{F#bf616a}睊 %{F- T-}
 label-connected = %essid%
 
 
@@ -109,7 +109,7 @@ time-format = %H:%M
 
 label-charging =   %percentage%%
 label-discharging = %percentage%%
-format-charging = <ramp-capacity> <label-charging>
+format-charging = %{T2}%{F#ebcb8b}%{F- T-} <label-charging>
 format-discharging = <ramp-capacity> <label-discharging> 
 
 ramp-capacity-0 = %{T2}%{F#bf616a} %{F- T-}
