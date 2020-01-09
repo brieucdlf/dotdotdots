@@ -1,6 +1,6 @@
 # dotdotdots
 
-![alt text](https://github.com/brieucdlf/dotdotdots/blob/master/screenshots/2019-12-26_12-18-57_screenshot.png "Desktop")
+![alt text](https://github.com/brieucdlf/dotdotdots/blob/master/screenshots/2020-01-09_16-41-58_screenshot.png "Desktop")
 ![alt text](https://github.com/brieucdlf/dotdotdots/blob/master/screenshots/2019-12-26_12-07-41_screenshot.png "Desktop1")
 
 
@@ -11,7 +11,8 @@
 - Labtops: XPS 13 7390 (late 2019) | Macbook Pro tb (early 2017)
 - OS: Arch
 - WM: i3-gaps
-- Terminals: urxvt | Termite
+- Terminal: Termite
+- Multiplexer: Tmux
 - File Manager: Thunar
 - Launcher: Rofi
 - Editors: Vim | Code
