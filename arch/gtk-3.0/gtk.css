@@ -11,6 +11,6 @@ GtkEntry {
 	border-radius: 20px;
 	border-color: #DEE6E7;
 	box-shadow: none;
-	font-family: monospace;
-	font-size: 9pt;
+	font-family: "Source Code Pro";
+	font-size: 12pt;
 }
