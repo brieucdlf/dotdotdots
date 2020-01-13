@@ -28,34 +28,51 @@ nord-pink = #b48ead
 
 clear = #00ffffff
 
-[module/date]
-type = internal/date
-time = %I:%M %P
-date = %a, %b %d/%y
-format = <label>
-label = %{T2} %{T-}%time% - %date%
-format-padding = 1
-
-
 [module/i3]
 type = internal/i3
+
+; Only show workspaces defined on the same output as the bar
+;
+; Useful if you want to show monitor specific workspaces
+; on different bars
+;
+; Default: false
 pin-workspaces = true
-format = <label-state> <label-mode>
-label-focused = %index% %icon%
-label-focused-padding = 1 
-label-focused-foreground = ${colors.nord-grey1}
-label-focused-background = ${colors.nord-white1}
-label-unfocused = %index% %icon%
-label-unfocused-padding = 1
-label-visible = %index% %icon%
-label-visible-padding = 1
-label-urgent = %index% %icon%
-label-urgent-padding = 1
-label-mode = %mode%
-label-mode-padding = 1
-label-mode-foreground = ${colors.nord-grey1}
-label-mode-background = ${colors.nord-white1}
+
+; This will split the workspace name on ':'
+; Default: false
+strip-wsnumbers = true
+
+; Create click handler used to focus workspace
+; Default: true
+enable-click = true
+
+; Create scroll handlers used to cycle workspaces
+; Default: true
+enable-scroll = false
+
+; Wrap around when reaching the first/last workspace
+; Default: true
+wrapping-scroll = false
+
+; Sort the workspaces by index instead of the default
+; sorting that groups the workspaces by output
+; Default: false
 index-sort = true
+
+; Set the scroll cycle direction 
+; Default: true
+reverse-scroll = false
+
+; Use fuzzy (partial) matching on labels when assigning 
+; icons to workspaces
+; Example: code;♚ will apply the icon to all workspaces 
+; containing 'code' in the label
+; Default: false
+fuzzy-match = true
+
+; ws-icon-[0-9]+ = label;icon
+; NOTE: The label needs to match the name of the i3 workspace
 ws-icon-0 = 1;%{T2} %{T-}
 ws-icon-1 = 2;%{T2} %{T-}
 ws-icon-2 = 3;%{T2} %{T-}
@@ -66,6 +83,123 @@ ws-icon-6 = 7;%{T2} %{T-}
 ws-icon-7 = 8;%{T2} %{T-}
 ws-icon-default = %{T2} %{T-}
 
+; Available tags:
+;   <label-state> (default) - gets replaced with <label-(focused|unfocused|visible|urgent)>
+;   <label-mode> (default)
+format = <label-state> <label-mode>
+
+; Available tokens:
+;   %mode%
+; Default: %mode%
+label-mode = %mode%
+label-mode-padding = 1
+label-mode-background = ${colors.nord-red}
+
+; Available tokens:
+;   %name%
+;   %icon%
+;   %index%
+;   %output%
+; Default: %icon%  %name%
+label-focused = %icon%
+label-focused-foreground = ${colors.nord-green}
+label-focused-background = ${colors.nord-grey1a}
+label-focused-underline = ${colors.nord-yellow}
+label-focused-padding = 1
+
+; Available tokens:
+;   %name%
+;   %icon%
+;   %index%
+;   %output%
+; Default: %icon%  %name%
+label-unfocused = %icon%
+label-unfocused-foreground = #f2f2f2
+label-unfocused-padding = 1
+
+; Available tokens:
+;   %name%
+;   %icon%
+;   %index%
+;   %output%
+; Default: %icon%  %name%
+label-visible = %icon%
+label-visible-underline = #555555
+label-visible-padding = 1
+
+; Available tokens:
+;   %name%
+;   %icon%
+;   %index%
+;   %output%
+; Default: %icon%  %name%
+label-urgent = %icon%
+label-urgent-foreground = ${colors.nord-red}
+label-urgent-padding = 1
+
+; Separator in between workspaces
+;label-separator = |
+label-separator-padding = 0
+label-separator-foreground = ${colors.nord-yellow}
+
+[bar/bartop]
+monitor = ${env:MONITOR:}
+modules-left = alsa mpd
+modules-center = i3
+modules-right = wired wireless vpn battery xkeyboard openweathermap date poweroff
+height = 30
+radius = 0
+width = 1920px
+offset-x = 0px
+offset-y = 0px
+override-redirect = false
+padding = 1
+border-size = 0
+border-color = ${colors.nord-white1a}
+tray-position = none
+tray-detached = false
+tray-transparent = false
+tray-background = ${colors.nord-grey1a}
+wm-restack = i3
+background = ${colors.nord-grey1a}
+foreground = ${colors.nord-white1}
+font-0 = Source Code Pro:size=12;3
+font-1 = Hack Nerd Font:size=12;3
+font-2 = FontAwesome 5 Free:size=10:style=Solid;2
+font-3 = Font Awesome 5 Brands:pixelsize=10;1
+font-4 = Font Awesome 5 Free:pixelsize=10;2
+font-5 = Weather Icons:size=10;2
+; The separator will be inserted between the output of each module
+separator = "  "
+
+; Modules enabled
+
+
+[module/vpn]
+type = custom/script
+exec = /home/brieucdlf/.scripts/openvpn.sh
+interval = 5
+
+[module/openweathermap]
+type = custom/script
+exec = /home/brieucdlf/.scripts/weather.sh
+interval = 600
+label-font = 6
+label-foreground = ${colors.nord-frost1}
+
+[module/xkeyboard]
+type = internal/xkeyboard
+format-prefix = " "
+format-prefix-foreground = ${colors.nord-pink}
+
+; List of indicators to ignore
+blacklist-0 = num lock
+blacklist-1 = scroll lock
+format = <label-layout>
+format-spacing = 0
+label-layout = %layout%
+label-layout-padding = 0
+label-layout-foreground = ${colors.nord-white1}
 
 [module/alsa]
 type = internal/alsa
@@ -77,10 +211,27 @@ format-volume = <ramp-volume> <label-volume>
 label-volume = %percentage%%
 format-muted = <label-muted>
 label-muted = %{F#bf616a}ﱝ %{F- T-}
-ramp-volume-0 = %{T2}%{T-}
-ramp-volume-1 = %{T2}%{T-}
-ramp-volume-2 = %{T2}墳%{T-}
+ramp-volume-0 = %{F#8fbcbb}%{F- T-}
+ramp-volume-1 = %{F#88c0d0}%{F- T-}
+ramp-volume-2 = %{F#81a1c1}墳%{F- T-}
 
+[module/date]
+type = internal/date
+interval = 5
+label = %time%
+label-foreground = ${colors.nord-white1}
+format-prefix = " "
+format-prefix-foreground = ${colors.nord-frost2}
+date-alt = %A, %d/%m/%Y
+
+time = %H:%M
+time-alt = %A, %d/%m/%Y
+
+[module/poweroff]
+type = custom/script
+exec = echo " "
+click-left = "/home/brieucdlf/.scripts/power.sh"
+format-foreground = ${colors.nord-red}
 
 [module/wireless]
 type = internal/network
@@ -89,15 +240,33 @@ interval = 1
 format-connected = %{T2}%{F#a3be8c}直 %{F- T-}<label-connected>
 format-disconnected = %{T2}%{F#bf616a}睊 %{F- T-}
 label-connected = %essid%
+network-alt = %essid% - %local_ip%
 
+[module/wired]
+type = internal/network
+interface = eth0
+format-connected = <label-connected>
+format-connected-underline = ${colors.underline}
+format-disconnected = <label-disconnected>
+label-connected =  %local_ip%
+label-disconnected = 
 
-[module/backlight]
-type = internal/xbacklight
-card = gmux_backlight
-format = %{F#ebcb8b}盛 %{F- T-} <label>
-format-padding = -1
-label = %percentage%%
+[module/mpd]
+type = internal/mpd
+format-online = %{F#d08770} %{F- T-}<label-song>
+label-offline-foreground = ${colors.nord-red}
 
+interval = 1
+
+label-song = %artist% - %title%
+label-song-maxlen = 35
+label-song-ellipsis = true
+
+; Only applies if <bar-progress> is used
+bar-progress-width = 10
+bar-progress-indicator = >
+bar-progress-fill = ─
+bar-progress-empty = ─
 
 [module/battery]
 type = internal/battery
@@ -109,7 +278,7 @@ time-format = %H:%M
 
 label-charging =   %percentage%%
 label-discharging = %percentage%%
-format-charging = %{T2}%{F#ebcb8b}%{F- T-} <label-charging>
+format-charging = %{T2}%{F#ebcb8b} %{F- T-}<label-charging>
 format-discharging = <ramp-capacity> <label-discharging> 
 
 ramp-capacity-0 = %{T2}%{F#bf616a} %{F- T-}
@@ -123,6 +292,14 @@ ramp-capacity-7 = %{T2}%{F#a3be8c} %{F- T-}
 ramp-capacity-8 = %{T2}%{F#a3be8c} %{F- T-}
 ramp-capacity-9 = %{T2}%{F#a3be8c} %{F- T-}
 
+; Module disabled
+
+[module/backlight]
+type = internal/xbacklight
+card = gmux_backlight
+format = %{F#ebcb8b}盛 %{F- T-}<label>
+format-padding = 1
+label = %percentage%%
 
 [module/cpu]
 type = internal/cpu
@@ -137,44 +314,11 @@ interval = 3
 format =  %{T-} <label>
 label = %gb_used%
 
-
-[module/temperature]
-type = internal/temperature
-thermal-zone = 0
-hwmon-path = /sys/devices/platform/coretemp.0/hwmon/hwmon0/temp1_input
-base-temperature = 55
-warn-temperature = 84
-format = <ramp> <label>
-format-warn = <label-warn>
-label = %temperature-c%
-label-warn = %temperature-c%
-label-warn-foreground = ${colors.nord-red}
-ramp-0 = %{T2}%{T-}
-ramp-1 = %{T2}%{T-}
-ramp-2 = %{T2}%{T-}
-
-
-[module/sep]
-type = custom/text
-content = %{T3}%{F#d8dee9}%{F- T-}
-content-padding = 0
-
-[bar/bartop]
-monitor = ${env:MONITOR:}
-modules-center = date
-modules-right = memory sep wireless sep cpu sep battery sep alsa sep backlight
-modules-left = i3
-height = 30
-radius = 0
-width = 1920px
-offset-x = 0px
-offset-y = 0px
-override-redirect = false
-padding = 2
-border-size = 0
-border-color = ${colors.nord-white1a}
-wm-restack = i3
-background = ${colors.nord-grey1a}
-foreground = ${colors.nord-white1}
-font-0 = FiraCode:size=12;3
-font-1 = Hack Nerd Font:size=12;3
+[module/skb]
+type = custom/script
+exec = skb
+tail = true
+interval = 0.5
+format-foreground = ${colors.nord-white1}
+format-prefix = " "
+format-prefix-foreground = ${colors.nord-pink}
