@@ -146,7 +146,8 @@ assign [class="code-oss"] $ws1
 assign [class="firefox"] $ws2
 assign [class="Termite"] $ws3
 assign [class="Slack"] $ws4
-assign [class="Discord"] $ws6
+assign [class="robo3t"] $ws5
+assign [class="discord"] $ws6
 
 # reload the configuration file
 bindsym $mod+Shift+c reload
@@ -183,6 +184,10 @@ mode "resize" {
 bindsym $mod+r mode "resize"
 bindsym $mod+shift+x exec betterlockscreen -l blur -r 1920x1080 -t "Chouquettes ?"
 
+# Switch keyboard layout
+bindsym $mod+Ctrl+f exec setxkbmap -layout fr
+bindsym $mod+Ctrl+u exec setxkbmap -layout us
+
 for_window [class="."] border pixel 2
 for_window [class="."] title_format " %title"
 
@@ -215,7 +220,7 @@ set $nord-green #a3be8c
 set $nord-pink #b48ead
 
 #class                      border        backgr       text	    indicator   childborder
-client.focused		    $nord-grey1  $nord-grey1  $nord-white1  $nord-white1  $nord-white1
+client.focused		    $nord-grey1  $nord-grey1  $nord-white1  $nord-white1  $nord-yellow
 client.focused_inactive	    $nord-grey1  $nord-grey1  $nord-white1  $nord-grey4   $nord-grey4
 client.unfocused	    $nord-grey1  $nord-grey1  $nord-white1  $nord-grey4   $nord-grey4
 client.urgent		    $nord-grey1  $nord-grey1  $nord-white1  $nord-pink    $nord-pink
@@ -223,10 +228,11 @@ client.placeholder	    $nord-grey1  $nord-grey1  $nord-white1  $nord-pink    $no
 client.background	    $nord-grey1
 
 # exec        --no-startup-id compton
-exec        --no-startup-id picom --experimental-backends &
+# --experimental-backends
+exec        --no-startup-id picom &
 exec_always --no-startup-id sh ~/.scripts/bg.sh
 exec_always --no-startup-id source ~/.fehbg
-exec        --no-startup-id betterlockscreen -l blur -r 1920x1080
+exec        --no-startup-id betterlockscreen -l -w dim
 exec        --no-startup-id redshift -l 48.8412:2.3003 -t 6500:3500 -l manual
 exec        --no-startup-id firefox
 exec        --no-startup-id termite
