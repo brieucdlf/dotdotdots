@@ -1,7 +1,6 @@
 # dotdotdots
 
-![alt text](https://github.com/brieucdlf/dotdotdots/blob/master/screenshots/2020-01-09_16-41-58_screenshot.png "Desktop")
-![alt text](https://github.com/brieucdlf/dotdotdots/blob/master/screenshots/2019-12-26_12-07-41_screenshot.png "Desktop1")
+![alt text](https://github.com/brieucdlf/dotdotdots/blob/master/screenshots/desktop.png "Desktop")
 
 
 ### Some details
@@ -13,10 +12,12 @@
 - WM: i3-gaps
 - Terminal: Termite
 - Multiplexer: Tmux
-- File Manager: Thunar
+- File Manager: Nautilus with Nordic theme
 - Launcher: Rofi
 - Editors: Vim | Code
 - Browser: Firefox
+- Music: ncmpcpp & mpd
+- Notification: Dunst
 - Themes: [Nord](https://github.com/arcticicestudio/nord)
 
 
