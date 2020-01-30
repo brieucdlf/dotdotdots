@@ -60,13 +60,13 @@ wrapping-scroll = false
 ; Default: false
 index-sort = true
 
-; Set the scroll cycle direction 
+; Set the scroll cycle direction
 ; Default: true
 reverse-scroll = false
 
-; Use fuzzy (partial) matching on labels when assigning 
+; Use fuzzy (partial) matching on labels when assigning
 ; icons to workspaces
-; Example: code;♚ will apply the icon to all workspaces 
+; Example: code;♚ will apply the icon to all workspaces
 ; containing 'code' in the label
 ; Default: false
 fuzzy-match = true
@@ -79,7 +79,7 @@ ws-icon-2 = 3;%{T2} %{T-}
 ws-icon-3 = 4;%{T2}聆 %{T-}
 ws-icon-4 = 5;%{T2}%{T-}
 ws-icon-5 = 6;%{T2}ﭮ %{T-}
-ws-icon-6 = 7;%{T2} %{T-}
+ws-icon-6 = 7;%{T2} %{T-}
 ws-icon-7 = 8;%{T2} %{T-}
 ws-icon-default = %{T2} %{T-}
 
@@ -146,7 +146,7 @@ label-separator-foreground = ${colors.nord-yellow}
 monitor = ${env:MONITOR:}
 modules-left = alsa mpd
 modules-center = i3
-modules-right = wired wireless vpn battery xkeyboard openweathermap date poweroff
+modules-right = updates-arch wired wireless vpn battery xkeyboard openweathermap date poweroff
 height = 30
 radius = 0
 width = 1920px
@@ -174,6 +174,10 @@ separator = "  "
 
 ; Modules enabled
 
+[module/updates-arch]
+type=custom/script
+exec=/home/brieucdlf/.scripts/updates-arch.sh
+interval=600
 
 [module/vpn]
 type = custom/script
@@ -240,12 +244,12 @@ interval = 1
 format-connected = %{T2}%{F#a3be8c}直 %{F- T-}<label-connected>
 format-disconnected = %{T2}%{F#bf616a}睊 %{F- T-}
 label-connected = %essid%
-network-alt = %essid% - %local_ip%
 
 [module/wired]
 type = internal/network
 interface = eth0
-format-connected = <label-connected>
+interval = 1
+format-connected = lol <label-connected>
 format-connected-underline = ${colors.underline}
 format-disconnected = <label-disconnected>
 label-connected =  %local_ip%
