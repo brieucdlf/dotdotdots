@@ -107,10 +107,10 @@ bindsym $mod+m        exec xrandr --output $DP1 --off
 bindsym $mod+shift+m  exec xrandr --output $DP1 --auto --above $eDP1
 
 # Workspace on second monitor
-workspace $ws1 output $eDP1
-workspace $ws3 output $DP1
-workspace $ws2 output $eDP1
-workspace $ws4 output $DP1
+workspace $ws1 output $DP1
+workspace $ws3 output $eDP1
+workspace $ws2 output $DP1
+workspace $ws4 output $eDP1
 workspace $ws5 output $eDP1
 workspace $ws6 output $DP1
 
@@ -148,6 +148,7 @@ assign [class="Termite"] $ws3
 assign [class="Slack"] $ws4
 assign [class="robo3t"] $ws5
 assign [class="discord"] $ws6
+assign [class="thunderbird"] $ws7
 
 # reload the configuration file
 bindsym $mod+Shift+c reload
