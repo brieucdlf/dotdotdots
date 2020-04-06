@@ -1,3 +1,7 @@
+;**********************************************************
+;                        COLORS
+;**********************************************************
+
 [colors]
 ;https://github.com/arcticicestudio/nord
 ;Polar Night
@@ -13,13 +17,13 @@ nord-white1a = #EEd8dee9
 nord-white2 = #e5e9f0
 nord-white3 = #eceff4
 
-:Frost
+;Frost
 nord-frost1 = #8fbcbb
 nord-frost2 = #88c0d0
 nord-frost3 = #81a1c1
 nord-frost4 = #5e81ac
 
-:Aurora
+;Aurora
 nord-red = #bf616a
 nord-orange = #d08770
 nord-yellow = #ebcb8b
@@ -28,168 +32,184 @@ nord-pink = #b48ead
 
 clear = #00ffffff
 
-[module/i3]
-type = internal/i3
+; RUST THEME
+rust-dark1 = #181818
+rust-dark2 = #2d2b26
 
-; Only show workspaces defined on the same output as the bar
-;
-; Useful if you want to show monitor specific workspaces
-; on different bars
-;
-; Default: false
-pin-workspaces = true
+rust-white1 = #eceff4
+rust-white3 = #a4a6a7
 
-; This will split the workspace name on ':'
-; Default: false
-strip-wsnumbers = true
+rust-red = #cd412b
+rust-green = #708943
 
-; Create click handler used to focus workspace
-; Default: true
-enable-click = true
 
-; Create scroll handlers used to cycle workspaces
-; Default: true
-enable-scroll = false
+;**********************************************************
+;                    GLOBAL WM SETTINGS
+;**********************************************************
 
-; Wrap around when reaching the first/last workspace
-; Default: true
-wrapping-scroll = false
+[global/wm]
+margin-top = 5
+margin-bottom = 0
 
-; Sort the workspaces by index instead of the default
-; sorting that groups the workspaces by output
-; Default: false
-index-sort = true
 
-; Set the scroll cycle direction
-; Default: true
-reverse-scroll = false
-
-; Use fuzzy (partial) matching on labels when assigning
-; icons to workspaces
-; Example: code;♚ will apply the icon to all workspaces
-; containing 'code' in the label
-; Default: false
-fuzzy-match = true
-
-; ws-icon-[0-9]+ = label;icon
-; NOTE: The label needs to match the name of the i3 workspace
-ws-icon-0 = 1;%{T2} %{T-}
-ws-icon-1 = 2;%{T2} %{T-}
-ws-icon-2 = 3;%{T2} %{T-}
-ws-icon-3 = 4;%{T2}聆 %{T-}
-ws-icon-4 = 5;%{T2}%{T-}
-ws-icon-5 = 6;%{T2}ﭮ %{T-}
-ws-icon-6 = 7;%{T2} %{T-}
-ws-icon-7 = 8;%{T2} %{T-}
-ws-icon-default = %{T2} %{T-}
-
-; Available tags:
-;   <label-state> (default) - gets replaced with <label-(focused|unfocused|visible|urgent)>
-;   <label-mode> (default)
-format = <label-state> <label-mode>
-
-; Available tokens:
-;   %mode%
-; Default: %mode%
-label-mode = %mode%
-label-mode-padding = 1
-label-mode-background = ${colors.nord-red}
-
-; Available tokens:
-;   %name%
-;   %icon%
-;   %index%
-;   %output%
-; Default: %icon%  %name%
-label-focused = %icon%
-label-focused-foreground = ${colors.nord-green}
-label-focused-background = ${colors.nord-grey1a}
-label-focused-underline = ${colors.nord-yellow}
-label-focused-padding = 1
-
-; Available tokens:
-;   %name%
-;   %icon%
-;   %index%
-;   %output%
-; Default: %icon%  %name%
-label-unfocused = %icon%
-label-unfocused-foreground = #f2f2f2
-label-unfocused-padding = 1
-
-; Available tokens:
-;   %name%
-;   %icon%
-;   %index%
-;   %output%
-; Default: %icon%  %name%
-label-visible = %icon%
-label-visible-underline = #555555
-label-visible-padding = 1
-
-; Available tokens:
-;   %name%
-;   %icon%
-;   %index%
-;   %output%
-; Default: %icon%  %name%
-label-urgent = %icon%
-label-urgent-foreground = ${colors.nord-red}
-label-urgent-padding = 1
-
-; Separator in between workspaces
-;label-separator = |
-label-separator-padding = 0
-label-separator-foreground = ${colors.nord-yellow}
+;*********************************************************
+;                       BAR SETTINGS I3
+;********************************************************
 
 [bar/bartop]
 monitor = ${env:MONITOR:}
-modules-left = alsa mpd
-modules-center = i3
-modules-right = updates-arch wired wireless vpn battery xkeyboard openweathermap date poweroff
+bottom = false
+width = 100%
 height = 30
-radius = 0
-width = 1920px
-offset-x = 0px
-offset-y = 0px
+offset-x = 0
+offset-y = 0
+margin-left = 0
+margin-right = 0
+
 override-redirect = false
-padding = 1
-border-size = 0
-border-color = ${colors.nord-white1a}
-tray-position = none
-tray-detached = false
-tray-transparent = false
-tray-background = ${colors.nord-grey1a}
 wm-restack = i3
-background = ${colors.nord-grey1a}
-foreground = ${colors.nord-white1}
-font-0 = Source Code Pro:size=12;3
-font-1 = Hack Nerd Font:size=12;3
-font-2 = FontAwesome 5 Free:size=10:style=Solid;2
-font-3 = Font Awesome 5 Brands:pixelsize=10;1
-font-4 = Font Awesome 5 Free:pixelsize=10;2
-font-5 = Weather Icons:size=10;2
-; The separator will be inserted between the output of each module
-separator = "  "
 
-; Modules enabled
+enable-ipc = true
 
-[module/updates-arch]
-type=custom/script
-exec=/home/brieucdlf/.scripts/updates-arch.sh
-interval=600
+background = ${colors.rust-dark2}
+foreground = ${colors.rust-white1}
 
-[module/vpn]
-type = custom/script
-exec = /home/brieucdlf/.scripts/openvpn.sh
-interval = 5
+spacing = 0
+padding-left = 1
+padding-right = 1
+module-margin-left = 1
+module-margin-right = 1
 
-[module/openweathermap]
-type = custom/script
-exec = /home/brieucdlf/.scripts/weather.sh
-interval = 600
-label-font = 6
-label-foreground = ${colors.nord-frost1}
+font-0 = Source Code Pro:size=10:antialias=true;3
+font-1 = Hack Nerd Font:size=10:antialias=true;3
+font-2 = FontAwesome 5 Free:size=8:antialias=true;1
+font-3 = Font Awesome 5 Brands:pixelsize=8:antialias=true;1
+font-4 = Font Awesome 5 Free:pixelsize=8:antialias=true;1
+
+modules-left = i3
+modules-center = mpd volume
+modules-right = wired wireless battery memory date poweroff
+
+
+;**********************************************************
+;                     MODULES SETTINGS
+;**********************************************************
+
+[module/xwindow]
+type = internal/xwindow
+label-maxlen = 30
+
+[module/i3]
+type = internal/i3
+format = <label-mode> <label-state>
+index-sort = true
+
+label-focused-font = 0
+label-unfocused-font = 0
+label-urgent-font = 0
+label-visible-font = 0
+
+label-focused = 
+;label-focused = %index%
+;label-focused-background = ${colors.rust-white1}
+;label-focused-foreground = ${colors.rust-red}
+label-focused-padding = 1
+
+label-unfocused = 
+;label-unfocused = %index%
+label-unfocused-padding = 1
+;label-unfocused-background = ${colors.rust-red}
+label-unfocused-underlinde = ${colors.rust-white1}
+
+label-urgent = 
+;label-urgent = %index%!
+;label-urgent-background = ${colors.rust-red}
+label-urgent-padding = 1
+label-urgent-foreground = ${colors.rust-red}
+
+label-visible = 
+;label-visible = %index%
+label-visible-foreground = ${colors.rust-white1}
+label-visible-padding = 1
+
+
+
+[module/mpd]
+type = internal/mpd
+
+host = 127.0.0.1
+port = 6600
+
+intervel = 2
+
+format-online = <label-song>   <icon-prev> <icon-play> <icon-stop> <icon-pause> <icon-next>
+format-offline = <label-offline>
+
+label-offline =  no music
+label-offline-foreground = ${colors.rust-white1}
+
+label-song = %artist% - %title%
+label-song-maxlen = 95
+label-song-ellipsis = true
+
+icon-prev  = 
+icon-next  = 
+icon-seekb = 
+icon-seekf = 
+icon-stop  = 
+icon-pause = 
+icon-play  = 
+
+icon-random = S
+icon-repeat = R
+
+toggle-on-foreground = #e60053
+toggle-off-foreground = #66
+
+
+[module/volume]
+type = internal/volume
+
+format-volume = <bar-volume>
+
+label-volume = VOL
+;label-volume-foreground = ${root.foreground}
+
+label-muted =  sound muted
+label-muted-foreground = ${colors.rust-white1}
+
+bar-volume-width = 10
+bar-volume-foreground-0 = ${colors.rust-green}
+bar-volume-foreground-1 = ${colors.rust-green}
+bar-volume-foreground-2 = ${colors.rust-green}
+bar-volume-foreground-3 = ${colors.rust-green}
+bar-volume-foreground-4 = ${colors.nord-yellow}
+bar-volume-foreground-5 = ${colors.rust-red}
+bar-volume-gradient = false
+bar-volume-indicator = 
+bar-volume-indicator-font = 4
+bar-volume-indicator-foreground = ${colors.rust-white1}
+bar-volume-fill = 
+bar-volume-fill-font = 4
+bar-volume-empty = 
+bar-volume-empty-font = 4
+bar-volume-empty-foreground = ${colors.rust-white1}
+
+
+[module/memory]
+type = internal/memory
+interval = 2
+
+label = %{F${colors.rust-white1}  %percentage_used% %{F-}
+label-underline = ${colors.rust-white1}
+label-foreground = ${colors.rust-white1}
+
+
+[module/backlight]
+type = internal/xbacklight
+enable-scroll = false
+format = "<label> "
+label =  %percentage%%
 
 [module/xkeyboard]
 type = internal/xkeyboard
@@ -205,19 +225,45 @@ label-layout = %layout%
 label-layout-padding = 0
 label-layout-foreground = ${colors.nord-white1}
 
-[module/alsa]
-type = internal/alsa
-master-soundcard = default
-speaker-soundcard = default
-headphone-soundcard = default
-master-mixer = Master
-format-volume = <ramp-volume> <label-volume>
-label-volume = %percentage%%
-format-muted = <label-muted>
-label-muted = %{F#bf616a}ﱝ %{F- T-}
-ramp-volume-0 = %{F#8fbcbb}%{F- T-}
-ramp-volume-1 = %{F#88c0d0}%{F- T-}
-ramp-volume-2 = %{F#81a1c1}墳%{F- T-}
+[module/battery]
+type = internal/battery
+battery = BAT0
+adapter = ADP1
+full-at = 100
+time-format = %H:%M
+
+format-charging = "⁣  <label-charging> <animation-charging> "
+format-charging-underline = ${colors.rust-white1}
+label-charging = %percentage%% %time%
+
+format-discharging = "⁣  <label-discharging> <ramp-capacity> "
+format-discharging-underline = ${self.format-charging-underline}
+label-discharging = %percentage%% %time%
+
+format-full = "  <label-full>  "
+format-full-prefix-foreground = ${colors.nord-green}
+format-full-underline = ${self.format-charging-underline}
+label-full = FULL
+
+ramp-capacity-0 = 
+ramp-capacity-1 = 
+ramp-capacity-2 = 
+ramp-capacity-3 = 
+ramp-capacity-4 = 
+
+ramp-capacity-0-foreground = ${colors.rust-red}
+ramp-capacity-1-foreground = ${colors.nord-yellow}
+ramp-capacity-2-foreground = ${colors.nord-green}
+ramp-capacity-3-foreground = ${colors.nord-green}
+ramp-capacity-4-foreground = ${colors.nord-green}
+
+animation-charging-0 = 
+animation-charging-1 = 
+animation-charging-2 = 
+animation-charging-3 = 
+animation-charging-4 = 
+animation-charging-foreground = ${colors.nord-green}
+animation-charging-framerate = 750
 
 [module/date]
 type = internal/date
@@ -225,7 +271,6 @@ interval = 5
 label = %time%
 label-foreground = ${colors.nord-white1}
 format-prefix = " "
-format-prefix-foreground = ${colors.nord-frost2}
 date-alt = %A, %d/%m/%Y
 
 time = %H:%M
@@ -241,88 +286,16 @@ format-foreground = ${colors.nord-red}
 type = internal/network
 interface = "wlan0"
 interval = 1
-format-connected = %{T2}%{F#a3be8c}直 %{F- T-}<label-connected>
-format-disconnected = %{T2}%{F#bf616a}睊 %{F- T-}
+format-connected = %{T2}直 %{F- T-}<label-connected>
+format-disconnected = %{T2}睊 %{F- T-}
 label-connected = %essid%
-
-[module/wired]
-type = internal/network
-interface = eth0
-interval = 1
-format-connected = lol <label-connected>
-format-connected-underline = ${colors.underline}
-format-disconnected = <label-disconnected>
-label-connected =  %local_ip%
-label-disconnected = 
-
-[module/mpd]
-type = internal/mpd
-format-online = %{F#d08770} %{F- T-}<label-song>
-label-offline-foreground = ${colors.nord-red}
-
-interval = 1
-
-label-song = %artist% - %title%
-label-song-maxlen = 35
-label-song-ellipsis = true
-
-; Only applies if <bar-progress> is used
-bar-progress-width = 10
-bar-progress-indicator = >
-bar-progress-fill = ─
-bar-progress-empty = ─
-
-[module/battery]
-type = internal/battery
-full-at = 100
-battery = BAT0
-adapter = ADP1
-poll-interval = 1
-time-format = %H:%M
-
-label-charging =   %percentage%%
-label-discharging = %percentage%%
-format-charging = %{T2}%{F#ebcb8b} %{F- T-}<label-charging>
-format-discharging = <ramp-capacity> <label-discharging> 
-
-ramp-capacity-0 = %{T2}%{F#bf616a} %{F- T-}
-ramp-capacity-1 = %{T2}%{F#d08770} %{F- T-}
-ramp-capacity-2 = %{T2}%{F#d08770} %{F- T-}
-ramp-capacity-3 = %{T2}%{F#a3be8c} %{F- T-}
-ramp-capacity-4 = %{T2}%{F#a3be8c} %{F- T-}
-ramp-capacity-5 = %{T2}%{F#a3be8c} %{F- T-}
-ramp-capacity-6 = %{T2}%{F#a3be8c} %{F- T-}
-ramp-capacity-7 = %{T2}%{F#a3be8c} %{F- T-}
-ramp-capacity-8 = %{T2}%{F#a3be8c} %{F- T-}
-ramp-capacity-9 = %{T2}%{F#a3be8c} %{F- T-}
 
 ; Module disabled
 
-[module/backlight]
+[module/xbacklight]
 type = internal/xbacklight
-card = gmux_backlight
+output = ${env:MONITOR:}
+;card = gmux_backlight
 format = %{F#ebcb8b}盛 %{F- T-}<label>
 format-padding = 1
 label = %percentage%%
-
-[module/cpu]
-type = internal/cpu
-interval = 0.5
-format = <label>
-label = %{T2} %{T-} %percentage%%
-ramp-coreload-spacing = 1
-
-[module/memory]
-type = internal/memory
-interval = 3
-format =  %{T-} <label>
-label = %gb_used%
-
-[module/skb]
-type = custom/script
-exec = skb
-tail = true
-interval = 0.5
-format-foreground = ${colors.nord-white1}
-format-prefix = " "
-format-prefix-foreground = ${colors.nord-pink}

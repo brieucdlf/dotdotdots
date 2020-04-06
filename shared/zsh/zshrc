@@ -46,6 +46,7 @@ plugins=(
   dotenv
   bundler
   zsh-autosuggestions
+  archlinux
 )
 
 # Enable syntax highlighting
