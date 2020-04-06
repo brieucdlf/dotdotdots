@@ -1,6 +1,6 @@
 {
     "workbench.activityBar.visible": true,
-    "workbench.colorTheme": "Nord",
+    "workbench.colorTheme": "Gruvbox Dark Soft",
     "breadcrumbs.enabled": false,
     "editor.accessibilitySupport": "off",
     "editor.codeLens": true,
