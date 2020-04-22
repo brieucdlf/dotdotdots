@@ -1,0 +1,12 @@
+[module/xkeyboard]
+type = internal/xkeyboard
+format-prefix = %{T3} %{T-}
+format-prefix-foreground = ${colors.nord-purple}
+
+blacklist-0 = num lock
+blacklist-1 = scroll lock
+format = <label-layout>
+format-spacing = 1
+label-layout = %{T2}%layout%%{T-}
+label-layout-padding = 0
+label-layout-foreground = ${colors.nord-purple}

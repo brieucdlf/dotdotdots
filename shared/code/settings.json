@@ -1,15 +1,15 @@
 {
     "workbench.activityBar.visible": true,
-    "workbench.colorTheme": "Gruvbox Dark Soft",
+    "workbench.colorTheme": "Nord",
     "breadcrumbs.enabled": false,
     "editor.accessibilitySupport": "off",
     "editor.codeLens": true,
     "editor.colorDecorators": true,
     "editor.cursorBlinking": "smooth",
     "editor.emptySelectionClipboard": false,
-    "editor.fontFamily": "'Iosevka Nerd Font', 'Source Code Pro Nerd Font'",
+    "editor.fontFamily": "SauceCodePro Nerd Font",
     "editor.fontSize": 20,
-    "editor.fontWeight": "400",
+    "editor.fontWeight": "600",
     "editor.lightbulb.enabled": true,
     "editor.multiCursorModifier": "alt",
     "editor.renderIndentGuides": false,
@@ -81,4 +81,5 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "javascript.updateImportsOnFileMove.enabled": "always",
+    "workbench.iconTheme": "material-icon-theme",
 }
