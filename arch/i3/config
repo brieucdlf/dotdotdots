@@ -149,6 +149,7 @@ assign [class="Slack"] $ws4
 assign [class="robo3t"] $ws5
 assign [class="discord"] $ws6
 assign [class="thunderbird"] $ws7
+assign [class="signal"] $ws8
 
 # reload the configuration file
 bindsym $mod+Shift+c reload
@@ -183,7 +184,7 @@ mode "resize" {
 }
 
 bindsym $mod+r mode "resize"
-bindsym $mod+shift+x exec betterlockscreen -l blur -r 1920x1080 -t "Chouquettes ?"
+bindsym $mod+shift+x exec betterlockscreen -l blur -r 1920x1080
 
 # Switch keyboard layout
 bindsym $mod+Ctrl+f exec setxkbmap -layout fr
@@ -231,6 +232,8 @@ client.background	    $nord-grey1
 # exec        --no-startup-id compton
 # --experimental-backends
 exec        --no-startup-id picom &
+exec        --no-startup-id protonmail-bridge &
+exec        --no-startup-id kitty &
 exec_always --no-startup-id sh ~/.scripts/bg.sh
 exec_always --no-startup-id source ~/.fehbg
 exec        --no-startup-id betterlockscreen -l -w dim
@@ -241,4 +244,3 @@ exec        --no-startup-id code --disable-gpu
 exec        --no-startup-id slack --disable-gpu
 exec        --no-startup-id discord --disable-gpu
 exec_always --no-startup-id sh ~/.scripts/polybar.sh
-

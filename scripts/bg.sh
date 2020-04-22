@@ -1,3 +1,3 @@
 #!/bin/sh
-imagePath="$HOME/Images/2020-04-06_14-48-01_screenshot.png"
+imagePath="$HOME/Images/1216423.jpg"
 feh --bg-fill $imagePath

@@ -1,301 +1,65 @@
-;**********************************************************
-;                        COLORS
-;**********************************************************
+;   To learn more about how to configure Polybar
+;   go to https://github.com/polybar/polybar
 
-[colors]
-;https://github.com/arcticicestudio/nord
-;Polar Night
-nord-grey1 = #2e3440
-nord-grey1a = #DD2e3440
-nord-grey2 = #3b4252
-nord-grey3 = #434c5e
-nord-grey4 = #4c566a
+include-file = /home/$USER/dotdotdots/arch/polybar/colors
 
-;Snow Storm
-nord-white1 = #d8dee9
-nord-white1a = #EEd8dee9
-nord-white2 = #e5e9f0
-nord-white3 = #eceff4
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/battery
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/cpu
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/date
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/filemanager
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/i3
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/launcher
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/lockscreen
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/memory
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/pulseaudio
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/session
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/temperature
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/title
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/window
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/wlan
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/wireless
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/xbacklight
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/xkeyboard
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/xworkspaces
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/weather
 
-;Frost
-nord-frost1 = #8fbcbb
-nord-frost2 = #88c0d0
-nord-frost3 = #81a1c1
-nord-frost4 = #5e81ac
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/code
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/firefox
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/google-chrome
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/steam
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/terminal
 
-;Aurora
-nord-red = #bf616a
-nord-orange = #d08770
-nord-yellow = #ebcb8b
-nord-green = #a3be8c
-nord-pink = #b48ead
-
-clear = #00ffffff
-
-; RUST THEME
-rust-dark1 = #181818
-rust-dark2 = #2d2b26
-
-rust-white1 = #eceff4
-rust-white3 = #a4a6a7
-
-rust-red = #cd412b
-rust-green = #708943
-
-
-;**********************************************************
-;                    GLOBAL WM SETTINGS
-;**********************************************************
-
-[global/wm]
-margin-top = 5
-margin-bottom = 0
-
-
-;*********************************************************
-;                       BAR SETTINGS I3
-;********************************************************
-
-[bar/bartop]
+[bar/main]
 monitor = ${env:MONITOR:}
-bottom = false
 width = 100%
-height = 30
-offset-x = 0
-offset-y = 0
-margin-left = 0
-margin-right = 0
+height = 28
+bottom = false
+fixed-center = true
+
+background = ${colors.polar-night-1}
+foreground = ${colors.fg}
+
+font-0 = "SauceCodePro Nerd Font:style=Medium:size=9:antialias=true;2"
+font-1 = "SauceCodePro Nerd Font:style=Bold:size=9:antialias=true;2"
+font-2 = "SauceCodePro Nerd Font:size=12:antialias=true;3"
+font-3 = "SauceCodePro Nerd Font:size=16:antialias=true;4"
+font-4 = "Weather Icons:antialias=true;size=10;2"
+
+modules-left = launcher xworkspaces
+modules-center = date openweathermap
+modules-right = wireless cpu memory xbacklight pulseaudio battery session
+
+tray-background = ${colors.polar-night-2}
+tray-position = right
+tray-maxsize = 16
+
+cursor-click = pointer
+cursor-scroll = ns-resize
 
 override-redirect = false
 wm-restack = i3
 
 enable-ipc = true
 
-background = ${colors.rust-dark2}
-foreground = ${colors.rust-white1}
-
-spacing = 0
-padding-left = 1
-padding-right = 1
-module-margin-left = 1
-module-margin-right = 1
-
-font-0 = Source Code Pro:size=10:antialias=true;3
-font-1 = Hack Nerd Font:size=10:antialias=true;3
-font-2 = FontAwesome 5 Free:size=8:antialias=true;1
-font-3 = Font Awesome 5 Brands:pixelsize=8:antialias=true;1
-font-4 = Font Awesome 5 Free:pixelsize=8:antialias=true;1
-
-modules-left = i3
-modules-center = mpd volume
-modules-right = wired wireless battery memory date poweroff
-
-
-;**********************************************************
-;                     MODULES SETTINGS
-;**********************************************************
-
-[module/xwindow]
-type = internal/xwindow
-label-maxlen = 30
-
-[module/i3]
-type = internal/i3
-format = <label-mode> <label-state>
-index-sort = true
-
-label-focused-font = 0
-label-unfocused-font = 0
-label-urgent-font = 0
-label-visible-font = 0
-
-label-focused = 
-;label-focused = %index%
-;label-focused-background = ${colors.rust-white1}
-;label-focused-foreground = ${colors.rust-red}
-label-focused-padding = 1
-
-label-unfocused = 
-;label-unfocused = %index%
-label-unfocused-padding = 1
-;label-unfocused-background = ${colors.rust-red}
-label-unfocused-underlinde = ${colors.rust-white1}
-
-label-urgent = 
-;label-urgent = %index%!
-;label-urgent-background = ${colors.rust-red}
-label-urgent-padding = 1
-label-urgent-foreground = ${colors.rust-red}
-
-label-visible = 
-;label-visible = %index%
-label-visible-foreground = ${colors.rust-white1}
-label-visible-padding = 1
-
-
-
-[module/mpd]
-type = internal/mpd
-
-host = 127.0.0.1
-port = 6600
-
-intervel = 2
-
-format-online = <label-song>   <icon-prev> <icon-play> <icon-stop> <icon-pause> <icon-next>
-format-offline = <label-offline>
-
-label-offline =  no music
-label-offline-foreground = ${colors.rust-white1}
-
-label-song = %artist% - %title%
-label-song-maxlen = 95
-label-song-ellipsis = true
-
-icon-prev  = 
-icon-next  = 
-icon-seekb = 
-icon-seekf = 
-icon-stop  = 
-icon-pause = 
-icon-play  = 
-
-icon-random = S
-icon-repeat = R
-
-toggle-on-foreground = #e60053
-toggle-off-foreground = #66
-
-
-[module/volume]
-type = internal/volume
-
-format-volume = <bar-volume>
-
-label-volume = VOL
-;label-volume-foreground = ${root.foreground}
-
-label-muted =  sound muted
-label-muted-foreground = ${colors.rust-white1}
-
-bar-volume-width = 10
-bar-volume-foreground-0 = ${colors.rust-green}
-bar-volume-foreground-1 = ${colors.rust-green}
-bar-volume-foreground-2 = ${colors.rust-green}
-bar-volume-foreground-3 = ${colors.rust-green}
-bar-volume-foreground-4 = ${colors.nord-yellow}
-bar-volume-foreground-5 = ${colors.rust-red}
-bar-volume-gradient = false
-bar-volume-indicator = 
-bar-volume-indicator-font = 4
-bar-volume-indicator-foreground = ${colors.rust-white1}
-bar-volume-fill = 
-bar-volume-fill-font = 4
-bar-volume-empty = 
-bar-volume-empty-font = 4
-bar-volume-empty-foreground = ${colors.rust-white1}
-
-
-[module/memory]
-type = internal/memory
-interval = 2
-
-label = %{F${colors.rust-white1}  %percentage_used% %{F-}
-label-underline = ${colors.rust-white1}
-label-foreground = ${colors.rust-white1}
-
-
-[module/backlight]
-type = internal/xbacklight
-enable-scroll = false
-format = "<label> "
-label =  %percentage%%
-
-[module/xkeyboard]
-type = internal/xkeyboard
-format-prefix = " "
-format-prefix-foreground = ${colors.nord-pink}
-
-; List of indicators to ignore
-blacklist-0 = num lock
-blacklist-1 = scroll lock
-format = <label-layout>
-format-spacing = 0
-label-layout = %layout%
-label-layout-padding = 0
-label-layout-foreground = ${colors.nord-white1}
-
-[module/battery]
-type = internal/battery
-battery = BAT0
-adapter = ADP1
-full-at = 100
-time-format = %H:%M
-
-format-charging = "⁣  <label-charging> <animation-charging> "
-format-charging-underline = ${colors.rust-white1}
-label-charging = %percentage%% %time%
-
-format-discharging = "⁣  <label-discharging> <ramp-capacity> "
-format-discharging-underline = ${self.format-charging-underline}
-label-discharging = %percentage%% %time%
-
-format-full = "  <label-full>  "
-format-full-prefix-foreground = ${colors.nord-green}
-format-full-underline = ${self.format-charging-underline}
-label-full = FULL
-
-ramp-capacity-0 = 
-ramp-capacity-1 = 
-ramp-capacity-2 = 
-ramp-capacity-3 = 
-ramp-capacity-4 = 
-
-ramp-capacity-0-foreground = ${colors.rust-red}
-ramp-capacity-1-foreground = ${colors.nord-yellow}
-ramp-capacity-2-foreground = ${colors.nord-green}
-ramp-capacity-3-foreground = ${colors.nord-green}
-ramp-capacity-4-foreground = ${colors.nord-green}
-
-animation-charging-0 = 
-animation-charging-1 = 
-animation-charging-2 = 
-animation-charging-3 = 
-animation-charging-4 = 
-animation-charging-foreground = ${colors.nord-green}
-animation-charging-framerate = 750
-
-[module/date]
-type = internal/date
-interval = 5
-label = %time%
-label-foreground = ${colors.nord-white1}
-format-prefix = " "
-date-alt = %A, %d/%m/%Y
-
-time = %H:%M
-time-alt = %A, %d/%m/%Y
-
-[module/poweroff]
-type = custom/script
-exec = echo " "
-click-left = "/home/brieucdlf/.scripts/power.sh"
-format-foreground = ${colors.nord-red}
-
-[module/wireless]
-type = internal/network
-interface = "wlan0"
-interval = 1
-format-connected = %{T2}直 %{F- T-}<label-connected>
-format-disconnected = %{T2}睊 %{F- T-}
-label-connected = %essid%
-
-; Module disabled
-
-[module/xbacklight]
-type = internal/xbacklight
-output = ${env:MONITOR:}
-;card = gmux_backlight
-format = %{F#ebcb8b}盛 %{F- T-}<label>
-format-padding = 1
-label = %percentage%%
+[settings]
+screenchange-reload = true

@@ -1,0 +1,10 @@
+[module/wireless]
+type = internal/network
+interface = "wlan0"
+interval = 1
+
+format-connected = %{T3}直 %{T-}%{T2}<label-connected>%{T-}
+format-padding = 1
+format-disconnected = %{T3}睊%{T-}
+label-connected = %essid%
+format-connected-foreground = ${colors.nord-green}

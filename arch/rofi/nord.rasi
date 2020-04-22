@@ -1,128 +1,65 @@
 configuration {
-	display-drun:   "Activate";
-	display-run:    "Execute";
-	display-window: "Window";
+  show-icons: true;
+  icon-theme: "Papirus";
+  font: "SauceCodePro Nerd Font Medium 10";
+  drun-display-format: "{icon} {name}";
+  display-run: " ";
+  display-drun: " ";
+  display-window: " ";
 }
 
 * {
-	background-color: #3B4252;
-	text-color:       #D8DEE9;
-	selbg:            #81A1C1;
-	actbg:            #81A1C1;
-	urgbg:            #88C0D0;
-	winbg:			  @text-color;
+  background-color: #2E3440;
+  bg-alt: #3B4252;
+  fg: #ECEFF4;
 
-	selected-normal-foreground: @winbg;
-	normal-foreground:          @text-color;
-	selected-normal-background: @actbg;
-	normal-background:          @background-color;
+  nord-blue-light: #88C0D0;
+  nord-yellow: #EBCB8B;
 
-	selected-urgent-foreground: @background-color;
-	urgent-foreground:          @text-color;
-	selected-urgent-background: @urgbg;
-	urgent-background:          @background-color;
-
-	selected-active-foreground: @winbg;
-	active-foreground:          @text-color;
-	selected-active-background: @actbg;
-	active-background:          @selbg;
-
-	line-margin:     0;
-	line-padding:    0;
-	separator-style: "none";
-	hide-scrollbar:  "true";
-	margin:          0;
-	padding:         0;
+  border: 0;
+  lines: 12;
+  padding: 0;
+  margin: 0;
+  spacing: 0;
 }
 
 window {
-	location:	 center;
-	anchor:		 center;
-	height:		 50%;
-	width:		 50%;
-	orientation: horizontal;
-	children:	 [mainbox];
+  width: 30%;
+  transparency: "real";
 }
 
 mainbox {
-	spacing:  0.5em;
-	children: [entry,listview,mode-switcher];
-}
-
-button {
-	padding: 8px 2px;
-}
-
-button selected {
-	background-color: @active-background;
-	text-color:       @text-color;
-}
-
-inputbar {
-	padding: 5px;
-	spacing: 5px;
+  children: [inputbar, listview];
 }
 
 listview {
-	spacing: 0.5em;
-	dynamic: false;
-	cycle:   false;
+  columns: 1;
 }
 
 element {
-	padding: 8px;
+  padding: 12;
+  orientation: vertical;
+  text-color: @fg;
+}
+
+element selected {
+  background-color: @bg-alt;
+  text-color: @nord-blue-light;
+}
+
+inputbar {
+  background-color: @background;
+  children: [prompt, entry];
+}
+
+prompt {
+  enabled: true;
+  font: "SauceCodePro Nerd Font 12";
+  padding: 12 0 0 12;
+  text-color: @nord-yellow;
 }
 
 entry {
-	expand:         false;
-	text-color:     @normal-foreground;
-	vertical-align: 1;
-	padding:        8px;
-}
-
-element normal.normal {
-	background-color: @normal-background;
-	text-color:       @normal-foreground;
-}
-
-element normal.urgent {
-	background-color: @urgent-background;
-	text-color:       @urgent-foreground;
-}
-
-element normal.active {
-	background-color: @active-background;
-	text-color:       @active-foreground;
-}
-
-element selected.normal {
-	background-color: @selected-normal-background;
-	text-color:       @selected-normal-foreground;
-	border:           0 5px solid 0 0;
-	border-color:	  @active-background;
-}
-
-element selected.urgent {
-	background-color: @selected-urgent-background;
-	text-color:       @selected-urgent-foreground;
-}
-
-element selected.active {
-	background-color: @selected-active-background;
-	text-color:       @selected-active-foreground;
-}
-
-element alternate.normal {
-	background-color: @normal-background;
-	text-color:       @normal-foreground;
-}
-
-element alternate.urgent {
-	background-color: @urgent-background;
-	text-color:       @urgent-foreground;
-}
-
-element alternate.active {
-	background-color: @active-background;
-	text-color:       @active-foreground;
+  padding: 12;
+  text-color: @nord-yellow;
 }

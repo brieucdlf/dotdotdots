@@ -1,0 +1,6 @@
+[module/openweathermap]
+type = custom/script
+exec = /home/brieucdlf/.scripts/weather.sh
+interval = 600
+label-font = 5
+label-foreground = ${colors.nord-yellow}
