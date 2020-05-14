@@ -1,21 +1,40 @@
 [module/i3]
 type = internal/i3
 format = <label-state> <label-mode>
-index-sort = true
-wrapping-scroll = false
 
-label-focused = %index%
-label-focused-foreground = ${colors.white}
-label-focused-padding = 1
+ws-icon-0 = 1;ﮰ
+ws-icon-1 = 2;﨩
+ws-icon-2 = 3;
+ws-icon-3 = 4;聆
+ws-icon-4 = 5;
+ws-icon-5 = 6;ﭮ
+ws-icon-6 = 7;
+ws-icon-7 = 8;
+ws-icon-8 = 9;ﴑ
+ws-icon-9 = 10;
 
-label-unfocused = %index%
-label-unfocused-foreground = ${colors.white}
-label-unfocused-padding = 1
+pin-workspaces = true
 
-label-visible = %index%
-label-visible-foreground = ${self.label-focused-foreground}
-label-visible-padding = ${self.label-focused-padding}
+label-mode-background = ${colors.nord13}
+label-mode-foreground = ${colors.nord0}
+label-mode-padding = ${paddings.outer}
 
-label-urgent = %index%
-label-urgent-foreground = ${colors.danger}
-label-urgent-padding = ${self.label-focused-padding}
+label-focused = %icon%
+label-focused-background = ${colors.nord10}
+label-focused-foreground = ${colors.nord6}
+label-focused-padding = ${paddings.outer}
+
+label-unfocused = %icon%
+label-unfocused-background = ${colors.nord0}
+label-unfocused-foreground = ${colors.nord6}
+label-unfocused-padding = ${paddings.outer}
+
+label-visible = %icon%
+label-visible-background = ${colors.nord0}
+label-visible-foreground = ${colors.nord6}
+label-visible-padding = ${paddings.outer}
+
+label-urgent = %icon%
+label-urgent-background = ${colors.nord0}
+label-urgent-foreground = ${colors.nord13}
+label-urgent-padding = ${paddings.outer}

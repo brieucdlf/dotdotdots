@@ -1,0 +1,5 @@
+[module/right4]
+type = custom/text
+content = "%{T3}%{T-}"
+content-background = ${colors.nord3}
+content-foreground = ${colors.nord2}

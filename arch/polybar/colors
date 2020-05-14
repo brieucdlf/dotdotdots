@@ -1,36 +1,22 @@
 [colors]
-black = #000
-white = #FFF
+nord0 = #2E3440
+nord1 = #3B4252
+nord2 = #434C5E
+nord3 = #4C566A
+nord3-25 = #546076
+nord3-5 = #5C6A82
 
-trans = #00000000
-semi-trans = #55000000
+nord4 = #D8DEE9
+nord5 = #E5E9F0
+nord6 = #ECEFF4
 
-bg = #000
-fg = #FFF
+nord7 = #8FBCBB
+nord8 = #88C0D0
+nord9 = #81A1C1
+nord10 = #5E81AC
 
-success = #A3BE8C
-warning = #EBCB8B
-danger = #BF616A
-
-polar-night-1 = #2E3440
-polar-night-2 = #3B4252
-
-nord-blue = #81A1C1
-nord-blue-light = #88C0D0
-nord-green = #A3BE8C
-nord-purple = #B48EAD
-nord-red = #BF616A
-nord-yellow = #EBCB8B
-
-code = #CAE8D5
-filemanager = #ABD6BB
-firefox = #FFEC4A
-i3 = #29B488
-google-chrome = #4C8BF5
-launcher = #142D4C
-session = #DD5144
-steam = #00ADEE
-terminal = #63FC01
-window = #EAD673
-
-
+nord11 = #BF616A
+nord12 = #D08770
+nord13 = #EBCB8B
+nord14 = #A3BE8C
+nord15 = #B48EAD
