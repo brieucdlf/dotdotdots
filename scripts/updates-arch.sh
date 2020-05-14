@@ -15,5 +15,5 @@ RED='\033[0;31m'
 if [ "$updates" -gt 0 ]; then
     echo "鬒 $updates"
 else
-    echo " $updates"
+    echo " $updates"
 fi
