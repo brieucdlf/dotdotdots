@@ -1,0 +1,4 @@
+[module/padding6]
+type = custom/text
+content = "%{B#546076}%{F}        %{B- F-}"
+content-foreground = ${colors.nord3.25}

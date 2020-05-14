@@ -81,5 +81,5 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "javascript.updateImportsOnFileMove.enabled": "always",
-    "workbench.iconTheme": "material-icon-theme",
+    "workbench.iconTheme": "vscode-simpler-icons",
 }

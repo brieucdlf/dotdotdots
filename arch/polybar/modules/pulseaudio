@@ -1,19 +1,18 @@
 [module/pulseaudio]
 type = internal/pulseaudio
-use-ui-max = false
 
-format-volume = <ramp-volume>
-format-volume-padding = 1
+interval = 5
+
+label-muted = ﱝ
+label-muted-foreground = ${colors.nord4}
+
+format-volume = <ramp-volume> <label-volume>
 label-volume = %percentage%%
-label-volume-foreground = ${colors.nord-yellow}
-label-volume-padding = 1
+ramp-volume-0 = 奄
+ramp-volume-1 = 奔
+ramp-volume-2 = 
 
-format-muted-padding = 1
-label-muted = %{T3}ﱝ%{T-}
-label-muted-foreground = ${colors.nord-red}
-label-muted-padding = 1
+ramp-headphones-0 = 
 
-ramp-volume-0 = %{T3}奄%{T-}
-ramp-volume-1 = %{T3}奔%{T-}
-ramp-volume-2 = %{T3}%{T-}
-ramp-volume-foreground = ${colors.nord-yellow}
+format-volume-background = ${colors.nord3-25}
+label-muted-background = ${colors.nord3-25}

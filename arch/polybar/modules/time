@@ -1,9 +1,10 @@
-[module/date]
+[module/time]
 type = internal/date
 
 interval = 1
-date = "%d/%m/%Y"
+time = %H:%M:%S
 
-label =  %date%
+label =  %time%
 format-background = ${colors.nord1}
+format-padding = ${paddings.inner}
 label-padding-left = ${paddings.inner}

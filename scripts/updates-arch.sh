@@ -1,11 +1,19 @@
 #!/bin/sh
 
-if ! updates=$(checkupdates 2> /dev/null | wc -l); then
-  updates=0
+if ! updates_arch=$(checkupdates 2> /dev/null | wc -l ); then
+    updates_arch=0
 fi
 
+if ! updates_aur=$(yay -Qum 2> /dev/null | wc -l); then
+    updates_aur=0
+fi
+
+updates=$(("$updates_arch" + "$updates_aur"))
+
+RED='\033[0;31m'
+
 if [ "$updates" -gt 0 ]; then
-  echo "# updates"
+    echo "鬒 $updates"
 else
-  echo ""
+    echo " $updates"
 fi

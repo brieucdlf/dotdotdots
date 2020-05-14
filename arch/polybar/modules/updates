@@ -1,0 +1,8 @@
+[module/updates]
+type = custom/script
+exec = ~/.scripts/updates-arch.sh
+interval = 600
+format-padding = ${paddings.inner}
+label-padding-left = ${paddings.inner}
+
+format-background = ${colors.nord0}

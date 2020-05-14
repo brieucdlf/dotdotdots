@@ -1,0 +1,36 @@
+[module/power]
+type = custom/menu
+
+format = <label-toggle><menu>
+expand-right = true
+
+format-spacing = 0
+
+label-open = 
+label-open-background = ${colors.nord10}
+label-open-foreground = ${colors.nord6}
+label-open-padding = ${paddings.inner}
+
+label-close = 
+label-close-background = ${colors.nord10}
+label-close-padding = ${paddings.inner}
+
+menu-0-0 = 
+menu-0-0-exec = gllock
+menu-0-0-background = ${colors.nord10}
+menu-0-0-padding = ${paddings.inner}
+
+menu-0-1 = 
+menu-0-1-exec = i3-msg exit
+menu-0-1-background = ${colors.nord10}
+menu-0-1-padding = ${paddings.inner}
+
+menu-0-3 = ﰇ
+menu-0-3-exec = reboot
+menu-0-3-background = ${colors.nord10}
+menu-0-3-padding = ${paddings.inner}
+
+menu-0-4 = 
+menu-0-4-exec = poweroff
+menu-0-4-background = ${colors.nord10}
+menu-0-4-padding = ${paddings.inner}
