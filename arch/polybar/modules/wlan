@@ -4,12 +4,8 @@ interface = "wlan0"
 interval = 1
 
 label-connected = %{A1:networkmanager_dmenu:}直  %essid%
-format-connected-padding = ${paddings.inner}
-label-connected-padding-left = ${paddings.inner}
-format-connected-background = ${colors.nord2}
+format-connected-background = ${colors.nord0}
 
 label-disconnected = %{A1:networkmanager_dmenu:}%{A}
-format-disconnected-padding = ${paddings.inner}
-label-disconnected-padding-left = ${paddings.inner}
 label-disconnected-foreground = ${colors.nord4}
-format-disconnected-background = ${colors.nord2}
+format-disconnected-background = ${colors.nord0}

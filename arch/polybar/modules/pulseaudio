@@ -14,5 +14,5 @@ ramp-volume-2 = 
 
 ramp-headphones-0 = 
 
-format-volume-background = ${colors.nord3-25}
-label-muted-background = ${colors.nord3-25}
+format-volume-background = ${colors.nord0}
+label-muted-background = ${colors.nord0}

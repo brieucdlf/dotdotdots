@@ -2,16 +2,16 @@
 type = internal/i3
 format = <label-state> <label-mode>
 
-ws-icon-0 = 1;ﮰ
-ws-icon-1 = 2;﨩
-ws-icon-2 = 3;
-ws-icon-3 = 4;聆
-ws-icon-4 = 5;
-ws-icon-5 = 6;ﭮ
-ws-icon-6 = 7;
-ws-icon-7 = 8;
-ws-icon-8 = 9;ﴑ
-ws-icon-9 = 10;
+ws-icon-0 = 1;
+ws-icon-1 = 2;
+ws-icon-2 = 3;
+ws-icon-3 = 4;
+ws-icon-4 = 5;
+ws-icon-5 = 6;
+ws-icon-6 = 7;
+ws-icon-7 = 8;
+ws-icon-8 = 9;
+ws-icon-9 = 10;
 
 pin-workspaces = true
 
@@ -20,8 +20,8 @@ label-mode-foreground = ${colors.nord0}
 label-mode-padding = ${paddings.outer}
 
 label-focused = %icon%
-label-focused-background = ${colors.nord10}
-label-focused-foreground = ${colors.nord6}
+label-focused-background = ${colors.bg2}
+label-focused-foreground = ${colors.red}
 label-focused-padding = ${paddings.outer}
 
 label-unfocused = %icon%

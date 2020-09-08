@@ -4,5 +4,4 @@ interval = 0.5
 
 format = <label>
 label = 龍 %percentage%%
-format-background = ${colors.nord3}
-format-padding = ${paddings.inner}
+format-background = ${colors.nord0}

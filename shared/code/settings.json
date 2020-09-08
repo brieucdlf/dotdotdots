@@ -1,6 +1,6 @@
 {
     "workbench.activityBar.visible": true,
-    "workbench.colorTheme": "Nord",
+    "workbench.colorTheme": "Gruvbox Dark Hard",
     "breadcrumbs.enabled": false,
     "editor.accessibilitySupport": "off",
     "editor.codeLens": true,
@@ -32,8 +32,8 @@
     "explorer.incrementalNaming": "smart",
     "explorer.openEditors.visible": 1,
     "typescript.updateImportsOnFileMove.enabled": "always",
-    "window.zoomLevel": -1,
-    "extensions.autoUpdate": false,
+    "window.zoomLevel": 0,
+    "extensions.autoUpdate": true,
     "extensions.closeExtensionDetailsOnViewChange": true,
     "extensions.ignoreRecommendations": true,
     "extensions.showRecommendationsOnlyOnDemand": true,
@@ -81,5 +81,11 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "javascript.updateImportsOnFileMove.enabled": "always",
-    "workbench.iconTheme": "vscode-simpler-icons",
+    "workbench.iconTheme": "Monokai Pro (Filter Ristretto) Icons",
+    "mdb.sendTelemetry": false,
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "diffEditor.ignoreTrimWhitespace": false,
+    "debug.onTaskErrors": "debugAnyway"
 }

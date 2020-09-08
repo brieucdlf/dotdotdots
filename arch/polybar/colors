@@ -1,5 +1,9 @@
 [colors]
-nord0 = #2E3440
+bg = #1d2021
+bg2 = #282828
+red = #d79921
+
+nord0 = #1d2021
 nord1 = #3B4252
 nord2 = #434C5E
 nord3 = #4C566A
