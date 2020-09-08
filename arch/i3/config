@@ -15,7 +15,7 @@ font pango:Roboto 10
 font pango:Roboto 10
 
 # class                 border  backgr. text    indicator child_border
-client.focused          #5E81AC #5E81AC #ECEFF4 #5E81AC   #5E81AC
+client.focused          #1d2021 #1d2021 #ECEFF4 #1d2021   #1d2021
 client.focused_inactive #2E3440 #2E3440 #ECEFF4 #2E3440   #2E3440
 client.unfocused        #2E3440 #2E3440 #ECEFF4 #2E3440   #2E3440
 client.urgent           #D08770 #D08770 #ECEFF4 #D08770   #D08770
@@ -204,7 +204,9 @@ workspace $ws6 output $DP1
 
 # Xrandr
 bindsym $mod+m        exec xrandr --output $DP1 --off
+bindsym $mod+n        exec xrandr --output $DP2 --off
 bindsym $mod+shift+m  exec xrandr --output $DP1 --auto --above $eDP1
+bindsym $mod+shift+n  exec xrandr --output $DP2 --auto --above $eDP1
 
 # automatically putting clients on specific workspaces
 assign [class="code-oss"] $ws1
@@ -282,11 +284,38 @@ bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume 0 +5% #i
 bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume 0 -5% #decrease sound volume
 bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute 0 toggle # mute sound
 
+bindsym $mod+shift+x exec betterlockscreen -l blur -r 1920x1080
+
 # Take a screenshot of a screen region and copy it to a clipboard
 bindsym --release Shift+Print exec "~/.scripts/screenshot.sh -s /home/brieucdlf/Images/screenshots/"
 
 # Take a screenshot of a whole window and copy it to a clipboard
 bindsym --release Print exec "~/.scripts/screenshot.sh /home/brieucdlf/Images/screenshots/"
+
+# Open specific applications in floating mode
+for_window [title="alsamixer"] floating enable border pixel 1
+for_window [class="Thunderbird"] floating enable border normal
+for_window [title="File Transfer*"] floating enable
+for_window [class="Galculator"] floating enable border pixel 1
+for_window [class="GParted"] floating enable border normal
+for_window [title="i3_help"] floating enable sticky enable border normal
+for_window [class="Lightdm-gtk-greeter-settings"] floating enable
+for_window [class="Lxappearance"] floating enable sticky enable border normal
+for_window [title="MuseScore: Play Panel"] floating enable
+for_window [class="Nitrogen"] floating enable sticky enable border normal
+for_window [class="Oblogout"] fullscreen enable
+for_window [class="octopi"] floating enable
+for_window [title="About Pale Moon"] floating enable
+for_window [class="Pamac-manager"] floating enable
+for_window [class="Pavucontrol"] floating enable
+for_window [class="qt5ct"] floating enable sticky enable border normal
+for_window [class="Qtconfig-qt4"] floating enable sticky enable border normal
+for_window [class="Simple-scan"] floating enable border normal
+for_window [class="(?i)System-config-printer.py"] floating enable border normal
+for_window [class="Thus"] floating enable border normal
+for_window [class="Timeset-gui"] floating enable border normal
+for_window [class="(?i)virtualbox"] floating enable border normal
+for_window [class="Xfburn"] floating enable
 
 #############################
 ### Startup app           ###
@@ -299,7 +328,7 @@ exec_always --no-startup-id source ~/.fehbg
 
 # Compositor (using the yoshi's fork)
 # https://github.com/yshui/picom
-exec        --no-startup-id picom -Cb
+exec        --no-startup-id picom -b
 
 # Gestures for touchpad
 # https://github.com/bulletmark/libinput-gestures

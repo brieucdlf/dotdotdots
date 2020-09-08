@@ -5,5 +5,4 @@ interval = 1
 date = "%d/%m/%Y"
 
 label =  %date%
-format-background = ${colors.nord1}
-label-padding-left = ${paddings.inner}
+format-background = ${colors.nord0}

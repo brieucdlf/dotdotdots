@@ -6,12 +6,9 @@ warn-temperature = 80
 
 format = <label>
 label =  %temperature-c%
-format-background = ${colors.nord3}
+format-background = ${colors.nord0}
 
 format-warn = <label-warn>
 label-warn =  %temperature-c%
 label-warn-foreground = ${colors.nord12}
-label-warn-background = ${colors.nord3}
-
-label-padding-left = ${paddings.inner}
-label-warn-padding-left = ${paddings.inner}
+label-warn-background = ${colors.nord0}

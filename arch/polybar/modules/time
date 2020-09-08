@@ -5,6 +5,4 @@ interval = 1
 time = %H:%M:%S
 
 label =  %time%
-format-background = ${colors.nord1}
-format-padding = ${paddings.inner}
-label-padding-left = ${paddings.inner}
+format-background = ${colors.nord0}

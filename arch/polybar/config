@@ -45,28 +45,30 @@ monitor = eDP1
 width = 100%
 dpi = 160
 bottom = false
-height = 30
+height = 35
 fixed-center = true
 
-background = ${colors.nord3-25}
+background = ${colors.nord0}
 foreground = ${colors.nord6}
 
 border-top-size = 0
 border-left-size = 0
 border-right-size = 0
 
-font-0 = "Roboto:weight=regular:size=10;5"
-font-1 = "Material Icons:size=10;4"
-font-2 = "NotoEmoji Nerd Font:size=10;4"
+font-0 = "Roboto:weight=regular:size=8;4"
+font-1 = "Material Icons:size=8;4"
+font-2 = "NotoEmoji Nerd Font:size=8;4"
 
-modules-left = i3
-modules-center =
-modules-right = right6 padding6 pulseaudio right5 memory cpu temperature right4 wlan eth right3 time date right2 updates battery right1 power
+modules-left = power wlan
+modules-center = i3
+modules-right = pulseaudio memory cpu temperature updates battery
+
+module-margin-left = 1
+module-margin-right = 2
 
 tray-position = right
-tray-maxsize = 30
-tray-background = ${colors.nord10}
-tray-padding = ${paddings.outer}
+tray-padding = 10
+tray-background = ${colors.nord0}
 
 cursor-click = pointer
 cursor-scroll = ns-resize
@@ -83,24 +85,26 @@ height = 30
 fixed-center = true
 enable-ipc = true
 
-background = ${colors.nord3-25}
+background = ${colors.nord0}
 foreground = ${colors.nord6}
 
 border-top-size = 0
 border-left-size = 0
 border-right-size = 0
 
-font-0 = "Roboto:weight=regular:size=10;4"
-font-1 = "Material Icons:size=15;10"
-font-2 = "NotoEmoji Nerd Font:size=15;5"
+module-margin-left = 1
+module-margin-right = 2
 
-modules-left = i3
-modules-center =
-modules-right = right6 padding6 pulseaudio right5 memory cpu temperature right4 wlan eth right3 time date right2 updates battery right1 power
+font-0 = "Roboto:weight=regular:size=10;4"
+font-1 = "Material Icons:size=10;4"
+font-2 = "NotoEmoji Nerd Font:size=10;4"
+
+modules-left = power
+modules-center = i3
+modules-right = time date
 
 tray-position = right
-tray-maxsize = 32
-tray-background = ${colors.nord10}
+tray-background = ${colors.nord0}
 tray-padding = ${paddings.outer}
 
 cursor-click = pointer
