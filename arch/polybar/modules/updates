@@ -3,4 +3,4 @@ type = custom/script
 exec = ~/.scripts/updates-arch.sh
 interval = 600
 
-format-background = ${colors.nord0}
+format-background = ${colors.background}

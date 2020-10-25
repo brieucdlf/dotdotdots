@@ -3,9 +3,19 @@ type = internal/network
 interface = "wlan0"
 interval = 1
 
-label-connected = %{A1:networkmanager_dmenu:}直  %essid%
-format-connected-background = ${colors.nord0}
+format-connected = <label-connected>
+format-connected-underline = #9f78e1
+label-connected = 直 %essid%
+label-connected-foreground = ${colors.primary}
 
-label-disconnected = %{A1:networkmanager_dmenu:}%{A}
-label-disconnected-foreground = ${colors.nord4}
-format-disconnected-background = ${colors.nord0}
+format-disconnected = <label-disconnected>
+format-disconnected-underline = ${self.format-connected-underline}
+label-disconnected = 睊
+label-disconnected-foreground = ${colors.alert}
+
+; a = worst
+ramp-signal-0 = a
+ramp-signal-1 = b
+ramp-signal-2 = c
+ramp-signal-3 = d
+ramp-signal-4 = e

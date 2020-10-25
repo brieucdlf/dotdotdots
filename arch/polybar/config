@@ -33,6 +33,9 @@ include-file = /home/$USER/dotdotdots/arch/polybar/modules/updates
 include-file = /home/$USER/dotdotdots/arch/polybar/modules/memory
 include-file = /home/$USER/dotdotdots/arch/polybar/modules/wlan
 include-file = /home/$USER/dotdotdots/arch/polybar/modules/xbacklight
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/xwindow
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/filesystem
+include-file = /home/$USER/dotdotdots/arch/polybar/modules/audio
 include-file = /home/$USER/dotdotdots/arch/polybar/modules/pulseaudio
 include-file = /home/$USER/dotdotdots/arch/polybar/modules/alsa
 
@@ -42,70 +45,62 @@ include-file = /home/$USER/dotdotdots/arch/polybar/modules/alsa
 
 [bar/main]
 monitor = eDP1
-width = 100%
-dpi = 160
-bottom = false
-height = 35
-fixed-center = true
+width = 100%:-28
+offset-x = 14
+offset-y = 14
 
-background = ${colors.nord0}
-foreground = ${colors.nord6}
+height = 36
+radius = 0.0
 
-border-top-size = 0
-border-left-size = 0
-border-right-size = 0
+override-redirect = true
+wm-restack = i3
 
-font-0 = "Roboto:weight=regular:size=8;4"
-font-1 = "Material Icons:size=8;4"
-font-2 = "NotoEmoji Nerd Font:size=8;4"
+background = ${colors.background}
+foreground = ${colors.foreground}
 
-modules-left = power wlan
-modules-center = i3
-modules-right = pulseaudio memory cpu temperature updates battery
+padding-left = 1
+padding-right = 2
+module-margin-left = 2
+module-margin-right = 1
 
-module-margin-left = 1
-module-margin-right = 2
+font-0 = Hack Nerd Font:pixelsize=11:antialias=true;2.5
+font-1 = Hack Nerd Font:style=Regular:pixelsize=17:antialias=true;3
 
-tray-position = right
-tray-padding = 10
-tray-background = ${colors.nord0}
+modules-left = i3
+modules-center = xwindow
+modules-right = audio wlan battery updates date powermenu
 
 cursor-click = pointer
 cursor-scroll = ns-resize
-enable-ipc = true
 
 ;----------------------------------------------------------
 
 [bar/external]
 monitor = DP1
-dpi = 120
-width = 100%
-bottom = false
-height = 30
-fixed-center = true
-enable-ipc = true
+width = 100%:-28
+offset-x = 14
+offset-y = 14
 
-background = ${colors.nord0}
-foreground = ${colors.nord6}
+height = 36
+radius = 0.0
 
-border-top-size = 0
-border-left-size = 0
-border-right-size = 0
+override-redirect = true
+wm-restack = i3
 
-module-margin-left = 1
-module-margin-right = 2
+background = ${colors.background}
+foreground = ${colors.foreground}
 
-font-0 = "Roboto:weight=regular:size=10;4"
-font-1 = "Material Icons:size=10;4"
-font-2 = "NotoEmoji Nerd Font:size=10;4"
+padding-left = 1
+padding-right = 2
+module-margin-left = 2
+module-margin-right = 1
 
-modules-left = power
-modules-center = i3
-modules-right = time date
+font-0 = Hack Nerd Font:pixelsize=11:antialias=true;2.5
+font-1 = Hack Nerd Font:style=Regular:pixelsize=17:antialias=true;3
 
-tray-position = right
-tray-background = ${colors.nord0}
-tray-padding = ${paddings.outer}
+modules-left = i3
+modules-center = xwindow
+modules-right = audio wlan battery updates date powermenu
 
 cursor-click = pointer
 cursor-scroll = ns-resize

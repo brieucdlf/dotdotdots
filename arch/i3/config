@@ -210,12 +210,13 @@ bindsym $mod+shift+n  exec xrandr --output $DP2 --auto --above $eDP1
 
 # automatically putting clients on specific workspaces
 assign [class="code-oss"] $ws1
-assign [class="brave-browser"] $ws2
+assign [class="Brave-browser"] $ws2
 assign [class="kitty"] $ws3
+assign [class="Terminator"] $ws3
 assign [class="Slack"] $ws4
-assign [class="robo3t"] $ws5
-assign [class="discord"] $ws6
-assign [class="thunderbird"] $ws7
+assign [class="thunderbird"] $ws5
+assign [class="robo3t"] $ws6
+assign [class="discord"] $ws7
 assign [class="signal"] $ws8
 assign [class="ledger live"] $ws9
 
@@ -232,11 +233,12 @@ for_window [class="."] title_format " %title"
 #############################
 
 # Set inner/outer gaps
-gaps inner 8
-gaps outer 0
+gaps outer 2
+gaps inner 12
+gaps top 56
 
 # Set smart border
-smart_borders on
+# smart_borders on
 
 # Press $mod+Shift+g to enter the gap mode. Choose o or i for modifying outer/inner gaps. Press one of + / - (in-/decrement for current workspace) or 0 (remove gaps for current workspace). If you also press Shift with these keys, the change will be global for all workspaces.
 set $mode_gaps Gaps: (o) outer, (i) inner
@@ -284,7 +286,8 @@ bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume 0 +5% #i
 bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume 0 -5% #decrease sound volume
 bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute 0 toggle # mute sound
 
-bindsym $mod+shift+x exec betterlockscreen -l blur -r 1920x1080
+bindsym $mod+shift+x exec betterlockscreen -l blur
+bindsym $mod+shift+s exec betterlockscreen -l -s blur
 
 # Take a screenshot of a screen region and copy it to a clipboard
 bindsym --release Shift+Print exec "~/.scripts/screenshot.sh -s /home/brieucdlf/Images/screenshots/"
@@ -293,8 +296,9 @@ bindsym --release Shift+Print exec "~/.scripts/screenshot.sh -s /home/brieucdlf/
 bindsym --release Print exec "~/.scripts/screenshot.sh /home/brieucdlf/Images/screenshots/"
 
 # Open specific applications in floating mode
+for_window [class="^.*"] border pixel 0
 for_window [title="alsamixer"] floating enable border pixel 1
-for_window [class="Thunderbird"] floating enable border normal
+for_window [class="Thunderbird"] enable border normal
 for_window [title="File Transfer*"] floating enable
 for_window [class="Galculator"] floating enable border pixel 1
 for_window [class="GParted"] floating enable border normal
@@ -351,3 +355,5 @@ exec_always --no-startup-id sh ~/.scripts/polybar.sh
 # https://github.com/phillipberndt/autorandr
 # https://wiki.archlinux.org/index.php/Xrandr
 exec --no-startup-id autorandr -c
+
+exec --no-startup-id pulseaudio --start

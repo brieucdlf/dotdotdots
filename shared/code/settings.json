@@ -32,7 +32,7 @@
     "explorer.incrementalNaming": "smart",
     "explorer.openEditors.visible": 1,
     "typescript.updateImportsOnFileMove.enabled": "always",
-    "window.zoomLevel": 0,
+    "window.zoomLevel": -1,
     "extensions.autoUpdate": true,
     "extensions.closeExtensionDetailsOnViewChange": true,
     "extensions.ignoreRecommendations": true,
