@@ -1,4 +1,13 @@
 [colors]
+background = #1e2137
+foreground = #e3eaf3
+primary = #02c084
+secondary = #65a2d9
+tertiary = #d07ef2
+fourth = #e5c246
+alert = #ed404c
+
+
 bg = #1d2021
 bg2 = #282828
 red = #d79921
