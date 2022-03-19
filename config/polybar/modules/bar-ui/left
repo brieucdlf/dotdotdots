@@ -1,3 +1,0 @@
-[module/left]
-type = custom/text
-content = "%{T3}%{T-}"

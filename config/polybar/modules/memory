@@ -1,7 +1,0 @@
-[module/memory]
-type = internal/memory
-interval = 0.5
-
-format = <label>
-label =  %percentage_used%%
-format-background = ${colors.nord0}

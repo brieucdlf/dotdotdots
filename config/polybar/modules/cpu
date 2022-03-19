@@ -1,7 +1,0 @@
-[module/cpu]
-type = internal/cpu
-interval = 0.5
-
-format = <label>
-label = 龍 %percentage%%
-format-background = ${colors.nord0}

@@ -1,5 +1,0 @@
-[module/right5]
-type = custom/text
-content = "%{T3}%{T-}"
-content-background = ${colors.nord3-25}
-content-foreground = ${colors.nord3}
