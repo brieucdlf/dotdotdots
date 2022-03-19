@@ -132,6 +132,8 @@
   "workbench.startupEditor": "newUntitledFile",
   "workbench.tree.renderIndentGuides": "none",
   "workbench.iconTheme": "material-icon-theme",
+  // Have to force Nord theme since we use with the team
+  // a custom peacock ugly configuration
   "workbench.colorCustomizations": {
     "[Nord]": {
       "statusBar.background": "#3b4252",
@@ -144,6 +146,7 @@
   },
 
   // VIM CONFIG
+  // More keybindings in the json file
   "vim.easymotion": true,
   "vim.incsearch": true,
   "vim.useSystemClipboard": true,
