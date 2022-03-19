@@ -1,5 +1,58 @@
 {
+  // GLOBALE CONFIGURATION
   "breadcrumbs.enabled": false,
+  "explorer.autoReveal": false,
+  "explorer.incrementalNaming": "smart",
+  "explorer.openEditors.visible": 0,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "problems.autoReveal": false,
+  "search.collapseResults": "alwaysCollapse",
+  "search.useGlobalIgnoreFiles": true,
+  "update.mode": "none",
+  "window.menuBarVisibility": "toggle",
+  "window.enableMenuBarMnemonics": false,
+  "window.titleBarStyle": "native",
+  "window.zoomLevel": 1,
+
+  // TELEMETRY
+  "telemetry.telemetryLevel": "off",
+  "telemetry.enableCrashReporter": false,
+  "redhat.telemetry.enabled": false,
+
+  // LANGUAGE CONFIGURATION
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "javascript.validate.enable": false,
+  "html.format.indentInnerHtml": true,
+  "files.associations": {
+    "*.js": "javascript"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "vs-kubernetes": {
+    "vscode-kubernetes.minikube-path.linux": "/home/brieucdlf/.vs-kubernetes/tools/minikube/linux-amd64/minikube",
+    "vscode-kubernetes.helm-path.linux": "/home/brieucdlf/.vs-kubernetes/tools/helm/linux-amd64/helm"
+  },
+
+  // EDITOR CONFIGURATION
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.minimap.enabled": false,
+  "editor.inlineSuggest.enabled": true,
   "editor.accessibilitySupport": "off",
   "editor.codeLens": true,
   "editor.colorDecorators": true,
@@ -16,38 +69,7 @@
   "editor.tabCompletion": "onlySnippets",
   "editor.tabSize": 2,
   "editor.guides.indentation": true,
-  // "editor.wordWrapColumn": 120,
   "editor.rulers": [80],
-  "explorer.autoReveal": false,
-  "explorer.incrementalNaming": "smart",
-  "explorer.openEditors.visible": 0,
-  "extensions.autoUpdate": false,
-  "extensions.closeExtensionDetailsOnViewChange": true,
-  "extensions.ignoreRecommendations": true,
-  "files.eol": "\n",
-  "files.insertFinalNewline": true,
-  "problems.autoReveal": false,
-  "search.collapseResults": "alwaysCollapse",
-  "search.useGlobalIgnoreFiles": true,
-  "terminal.explorerKind": "external",
-  "terminal.external.linuxExec": "tilix",
-  "terminal.external.osxExec": "iTerm.app",
-  "terminal.integrated.cursorStyle": "line",
-  "terminal.integrated.fontSize": 20,
-  "update.mode": "none",
-  "window.enableMenuBarMnemonics": false,
-  "window.titleBarStyle": "native",
-  "window.zoomLevel": 1,
-  "workbench.commandPalette.preserveInput": true,
-  "workbench.editor.enablePreview": false,
-  "workbench.editor.enablePreviewFromQuickOpen": false,
-  "workbench.editor.focusRecentEditorAfterClose": false,
-  "workbench.enableExperiments": false,
-  "workbench.quickOpen.preserveInput": true,
-  "workbench.settings.enableNaturalLanguageSearch": false,
-  "workbench.sideBar.location": "left",
-  "workbench.startupEditor": "newUntitledFile",
-  "workbench.tree.renderIndentGuides": "none",
   "editor.lineNumbers": "relative",
   "editor.fontFamily": "JetBrains Mono, Source Code Pro, Consolas, 'Courier New', monospace",
   "editor.lineHeight": 25,
@@ -58,22 +80,26 @@
   "editor.cursorBlinking": "phase",
   "editor.cursorStyle": "block",
   "editor.cursorSmoothCaretAnimation": true,
-  "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features"
+  "editor.tokenColorCustomizations": {
+    "[Nord]": {
+      "textMateRules": []
+    }
   },
-  "workbench.iconTheme": "material-icon-theme",
-  "typescript.updateImportsOnFileMove.enabled": "always",
-  "javascript.updateImportsOnFileMove.enabled": "always",
-  "redhat.telemetry.enabled": false,
-  "[yaml]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "editor.inlineSuggest.enabled": true,
+
+  // EXTENSIONS
+  "extensions.autoUpdate": false,
+  "extensions.closeExtensionDetailsOnViewChange": true,
+  "extensions.ignoreRecommendations": true,
+  "gitProjectManager.baseProjectsFolders": ["/home/brieucdlf/Repos"],
+  "material-icon-theme.activeIconPack": "react",
+  "material-icon-theme.folders.color": "#616e88",
+  "material-icon-theme.folders.theme": "classic",
+  "material-icon-theme.hidesExplorerArrows": true,
+  "material-icon-theme.saturation": 0.6,
+  "prettier.printWidth": 120,
+  // Disabled since beta
   "github.copilot.enable": {
-    "*": true,
+    "*": false,
     "yaml": false,
     "plaintext": false,
     "markdown": false,
@@ -83,34 +109,29 @@
     "jsonc": false,
     "polar": false
   },
-  "files.associations": {
-    "*.js": "javascript"
-  },
-  "javascript.validate.enable": false,
-  "editor.bracketPairColorization.enabled": true,
-  "editor.guides.bracketPairs": "active",
-  "bracket-pair-colorizer-2.depreciation-notice": false,
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "vs-kubernetes": {
-    "vscode-kubernetes.minikube-path.linux": "/home/brieucdlf/.vs-kubernetes/tools/minikube/linux-amd64/minikube",
-    "vscode-kubernetes.helm-path.linux": "/home/brieucdlf/.vs-kubernetes/tools/helm/linux-amd64/helm"
-  },
-  "[html]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
+
+  // TERMINAL CONFIG
+  // Never use it but should deep into it
+  "terminal.explorerKind": "external",
+  "terminal.external.linuxExec": "alacritty",
+  "terminal.external.osxExec": "iTerm.app",
+  "terminal.integrated.cursorStyle": "line",
+  "terminal.integrated.fontSize": 20,
+
+  // WORBENCH CONFIGURATION
   "workbench.colorTheme": "Nord",
-  "editor.tokenColorCustomizations": {
-    "[Nord]": {
-      "textMateRules": []
-    }
-  },
-  "material-icon-theme.activeIconPack": "react",
-  "material-icon-theme.folders.color": "#616e88",
-  "material-icon-theme.folders.theme": "classic",
-  "material-icon-theme.hidesExplorerArrows": true,
-  "material-icon-theme.saturation": 0.6,
+  "workbench.settings.openDefaultKeybindings": true,
+  "workbench.commandPalette.preserveInput": true,
+  "workbench.editor.enablePreview": false,
+  "workbench.editor.enablePreviewFromQuickOpen": false,
+  "workbench.editor.focusRecentEditorAfterClose": false,
+  "workbench.enableExperiments": false,
+  "workbench.quickOpen.preserveInput": true,
+  "workbench.settings.enableNaturalLanguageSearch": false,
+  "workbench.sideBar.location": "left",
+  "workbench.startupEditor": "newUntitledFile",
+  "workbench.tree.renderIndentGuides": "none",
+  "workbench.iconTheme": "material-icon-theme",
   "workbench.colorCustomizations": {
     "[Nord]": {
       "statusBar.background": "#3b4252",
@@ -121,13 +142,20 @@
       "sash.hoverBorder": "#81a1c1"
     }
   },
-  "html.format.indentInnerHtml": true,
-  "prettier.printWidth": 120,
+
+  // VIM CONFIG
   "vim.easymotion": true,
   "vim.incsearch": true,
   "vim.useSystemClipboard": true,
   "vim.useCtrlKeys": true,
   "vim.hlsearch": true,
+  "vim.cursorStylePerMode.normal": "block",
+  "vim.cursorStylePerMode.insert": "line-thin",
+  "vim.leader": "<space>",
+  "vim.handleKeys": {
+    "<C-a>": false,
+    "<C-f>": false
+  },
   "vim.insertModeKeyBindings": [
     {
       "before": ["j", "j"],
@@ -168,17 +196,5 @@
       "before": ["<leader>", "g"],
       "commands": ["workbench.view.scm"]
     }
-  ],
-  "vim.leader": "<space>",
-  "vim.handleKeys": {
-    "<C-a>": false,
-    "<C-f>": false
-  },
-  "telemetry.telemetryLevel": "off",
-  "gitProjectManager.baseProjectsFolders": ["/home/brieucdlf/Repos"],
-  "window.menuBarVisibility": "toggle",
-  "workbench.settings.openDefaultKeybindings": true,
-  "vim.cursorStylePerMode.normal": "block",
-  "vim.cursorStylePerMode.insert": "line-thin",
-  "editor.minimap.enabled": false
+  ]
 }
