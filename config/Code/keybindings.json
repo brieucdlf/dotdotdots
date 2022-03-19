@@ -1,6 +1,4 @@
-// Placer vos combinaisons de touches dans ce fichier pour remplacer les valeurs par défaut
 [
-  // Ensure that tab button works in vim.
   {
     "key": "tab",
     "command": "tab",
