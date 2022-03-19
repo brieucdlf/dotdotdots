@@ -1,59 +1,36 @@
-# Copyright (c) 2017-present Arctic Ice Studio <development@arcticicestudio.com>
-# Copyright (c) 2017-present Sven Greb <code@svengreb.de>
-
-# Project:    Nord Alacritty
-# Version:    0.1.0
-# Repository: https://github.com/arcticicestudio/nord-alacritty
-# License:    MIT
-# References:
-#   https://github.com/alacritty/alacritty
-
 window:
   dynamic_title: true
   dimensions:
     columns: 0
     lines: 0
-
-  position:
-    x: 50
-    y: 50
-
-  #startup_mode: SimpleFullscreen
-  #position:
-    #x: 0
-    #y: 0
-
   padding:
-    x: 10
-    y: 8 
-
-  dynamic_padding: false
-  decorations: none
+    x: 5
+    y: 5
 
 scrolling:
-  history: 50000
+  history: 100000
   multiplier: 3
 
 font:
   normal:
-    family: Fira Code
+    family: FiraCode NF
     style: Regular
 
   bold:
-    family: Fira Code
+    family: FiraCode NF
     style: Bold
 
   italic:
-    family: Fira Code
+    family: FiraCode NF
+    style: Italic
+
+  bold_italic:
+    family: FiraCode NF
     style: Bold Italic
 
   size: 11.0
 
   offset:
-    x: 0
-    y: 0
-
-  glyph_offset:
     x: 0
     y: 0
 
@@ -109,4 +86,3 @@ colors:
     magenta: '#8c738c'
     cyan: '#6d96a5'
     white: '#aeb3bb'
-

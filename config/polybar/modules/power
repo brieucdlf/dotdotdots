@@ -1,6 +1,0 @@
-[module/powermenu]
-type = custom/text
-format-spacing = 1
-content = 
-content-foreground = ${colors.alert}
-click-left = bash ~/ powermenu

@@ -1,8 +1,0 @@
-[module/time]
-type = internal/date
-
-interval = 1
-time = %H:%M:%S
-
-label =  %time%
-format-background = ${colors.nord0}

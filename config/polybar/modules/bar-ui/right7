@@ -1,4 +1,0 @@
-[module/right7]
-type = custom/text
-content = "%{T3}%{T-}"
-content-foreground = ${colors.nord3.5}

@@ -1,4 +1,0 @@
-[module/padding7]
-type = custom/text
-content = "%{B#5C6A82}%{F}  %{B- F-}"
-content-foreground = ${colors.nord3.5}
