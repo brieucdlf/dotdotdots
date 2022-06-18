@@ -1,0 +1,8 @@
+- name: apps | bitwarden | install package
+  tags: bitwarden,packages,flatpak,workstation-packages
+  become_user: neowindrunner
+  flatpak:
+    name: flathub com.bitwarden.desktop
+    method: user
+    state: present
+  when: bitwarden is defined and bitwarden == true

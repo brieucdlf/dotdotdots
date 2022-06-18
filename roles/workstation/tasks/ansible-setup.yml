@@ -1,0 +1,33 @@
+- name: ansible setup | ensure ansible is the latest version
+  tags: ansible, ansible-setup
+  package:
+    name: ansible
+    state: latest
+
+- name: ansible setup | install required packages
+  tags: ansible, ansible-setup, packages
+  package:
+    name:
+      - dconf-cli
+      - python3-psutil
+
+- name: ansible setup | install acl package
+  tags: ansible,ansible-setup,packages
+  package:
+    name: acl
+  when: ansible_distribution in ["Pop!_OS"]
+
+# - name: ansible setup | add logrotate config for ansible log file
+#   tags: ansible-setup
+#   copy:
+#     src: files/ansible_setup/logrotate
+#     dest: /etc/logrotate.d/ansible
+#     owner: root
+#     group: root
+#     mode: 0644
+
+- name: ansible setup | remove default ansible directory (/etc/ansible) from host
+  tags: ansible,ansible-setup
+  file:
+    path: /etc/ansible
+    state: absent
