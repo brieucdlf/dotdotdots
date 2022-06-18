@@ -1,0 +1,6 @@
+- name: dev setup | packages | install dev packages
+  tags: packages, dev, settings
+  package:
+    state: latest
+    name:
+      - git
