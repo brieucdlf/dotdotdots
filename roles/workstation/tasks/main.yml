@@ -1,0 +1,30 @@
+- include_vars: "{{ ansible_distribution }}.yml"
+  tags: always
+
+- block:
+    # Set up the ansible environment
+    - import_tasks: ansible-setup.yml
+
+    # system
+    # todo: more stuff in here
+    - import_tasks: system/local.yml
+    # - import_tasks: system/clock.yml
+    - import_tasks: system/pkg.yml
+    - import_tasks: system/clean-pkg.yml
+
+    # user
+    # todo: dotfiles
+    # - import_tasks: user/neowindrunner.yml
+
+    # desktop
+    # todo: need to add more gnome config here
+    - import_tasks: desktop/gnome/wallpaper.yml
+
+    # apps
+    # todo: need to add more apps
+    # - import_tasks: apps/bitwarden.yml
+    # - import_tasks: apps/firefox.yml
+    # - import_tasks: apps/thunderbird.yml
+
+    # bloomflow
+    # todo: put everything in here

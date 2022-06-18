@@ -1,0 +1,18 @@
+# https://system76.com/time
+# avoid the ntp protocol and replace it with sntp
+# Got to ask System76 if they will bring us EU servers
+- name: system setup | clock | install chrony
+  tags: ntp, sntp, system setup
+  package:
+    name: chrony
+    state: latest
+  when: ansible_distribution in ["Pop!_OS"]
+
+# todo
+# - [] implement template here to edit the chrony.conf
+# - [] restart from system ctl chrony
+
+- name: system setup | clock | set time zone
+  tags: ntp, sntp, timezone, system setup
+  timezone:
+    name: "Europe/Paris"
