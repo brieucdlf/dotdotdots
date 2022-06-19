@@ -28,6 +28,7 @@
     - import_tasks: apps/bitwarden.yml
     - import_tasks: apps/firefox.yml
     - import_tasks: apps/thunderbird.yml
+    - import_tasks: app/steam.yml
 
     # bloomflow
     # todo: put everything in here

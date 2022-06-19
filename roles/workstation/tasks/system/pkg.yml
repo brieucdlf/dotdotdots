@@ -20,3 +20,5 @@
       - alacritty
       - neovim
       - python-setuptools
+      - ufw
+      - apt-transport-https
