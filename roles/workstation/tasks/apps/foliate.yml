@@ -1,0 +1,8 @@
+- name: apps | foliate | install package
+  tags: packages,flatpak,foliate,workstation-packages
+  become_user: neowindrunner
+  flatpak:
+    name: com.github.johnfactotum.Foliate
+    method: user
+    state: present
+  when: foliate is defined and foliate == true
