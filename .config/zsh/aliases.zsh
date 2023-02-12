@@ -2,8 +2,24 @@
 # some useful commands taken from @chrisatmachine
 
 # shell
-alias ll="ls"
+alias ll="ls -l"
+alias l="ls"
 alias la="ls -la"
+alias dot="cd $HOME/.dotfiles"
+# confirm before overwriting something
+alias cp="cp -i"
+alias mv='mv -i'
+alias rm='rm -i'
+# Colorize grep output (good for log files)
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+# check open ssh process
+alias pssh="ps aux | grep ssh"
+# get top process eating memory
+alias psmem='ps auxf | sort -nr -k 4 | head -5'
+# get top process eating cpu ##
+alias pscpu='ps auxf | sort -nr -k 3 | head -5'
 
 # git most used
 alias g="git"
@@ -16,28 +32,16 @@ alias gcp="git cherry-pick"
 alias gd="git diff"
 alias gds="git diff --staged"
 alias gfa="git fetch --all --prune"
-alias ggu="git pull --rebase origin $(current_branch)"
-alias gpsup="git push --set-upstream origin $(git_current_branch)"
+alias ggu="git pull --rebase origin"
+alias gpsup="git push --set-upstream origin"
 alias gp="git push"
 alias gl="git pull"
 alias gst="git status"
 alias gss="git status -s"
 
-# check open ssh process
-alias pssh="ps aux | grep ssh"
-
-# get top process eating memory
-alias psmem='ps auxf | sort -nr -k 4 | head -5'
-
-# get top process eating cpu ##
-alias pscpu='ps auxf | sort -nr -k 3 | head -5'
-
-# confirm before overwriting something
-alias cp="cp -i"
-alias mv='mv -i'
-alias rm='rm -i'
-
-# Colorize grep output (good for log files)
-alias grep='grep --color=auto'
-alias egrep='egrep --color=auto'
-alias fgrep='fgrep --color=auto'
+# works only
+alias front="cd $HOME/Repos/front"
+alias api="cd $HOME/Repos/api-platform"
+alias infra="cd $HOME/Repos/infra"
+alias deploy="cd $HOME/Repos/sflow-deploy"
+alias e2e="cd $HOME/Repos/automated-e2e"
