@@ -2,6 +2,7 @@
 
 # source
 plug "$HOME/.config/zsh/aliases.zsh"
+plug "$HOME/.config/zsh/nvm.zsh"
 plug "$HOME/.config/zsh/exports.zsh"
 
 # plugins
@@ -18,4 +19,5 @@ plug "zap-zsh/zap-prompt"
 
 export PATH="$HOME/.local/bin":$PATH
 
+# add custom nord theme colors
 test -r "~/.dir_colors" && eval $(dircolors ~/.dir_colors)
