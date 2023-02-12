@@ -21,3 +21,12 @@ alias gp="git push"
 alias gl="git pull"
 alias gst="git status"
 alias gss="git status -s"
+
+# check open ssh process
+alias pssh="ps aux | grep ssh"
+
+# get top process eating memory
+alias psmem='ps auxf | sort -nr -k 4 | head -5'
+
+# get top process eating cpu ##
+alias pscpu='ps auxf | sort -nr -k 3 | head -5'
