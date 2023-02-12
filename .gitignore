@@ -2,3 +2,5 @@
 .config/tmux/plugins
 tmux-client*.log
 
+# get nerd fonts repo
+getnf
