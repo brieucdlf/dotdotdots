@@ -21,6 +21,11 @@ alias psmem='ps auxf | sort -nr -k 4 | head -5'
 # get top process eating cpu ##
 alias pscpu='ps auxf | sort -nr -k 3 | head -5'
 
+# lvim - nvim
+alias v="lvim"
+alias vim="lvim"
+alias nvim="lvim"
+
 # git most used
 alias g="git"
 alias ga="git add"
