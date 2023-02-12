@@ -17,3 +17,5 @@ plug "hlissner/zsh-autopair"
 plug "zap-zsh/zap-prompt"
 
 export PATH="$HOME/.local/bin":$PATH
+
+test -r "~/.dir_colors" && eval $(dircolors ~/.dir_colors)
