@@ -1,9 +1,0 @@
-# todo: need to add templates settings and bindings
-- name: apps | vscode | install package
-  tag: vscode
-  package:
-    state: latest
-    name: code
-  when:
-    - code is defined
-    - code == true
