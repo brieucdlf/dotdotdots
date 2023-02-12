@@ -1,10 +1,9 @@
 # dotdotdots
 
-- Labtops: XPS 13 7390 (late 2019)
+- Labtops: XPS 13 7390 (late 2019) & Alienware M15 R3
 - OS: PopOS
 - Terminal: Alacritty
 - Multiplexer: Tmux
-- File Manager: Nautilus
-- Editor: VsCode with vim extension
-- Browser: Firefox
+- Editor: VsCode with vim extension & NeoVim
+- Browser: Brave
 - Themes: [Nord](https://github.com/arcticicestudio/nord)
