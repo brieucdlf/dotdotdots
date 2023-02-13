@@ -43,6 +43,15 @@ alias gp="git push"
 alias gl="git pull"
 alias gst="git status"
 alias gss="git status -s"
+alias grbi="git rebase -i"
+alias grbc="git rebase --continue"
+alias grba="git rebase --abort"
+
+# kubectl
+alias k="kubectl"
+alias kctx="kubectl config use-context"
+alias loki="kubectl -n loki get pods"
+alias monito="kubectl -n monitoring get pods"
 
 # works only
 alias front="cd $HOME/Repos/front"

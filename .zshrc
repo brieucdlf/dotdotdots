@@ -21,3 +21,6 @@ export PATH="$HOME/.local/bin":$PATH
 
 # add custom nord theme colors
 test -r "~/.dir_colors" && eval $(dircolors ~/.dir_colors)
+
+# enable kubectl completion
+source <(kubectl completion zsh)
