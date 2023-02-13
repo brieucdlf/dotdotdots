@@ -4,3 +4,6 @@ tmux-client*.log
 
 # get nerd fonts repo
 getnf
+
+# lvim
+.config/lvim/lv-settings.lua
