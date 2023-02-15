@@ -46,6 +46,7 @@ alias gss="git status -s"
 alias grbi="git rebase -i"
 alias grbc="git rebase --continue"
 alias grba="git rebase --abort"
+alias gpf="git push --force"
 
 # kubectl
 alias k="kubectl"
