@@ -47,6 +47,8 @@ alias grbi="git rebase -i"
 alias grbc="git rebase --continue"
 alias grba="git rebase --abort"
 alias gpf="git push --force"
+alias glog="git log --oneline --decorate --graph"
+alias gloga="git log --oneline --decorate --graph --all"
 
 # kubectl
 alias k="kubectl"
