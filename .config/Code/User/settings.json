@@ -1,0 +1,203 @@
+{
+  // GLOBALE CONFIGURATION
+  "breadcrumbs.enabled": false,
+  "explorer.autoReveal": false,
+  "explorer.incrementalNaming": "smart",
+  "explorer.openEditors.visible": 0,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "problems.autoReveal": false,
+  "search.collapseResults": "alwaysCollapse",
+  "search.useGlobalIgnoreFiles": true,
+  "update.mode": "none",
+  "window.menuBarVisibility": "toggle",
+  "window.enableMenuBarMnemonics": false,
+  "window.titleBarStyle": "native",
+  "window.zoomLevel": 1,
+
+  // TELEMETRY
+  "telemetry.telemetryLevel": "off",
+  "telemetry.enableCrashReporter": false,
+  "redhat.telemetry.enabled": false,
+
+  // LANGUAGE CONFIGURATION
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "javascript.validate.enable": false,
+  "html.format.indentInnerHtml": true,
+  "files.associations": {
+    "*.js": "javascript"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "vs-kubernetes": {
+    "vscode-kubernetes.minikube-path.linux": "/home/brieucdlf/.vs-kubernetes/tools/minikube/linux-amd64/minikube",
+    "vscode-kubernetes.helm-path.linux": "/home/brieucdlf/.vs-kubernetes/tools/helm/linux-amd64/helm"
+  },
+
+  // EDITOR CONFIGURATION
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.minimap.enabled": false,
+  "editor.inlineSuggest.enabled": true,
+  "editor.accessibilitySupport": "off",
+  "editor.codeLens": true,
+  "editor.colorDecorators": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.emptySelectionClipboard": false,
+  "editor.fontSize": 14,
+  "editor.fontWeight": "400",
+  "editor.formatOnSave": true,
+  "editor.lightbulb.enabled": false,
+  "editor.multiCursorModifier": "ctrlCmd",
+  "editor.renderWhitespace": "selection",
+  "editor.smoothScrolling": true,
+  "editor.snippetSuggestions": "top",
+  "editor.tabCompletion": "onlySnippets",
+  "editor.tabSize": 2,
+  "editor.guides.indentation": true,
+  "editor.rulers": [80],
+  "editor.lineNumbers": "relative",
+  "editor.fontFamily": "JetBrains Mono, Source Code Pro, Consolas, 'Courier New', monospace",
+  "editor.lineHeight": 25,
+  "editor.letterSpacing": 0.5,
+  "editor.fontLigatures": true,
+  "editor.wordWrap": "on",
+  "editor.formatOnPaste": true,
+  "editor.cursorBlinking": "phase",
+  "editor.cursorStyle": "block",
+  "editor.cursorSmoothCaretAnimation": true,
+  "editor.tokenColorCustomizations": {
+    "[Nord]": {
+      "textMateRules": []
+    }
+  },
+
+  // EXTENSIONS
+  "extensions.autoUpdate": false,
+  "extensions.closeExtensionDetailsOnViewChange": true,
+  "extensions.ignoreRecommendations": true,
+  "gitProjectManager.baseProjectsFolders": ["/home/brieucdlf/Repos"],
+  "material-icon-theme.activeIconPack": "react",
+  "material-icon-theme.folders.color": "#616e88",
+  "material-icon-theme.folders.theme": "classic",
+  "material-icon-theme.hidesExplorerArrows": true,
+  "material-icon-theme.saturation": 0.6,
+  "prettier.printWidth": 120,
+  // Disabled since beta
+  "github.copilot.enable": {
+    "*": false,
+    "yaml": false,
+    "plaintext": false,
+    "markdown": false,
+    "javascript": false,
+    "html": false,
+    "css": false,
+    "jsonc": false,
+    "polar": false
+  },
+
+  // TERMINAL CONFIG
+  // Never use it but should deep into it
+  "terminal.explorerKind": "external",
+  "terminal.external.linuxExec": "alacritty",
+  "terminal.external.osxExec": "iTerm.app",
+  "terminal.integrated.cursorStyle": "line",
+  "terminal.integrated.fontSize": 20,
+
+  // WORBENCH CONFIGURATION
+  "workbench.colorTheme": "Nord",
+  "workbench.settings.openDefaultKeybindings": true,
+  "workbench.commandPalette.preserveInput": true,
+  "workbench.editor.enablePreview": false,
+  "workbench.editor.enablePreviewFromQuickOpen": false,
+  "workbench.editor.focusRecentEditorAfterClose": false,
+  "workbench.enableExperiments": false,
+  "workbench.quickOpen.preserveInput": true,
+  "workbench.settings.enableNaturalLanguageSearch": false,
+  "workbench.sideBar.location": "left",
+  "workbench.startupEditor": "newUntitledFile",
+  "workbench.tree.renderIndentGuides": "none",
+  "workbench.iconTheme": "material-icon-theme",
+  // Have to force Nord theme since we use with the team
+  // a custom peacock ugly configuration
+  "workbench.colorCustomizations": {
+    "[Nord]": {
+      "statusBar.background": "#3b4252",
+      "statusBar.foreground": "#d8dee9",
+      "statusBarItem.hoverBackground": "#81a1c1",
+      "statusBarItem.remoteBackground": "#a3be8c",
+      "statusBarItem.remoteForeground": "#3b4252",
+      "sash.hoverBorder": "#81a1c1"
+    }
+  },
+
+  // VIM CONFIG
+  // More keybindings in the json file
+  "vim.easymotion": true,
+  "vim.incsearch": true,
+  "vim.useSystemClipboard": true,
+  "vim.useCtrlKeys": true,
+  "vim.hlsearch": true,
+  "vim.cursorStylePerMode.normal": "block",
+  "vim.cursorStylePerMode.insert": "line-thin",
+  "vim.leader": "<space>",
+  "vim.handleKeys": {
+    "<C-a>": false,
+    "<C-f>": false
+  },
+  "vim.insertModeKeyBindings": [
+    {
+      "before": ["j", "j"],
+      "after": ["<Esc>"]
+    }
+  ],
+  "vim.normalModeKeyBindingsNonRecursive": [
+    {
+      "before": ["<leader>", "d"],
+      "after": ["d", "d"]
+    },
+    {
+      "before": ["<C-n>"],
+      "commands": [":nohl"]
+    },
+    {
+      "before": ["K"],
+      "commands": ["lineBreakInsert"],
+      "silent": true
+    },
+    {
+      "before": ["<leader>", "w"],
+      "commands": ["workbench.action.splitEditor"]
+    },
+    {
+      "before": ["<leader>", "e"],
+      "commands": ["workbench.action.toggleSidebarVisibility"]
+    },
+    {
+      "before": ["<leader>", "f"],
+      "commands": ["revealInExplorer"]
+    },
+    {
+      "before": ["<leader>", "c"],
+      "commands": ["workbench.action.toggleCenteredLayout"]
+    },
+    {
+      "before": ["<leader>", "g"],
+      "commands": ["workbench.view.scm"]
+    }
+  ]
+}

@@ -24,3 +24,5 @@ test -r "~/.dir_colors" && eval $(dircolors ~/.dir_colors)
 
 # enable kubectl completion
 source <(kubectl completion zsh)
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

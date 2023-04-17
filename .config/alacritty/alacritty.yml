@@ -9,14 +9,14 @@ shell:
     - "tmux attach || tmux"
 
 window:
-  opacity: 0.95
+  opacity: 0.98
   dynamic_title: true
   dimensions:
     columns: 2
     lines: 2
   padding:
-    x: 5
-    y: 5
+    x: 4
+    y: 4
 
 scrolling:
   history: 100000
