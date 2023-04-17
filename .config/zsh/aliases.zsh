@@ -57,8 +57,8 @@ alias loki="kubectl -n loki get pods"
 alias monito="kubectl -n monitoring get pods"
 
 # works only
-alias front="cd $HOME/Repos/front"
-alias api="cd $HOME/Repos/api-platform"
-alias infra="cd $HOME/Repos/infra"
-alias deploy="cd $HOME/Repos/sflow-deploy"
-alias e2e="cd $HOME/Repos/automated-e2e"
+alias front="cd $HOME/Repos/bloomflow/flamingo"
+alias api="cd $HOME/Repos/bloomflow/api-platform"
+alias infra="cd $HOME/Repos/bloomflow/sflow-infra"
+alias deploy="cd $HOME/Repos/bloomflow/sflow-deploy"
+alias e2e="cd $HOME/Repos/bloomflow/automated-e2e"

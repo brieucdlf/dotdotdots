@@ -7,3 +7,11 @@
 - Editor: VsCode with vim extension & NeoVim
 - Browser: Brave
 - Themes: [Nord](https://github.com/arcticicestudio/nord)
+
+Gnome extensions
+- Clipboard Indicator 
+- Caffeine
+- Space Bar
+- Media Controls
+- 
+-
