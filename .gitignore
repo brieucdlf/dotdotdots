@@ -7,3 +7,6 @@ getnf
 
 # lvim
 .config/lvim/lv-settings.lua
+
+# alacritty
+.config/alacritty/catppuccin

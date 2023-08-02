@@ -22,9 +22,8 @@ alias psmem='ps auxf | sort -nr -k 4 | head -5'
 alias pscpu='ps auxf | sort -nr -k 3 | head -5'
 
 # lvim - nvim
-alias v="lvim"
-alias vim="lvim"
-alias nvim="lvim"
+alias v="nvim"
+alias vim="nvim"
 
 # git most used
 alias g="git"
