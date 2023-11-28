@@ -1,74 +1,108 @@
 {
   // GLOBALE CONFIGURATION
   "breadcrumbs.enabled": false,
-  "explorer.autoReveal": false,
-  "explorer.incrementalNaming": "smart",
-  "explorer.openEditors.visible": 0,
-  "files.eol": "\n",
-  "files.insertFinalNewline": true,
   "problems.autoReveal": false,
   "search.collapseResults": "alwaysCollapse",
   "search.useGlobalIgnoreFiles": true,
   "update.mode": "none",
-  "window.menuBarVisibility": "toggle",
-  "window.enableMenuBarMnemonics": false,
-  "window.titleBarStyle": "native",
-  "window.zoomLevel": 1,
+  "update.showReleaseNotes": false,
+  "zenMode.hideLineNumbers": false,
 
-  // TELEMETRY
-  "telemetry.telemetryLevel": "off",
-  "telemetry.enableCrashReporter": false,
-  "redhat.telemetry.enabled": false,
+  // THEME
+  "everforest.italicKeywords": true,
 
-  // LANGUAGE CONFIGURATION
-  "typescript.updateImportsOnFileMove.enabled": "always",
-  "javascript.updateImportsOnFileMove.enabled": "always",
-  "javascript.validate.enable": false,
-  "html.format.indentInnerHtml": true,
+  // FILES
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.exclude": {
+    "**/node_modules": true
+  },
   "files.associations": {
     "*.js": "javascript"
   },
-  "[yaml]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
+
+  // WINDOWS
+  "window.menuBarVisibility": "toggle",
+  "window.enableMenuBarMnemonics": false,
+  "window.titleBarStyle": "native",
+
+  // EXPLORER
+  "explorer.autoReveal": false,
+  "explorer.incrementalNaming": "smart",
+  "explorer.openEditors.visible": 1,
+  "explorer.confirmDelete": true,
+  "explorer.confirmDragAndDrop": true,
+
+  // TELEMETRY
+  "telemetry.telemetryLevel": "off",
+  "redhat.telemetry.enabled": false,
+
+  // EXTENSIONS
+  "extensions.autoUpdate": "onlyEnabledExtensions",
+  "extensions.closeExtensionDetailsOnViewChange": true,
+  "extensions.ignoreRecommendations": false,
+
+  // LINTERS
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features"
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[html]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "vs-kubernetes": {
-    "vscode-kubernetes.minikube-path.linux": "/home/brieucdlf/.vs-kubernetes/tools/minikube/linux-amd64/minikube",
-    "vscode-kubernetes.helm-path.linux": "/home/brieucdlf/.vs-kubernetes/tools/helm/linux-amd64/helm"
-  },
+  // PRETTIER
+  "prettier.semi": false,
+  "prettier.singleAttributePerLine": true,
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "all",
+
+  // LANGUAGE CONFIGURATION
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "javascript.validate.enable": false,
+
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.importModuleSpecifier": "relative",
+
+  "html.format.indentInnerHtml": true,
 
   // EDITOR CONFIGURATION
   "editor.bracketPairColorization.enabled": true,
+  "editor.codeActionsOnSave": {
+    "source.addMissingImports": true,
+    "source.organizeImports": true
+  },
+  "editor.cursorSurroundingLines": 5,
   "editor.guides.bracketPairs": "active",
   "editor.minimap.enabled": false,
   "editor.inlineSuggest.enabled": true,
   "editor.accessibilitySupport": "off",
   "editor.codeLens": true,
   "editor.colorDecorators": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "GitHub.copilot",
   "editor.emptySelectionClipboard": false,
-  "editor.fontSize": 14,
-  "editor.fontWeight": "400",
+  "editor.fontSize": 18,
+  "editor.fontWeight": "300",
   "editor.formatOnSave": true,
   "editor.lightbulb.enabled": false,
   "editor.multiCursorModifier": "ctrlCmd",
   "editor.renderWhitespace": "selection",
   "editor.smoothScrolling": true,
   "editor.snippetSuggestions": "top",
-  "editor.tabCompletion": "onlySnippets",
+  "editor.tabCompletion": "on",
   "editor.tabSize": 2,
   "editor.guides.indentation": true,
+  "editor.linkedEditing": true,
   "editor.rulers": [80],
   "editor.lineNumbers": "relative",
   "editor.fontFamily": "JetBrains Mono, Source Code Pro, Consolas, 'Courier New', monospace",
@@ -78,75 +112,113 @@
   "editor.wordWrap": "on",
   "editor.formatOnPaste": true,
   "editor.cursorBlinking": "phase",
+  "editor.stickyScroll.enabled": true,
+  "editor.suggest.insertMode": "replace",
+  "editor.suggestFontSize": 14,
   "editor.cursorStyle": "block",
-  "editor.cursorSmoothCaretAnimation": true,
+  "editor.cursorSmoothCaretAnimation": "on",
   "editor.tokenColorCustomizations": {
     "[Nord]": {
       "textMateRules": []
     }
   },
 
-  // EXTENSIONS
-  "extensions.autoUpdate": false,
-  "extensions.closeExtensionDetailsOnViewChange": true,
-  "extensions.ignoreRecommendations": true,
-  "gitProjectManager.baseProjectsFolders": ["/home/brieucdlf/Repos"],
-  "material-icon-theme.activeIconPack": "react",
-  "material-icon-theme.folders.color": "#616e88",
-  "material-icon-theme.folders.theme": "classic",
-  "material-icon-theme.hidesExplorerArrows": true,
-  "material-icon-theme.saturation": 0.6,
-  "prettier.printWidth": 120,
-  // Disabled since beta
+  // SORT JSON
+  "sortJSON.orderOverride": [
+    "name",
+    "version",
+    "main",
+    "module",
+    "types",
+    "typings",
+    "files",
+    "publishConfig",
+    "repository",
+    "scripts",
+    "prefix",
+    "description",
+    "body"
+  ],
+  "sortJSON.orderUnderride": [
+    "resolutions",
+    "dependencies",
+    "devDependencies",
+    "peerDependencies",
+    "cSpell.userWords"
+  ],
+
+  // PROJECT MANAGER
+  "projectManager.git.baseFolders": ["$home/Repos", "$home/.dotfiles"],
+  "projectManager.sortList": "Recent",
+  "projectManager.git.maxDepthRecursion": 2,
+  "projectManager.tags": ["Personal", "Work"],
+
+  // COPILOT
   "github.copilot.enable": {
-    "*": false,
-    "yaml": false,
-    "plaintext": false,
-    "markdown": false,
-    "javascript": false,
-    "html": false,
-    "css": false,
-    "jsonc": false,
-    "polar": false
+    "*": true
   },
+
+  // ERROR LENS
+  "errorLens.fontStyleItalic": true,
 
   // TERMINAL CONFIG
   // Never use it but should deep into it
-  "terminal.explorerKind": "external",
+  "terminal.integrated.sendKeybindingsToShell": true,
+  "terminal.explorerKind": "both",
   "terminal.external.linuxExec": "alacritty",
   "terminal.external.osxExec": "iTerm.app",
   "terminal.integrated.cursorStyle": "line",
-  "terminal.integrated.fontSize": 20,
+  "terminal.integrated.fontSize": 16,
+  "terminal.sourceControlRepositoriesKind": "both",
+  "terminal.integrated.defaultProfile.linux": "bash",
+  // Seems to be an issue on the flatpack version of vscode
+  // https://github.com/flathub/com.visualstudio.code/issues/370
+  "terminal.integrated.profiles.linux": {
+    "bash": {
+      "path": "/usr/bin/flatpak-spawn",
+      "args": [
+        "--env=TERM=xterm-256color",
+        "bash",
+        //next two lines are only required if you use external sdks, edit to use yours
+        "-c",
+        "export PATH=$PATH:/usr/lib/sdk/dotnet7/bin:/usr/lib/sdk/node18/bin; bash"
+      ]
+    }
+  },
 
   // WORBENCH CONFIGURATION
-  "workbench.colorTheme": "Nord",
-  "workbench.settings.openDefaultKeybindings": true,
+  "workbench.colorTheme": "Everforest Dark",
+  // Remove team color customization
+  "workbench.colorCustomizations": {
+    "[Everforest Dark]": {
+      "statusBar.background": "#373F45",
+      "statusBar.foreground": "#ccc",
+      "statusBarItem.hoverBackground": "#3b4252",
+      "statusBarItem.remoteBackground": "#a6e3a1",
+      "statusBarItem.remoteForeground": "#3b4252",
+      "sash.hoverBorder": "#879189"
+    }
+  },
   "workbench.commandPalette.preserveInput": true,
   "workbench.editor.enablePreview": false,
   "workbench.editor.enablePreviewFromQuickOpen": false,
   "workbench.editor.focusRecentEditorAfterClose": false,
   "workbench.enableExperiments": false,
+  "workbench.iconTheme": "catppuccin-mocha",
   "workbench.quickOpen.preserveInput": true,
+  "workbench.settings.editor": "json",
   "workbench.settings.enableNaturalLanguageSearch": false,
+  "workbench.settings.openDefaultKeybindings": true,
   "workbench.sideBar.location": "left",
-  "workbench.startupEditor": "newUntitledFile",
+  "workbench.startupEditor": "readme",
   "workbench.tree.renderIndentGuides": "none",
-  "workbench.iconTheme": "material-icon-theme",
-  // Have to force Nord theme since we use with the team
-  // a custom peacock ugly configuration
-  "workbench.colorCustomizations": {
-    "[Nord]": {
-      "statusBar.background": "#3b4252",
-      "statusBar.foreground": "#d8dee9",
-      "statusBarItem.hoverBackground": "#81a1c1",
-      "statusBarItem.remoteBackground": "#a3be8c",
-      "statusBarItem.remoteForeground": "#3b4252",
-      "sash.hoverBorder": "#81a1c1"
-    }
-  },
 
   // VIM CONFIG
-  // More keybindings in the json file
+  "vim.leader": "<space>",
+  "vim.foldfix": true,
+  "vim.highlightedyank.color": "rgba(230, 97, 89, 0.7)",
+  "vim.highlightedyank.enable": true,
+  "vim.highlightedyank.textColor": "white",
   "vim.easymotion": true,
   "vim.incsearch": true,
   "vim.useSystemClipboard": true,
@@ -154,7 +226,6 @@
   "vim.hlsearch": true,
   "vim.cursorStylePerMode.normal": "block",
   "vim.cursorStylePerMode.insert": "line-thin",
-  "vim.leader": "<space>",
   "vim.handleKeys": {
     "<C-a>": false,
     "<C-f>": false
@@ -166,6 +237,10 @@
     }
   ],
   "vim.normalModeKeyBindingsNonRecursive": [
+    {
+      "after": ["g", "g", "V", "G"],
+      "before": ["<c-a>"]
+    },
     {
       "before": ["<leader>", "d"],
       "after": ["d", "d"]
@@ -198,6 +273,44 @@
     {
       "before": ["<leader>", "g"],
       "commands": ["workbench.view.scm"]
+    },
+
+    // Show pophover info
+    {
+      "before": ["<leader>", "k"],
+      "commands": ["editor.action.showHover"]
+    },
+
+    // Rename Symbol
+    {
+      "before": ["leader", "r"],
+      "commands": ["editor.action.rename"]
+    },
+
+    // Refactoring
+    {
+      "before": ["<leader>", "c", "a"],
+      "commands": ["editor.action.quickFix"]
+    },
+
+    // Force actions
+    {
+      "before": ["leader", "w"],
+      "commands": [":w!"]
+    },
+    {
+      "before": ["leader", "q"],
+      "commands": [":q!"]
+    },
+    {
+      "before": ["leader", "x"],
+      "commands": [":x!"]
+    },
+
+    // Toggle bool
+    {
+      "before": ["<leader>", "b"],
+      "commands": ["extension.toggleBool"]
     }
   ]
 }
