@@ -1,0 +1,49 @@
+#!/bin/bash
+set -e
+
+SSH_DIR="$HOME/.ssh"
+DOTFILES_DIR="$HOME/.dotfiles"
+
+# Set Hostname
+if [ "$HOSTNAME" != brieucdlf.fr ]; then
+  hostnamectl set-hostname "brieucdlf.fr"
+fi
+
+# Checking Ansible
+if ! [ -x "$( command -v ansible )" ]; then
+  # update system packages
+  sudo apt update
+  sudo apt install ansible --noconfirm
+fi
+
+# Checking SSH KEY
+if ! [[ -f "$SSH_DIR/id_ed25519" ]]; then
+  # ssh directory creation
+  mkdir -p "$SSH_DIR"
+
+  # adding permissions
+  chmod 700 "$SSH_DIR"
+
+  # generating keys and trigger passphrase
+  ssh-keygen -t ed25519 -f "$SSH_DIR/id_ed25519" -C "contact@$HOSTNAME"
+
+  # adding key to ssh-agent
+  eval "$(ssh-agent -s)"
+  ssh-add "$SSH_DIR/id_ed25519"
+
+  # adding public key to authorized access keys
+  cat "$SSH_DIR/id_ed25519.pub" >> "$SSH_DIR/authorized_keys"
+
+  # adding permissions
+  chmod 600 "$SSH_DIR/auhorized_keys"
+fi
+
+if [[ -f "$DOTFILES_DIR/requirements.yml" ]]; then
+  cd "$DOTFILES_DIR"
+
+  ansible-galaxy install -r requirements.yml
+fi
+
+cd "$DOTFILES_DIR"
+
+ansible-playbook --diff "$DOTFILES_DIR/main.yml"
