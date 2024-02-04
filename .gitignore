@@ -1,9 +1,13 @@
 # env variables
-values.yml
+values.yaml
 
 # tmux
 .config/tmux/plugins
 tmux-client*.log
+
+# VSCode config
+# no need since sync with github
+.config/Code/*
 
 # get nerd fonts repo
 getnf
