@@ -1,3 +1,6 @@
+# env variables
+values.yml
+
 # tmux
 .config/tmux/plugins
 tmux-client*.log
@@ -10,3 +13,4 @@ getnf
 
 # alacritty
 .config/alacritty/catppuccin
+
