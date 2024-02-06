@@ -19,6 +19,9 @@ plug "zap-zsh/zap-prompt"
 
 export PATH="$HOME/.local/bin":$PATH
 
+# krew
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+
 # add custom nord theme colors
 test -r "~/.dir_colors" && eval $(dircolors ~/.dir_colors)
 
@@ -26,3 +29,7 @@ test -r "~/.dir_colors" && eval $(dircolors ~/.dir_colors)
 source <(kubectl completion zsh)
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+
+# Load Angular CLI autocompletion.
+source <(ng completion script)
