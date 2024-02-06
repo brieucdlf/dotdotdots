@@ -21,6 +21,9 @@ alias psmem='ps auxf | sort -nr -k 4 | head -5'
 # get top process eating cpu ##
 alias pscpu='ps auxf | sort -nr -k 3 | head -5'
 
+# list used port
+alias listp='sudo lsof -nP -iTCP -sTCP:LISTEN'
+
 # lvim - nvim
 alias v="nvim"
 alias vim="nvim"
@@ -56,8 +59,9 @@ alias loki="kubectl -n loki get pods"
 alias monito="kubectl -n monitoring get pods"
 
 # works only
-alias front="cd $HOME/Repos/bloomflow/flamingo"
+alias front="cd $HOME/Repos/bloomflow/sflow-flamingo"
 alias api="cd $HOME/Repos/bloomflow/api-platform"
 alias infra="cd $HOME/Repos/bloomflow/sflow-infra"
 alias deploy="cd $HOME/Repos/bloomflow/sflow-deploy"
 alias e2e="cd $HOME/Repos/bloomflow/automated-e2e"
+alias cubejs="cd $HOME/Repos/bloomflow/cubejs"
