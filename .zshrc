@@ -29,7 +29,3 @@ test -r "~/.dir_colors" && eval $(dircolors ~/.dir_colors)
 source <(kubectl completion zsh)
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-
-# Load Angular CLI autocompletion.
-source <(ng completion script)
