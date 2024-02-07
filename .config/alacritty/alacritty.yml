@@ -1,5 +1,4 @@
 import:
-  # - ~/.config/alacritty/catppuccin/catppuccin-mocha.yml
   - ~/.config/alacritty/gruvbox/gruvbox-dark.yml
 env:
   TERM: xterm-256color
@@ -12,7 +11,7 @@ shell:
     - "tmux attach || tmux"
 
 window:
-  opacity: 0.90
+  opacity: 0.98
   dynamic_title: true
   dimensions:
     columns: 2
