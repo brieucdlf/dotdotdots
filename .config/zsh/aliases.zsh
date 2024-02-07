@@ -25,8 +25,8 @@ alias pscpu='ps auxf | sort -nr -k 3 | head -5'
 alias listp='sudo lsof -nP -iTCP -sTCP:LISTEN'
 
 # lvim - nvim
-alias v="nvim"
-alias vim="nvim"
+alias v="fd --type f --hidden --exclude .git | fzf-tmux -p | xargs nvim"
+alias vim="v"
 
 # git most used
 alias g="git"
