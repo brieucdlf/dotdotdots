@@ -1,17 +1,32 @@
-local on_attach = require("plugins.configs.lspconfig").on_attach
-local capabilities = require("plugins.configs.lspconfig").capabilities
+local base = require("plugins.configs.lspconfig")
+local on_attach = base.on_attach
+local capabilities = base.capabilities
 
-local lspconfig = require "lspconfig"
+local lspconfig = require("lspconfig")
 
--- if you just want default config for the servers then put them in a table
-local servers = { "html", "cssls", "tsserver", "clangd" }
-
-for _, lsp in ipairs(servers) do
-  lspconfig[lsp].setup {
-    on_attach = on_attach,
-    capabilities = capabilities,
+local function organize_imports()
+  local params = {
+    command = "_typescript.organize_imports",
+    arguments = {vim.api.nvim_buf_get_name(0)},
   }
+  vim.lsp.buf.execute_command(params)
 end
 
--- 
--- lspconfig.pyright.setup { blabla}
+local servers = {
+  "tsserver",
+  "tailwindcss",
+  "eslint",
+}
+
+for _, lsp in ipairs(servers) do
+  lspconfig[lsp].setup({
+    on_attach = on_attach,
+    capabilities = capabilities,
+    commands = {
+      OrganizeImports = {
+        organize_imports,
+        description = "Organize Imports"
+      }
+    }
+  })
+end
