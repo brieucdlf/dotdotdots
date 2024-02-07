@@ -36,15 +36,33 @@
     scope: global
     value: true
 
+- name: Set rerere.enabled
+  community.general.git_config:
+    name: rerere.enabled
+    scope: global
+    value: true
+
+- name: Set commit.gpgsign
+  community.general.git_config:
+    name: commit.gpgsign
+    scope: global
+    value: true
+
+- name: Set user.signingkey
+  community.general.git_config:
+    name: user.signingkey
+    scope: global
+    value: "{{ git_user_signingkey }}"
+
 - name: Set user.email
   community.general.git_config:
     name: user.email
     scope: global
     value: "{{ git_user_email }}"
-  no_log: true
 
 - name: Set user.name
   community.general.git_config:
     name: user.name
     scope: global
     value: "{{ git_user_name }}"
+
