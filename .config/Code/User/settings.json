@@ -96,7 +96,7 @@
   "editor.fontSize": 18,
   "editor.fontWeight": "300",
   "editor.formatOnSave": true,
-  "editor.lightbulb.enabled": false,
+  "editor.lightbulb.enabled": "off",
   "editor.multiCursorModifier": "ctrlCmd",
   "editor.renderWhitespace": "selection",
   "editor.smoothScrolling": true,
