@@ -13,7 +13,7 @@ fi
 if ! [ -x "$( command -v ansible )" ]; then
   # update system packages
   sudo apt update
-  sudo apt install ansible --noconfirm
+  sudo apt install ansible
 fi
 
 # Checking SSH KEY
@@ -46,4 +46,4 @@ fi
 
 cd "$DOTFILES_DIR"
 
-ansible-playbook --diff "$DOTFILES_DIR/main.yml"
+ansible-playbook --diff "$DOTFILES_DIR/main.yaml"
