@@ -10,6 +10,8 @@
 
   // THEME
   "everforest.italicKeywords": true,
+  "everforest.darkCursor": "yellow",
+  "everforest.darkContrast": "hard",
 
   // FILES
   "files.eol": "\n",
@@ -79,8 +81,8 @@
   // EDITOR CONFIGURATION
   "editor.bracketPairColorization.enabled": true,
   "editor.codeActionsOnSave": {
-    "source.addMissingImports": true,
-    "source.organizeImports": true
+    "source.addMissingImports": "explicit",
+    "source.organizeImports": "explicit"
   },
   "editor.cursorSurroundingLines": 5,
   "editor.guides.bracketPairs": "active",
@@ -170,7 +172,7 @@
   "terminal.integrated.cursorStyle": "line",
   "terminal.integrated.fontSize": 16,
   "terminal.sourceControlRepositoriesKind": "both",
-  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.defaultProfile.linux": "zsh",
   // Seems to be an issue on the flatpack version of vscode
   // https://github.com/flathub/com.visualstudio.code/issues/370
   "terminal.integrated.profiles.linux": {
@@ -187,7 +189,7 @@
   },
 
   // WORBENCH CONFIGURATION
-  "workbench.colorTheme": "Everforest Dark",
+  "workbench.colorTheme": "Gruvbox Dark Hard",
   // Remove team color customization
   "workbench.colorCustomizations": {
     "[Everforest Dark]": {
@@ -312,5 +314,6 @@
       "before": ["<leader>", "b"],
       "commands": ["extension.toggleBool"]
     }
-  ]
+  ],
+  "window.zoomLevel": 1
 }
