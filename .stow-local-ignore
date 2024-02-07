@@ -18,3 +18,16 @@ _darcs
 ^/README.*
 ^/LICENSE.*
 ^/COPYING
+
+.config/nvim/.git
+.config/nvim/.github
+.config/nvim/.gitignore
+.config/nvim/.ignore
+.config/nvim/init.lua
+.config/nvim/lazy-lock.json
+.config/nvim/LICENSE
+.config/nvim/.stylua.toml
+
+.config/nvim/lua/core
+.config/nvim/lua/plugins
+
