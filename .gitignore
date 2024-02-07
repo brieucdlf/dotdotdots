@@ -1,5 +1,5 @@
 # env variables
-values.yaml
+.config/values.yaml
 
 # tmux
 .config/tmux/plugins

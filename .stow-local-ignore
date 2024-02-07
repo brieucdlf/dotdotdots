@@ -31,3 +31,5 @@ _darcs
 .config/nvim/lua/core
 .config/nvim/lua/plugins
 
+.config/values.yaml
+
