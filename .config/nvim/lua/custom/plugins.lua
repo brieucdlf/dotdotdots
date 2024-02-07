@@ -33,7 +33,7 @@ local plugins = {
   {
     "mfussenegger/nvim-dap",
     config = function ()
-     require "custom.configs.dap"
+      require "custom.configs.dap"
       require("core.utils").load_mappings("dap")
     end
   },
@@ -91,16 +91,6 @@ local plugins = {
       }
       return opts
     end
-  },
-  {
-    "kdheepak/lazygit.nvim",
-    requires = {
-        "nvim-telescope/telescope.nvim",
-        "nvim-lua/plenary.nvim",
-    },
-    config = function()
-        require("telescope").load_extension("lazygit")
-    end,
   }
 }
 
