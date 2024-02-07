@@ -1,4 +1,9 @@
 [
+  {
+    "key": "tab",
+    "command": "editor.action.inlineSuggest.commit",
+    "when": "textInputFocus && inlineSuggestionHasIndentationLessThanTabSize && inlineSuggestionVisible && !editorTabMovesFocus"
+  },
   // Toggle terminal
   {
     "command": "workbench.action.terminal.toggleTerminal",
@@ -130,11 +135,6 @@
     "command": "editor.action.addSelectionToNextFindMatch",
     "key": "ctrl+n",
     "when": "editorFocus"
-  },
-  {
-    "key": "tab",
-    "command": "tab",
-    "when": "editorTextFocus && !editorTabMovesFocus"
   },
   {
     "key": "ctrl+shift+c",

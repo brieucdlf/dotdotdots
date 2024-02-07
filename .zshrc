@@ -29,3 +29,10 @@ test -r "~/.dir_colors" && eval $(dircolors ~/.dir_colors)
 source <(kubectl completion zsh)
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# bun completions
+[ -s "/home/box0/.bun/_bun" ] && source "/home/box0/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
