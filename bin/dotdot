@@ -3,6 +3,7 @@ set -e
 
 SSH_DIR="$HOME/.ssh"
 DOTFILES_DIR="$HOME/.dotfiles"
+CONFIG_DIR="$HOME/.dotfiles/.config"
 
 # Set Hostname
 if [ "$HOSTNAME" != brieucdlf.fr ]; then
@@ -48,4 +49,4 @@ fi
 
 cd "$DOTFILES_DIR"
 
-ansible-playbook --diff "$DOTFILES_DIR/main.yaml"
+ansible-playbook --diff --extra-vars "@$CONFIG_DIR/values.yaml" "$DOTFILES_DIR/main.yaml" "$@"
