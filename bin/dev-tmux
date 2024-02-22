@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Start all Dockers
+tmux new-window -t 0:2 -n Dockers 'cd ~/Repos/bloomflow/api-platform/;
+docker compose -f stack.yml up elasticsearch traefik mongodb nats'
+
+# Start Api Server
+tmux new-window -t 0:3 -n "API Server" 'cd ~/Repos/bloomflow/api-platform/;
+docker compose up'
+
+# Start Angular Build
+tmux new-window -t 0:4 -n "Angular Server" 'cd ~/Repos/bloomflow/sflow-flamingo
+;npm start'
+
+# Start Editor
+tmux new-window -t 0:5 -n "Editor" 'cd ~/Repos/bloomflow/api-platform;nvim'
+tmux split-window -v 'lazyvim'
+
+tmux select-window -t 0:1
