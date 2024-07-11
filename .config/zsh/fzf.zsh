@@ -4,14 +4,13 @@ if [[ ! "$PATH" == */$HOME/.fzf/bin* ]]; then
   PATH="${PATH:+${PATH}:}/$HOME/.fzf/bin"
 fi
 
-export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
-  --color=fg:#d0d0d0,fg+:#d0d0d0,bg:#282828,bg+:#262626
-  --color=hl:#83A598,hl+:#B8BB26,info:#FABD2F,marker:#83A598
-  --color=prompt:#FABD2F,spinner:#FB4934,pointer:#B8BB26,header:#87afaf
-  --color=border:#262626,label:#aeaeae,query:#d9d9d9
-  --border="rounded" --border-label="" --preview-window="border-rounded" --prompt="> "
-  --marker=">" --pointer="◆" --separator="." --scrollbar="│"
-  --layout="reverse" --info="right" --height=80%'
+export FZF_DEFAULT_OPTS=" \
+--color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
+--color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \
+--color=marker:#f5e0dc,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8 \
+--border='rounded' --border-label='' --preview-window='border-rounded' --prompt='> ' \
+--marker='>' --pointer='◆' --separator='.' --scrollbar='│' \
+--layout='reverse' --info='right' --height=80%"
   
 
 # Auto-completion
