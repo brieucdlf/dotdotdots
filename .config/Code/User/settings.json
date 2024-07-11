@@ -98,7 +98,7 @@
   "editor.lightbulb.enabled": "off",
   "editor.multiCursorModifier": "ctrlCmd",
   "editor.renderWhitespace": "selection",
-  "editor.smoothScrolling": true,
+  "editor.smoothScrolling": false,
   "editor.snippetSuggestions": "top",
   "editor.tabCompletion": "on",
   "editor.tabSize": 2,
@@ -119,7 +119,7 @@
   "editor.cursorStyle": "block",
   "editor.cursorSmoothCaretAnimation": "on",
   "editor.tokenColorCustomizations": {
-    "[Nord]": {
+    "[Catppuccin Mocha]": {
       "textMateRules": []
     }
   },
@@ -172,17 +172,15 @@
   "terminal.integrated.fontSize": 16,
   "terminal.sourceControlRepositoriesKind": "both",
   "terminal.integrated.defaultProfile.linux": "zsh",
-
-  // WORBENCH CONFIGURATION
-  "workbench.colorTheme": "Gruvbox Dark Hard",
   // Remove team color customization
   "workbench.colorCustomizations": {
-    "[Gruvbox Dark Hard]": {
-      "statusBar.background": "#373F45",
-      "statusBar.foreground": "#ccc",
-      "statusBarItem.hoverBackground": "#3b4252",
-      "statusBarItem.remoteBackground": "#a6e3a1",
-      "statusBarItem.remoteForeground": "#3b4252",
+    "[Catppuccin Mocha]": {
+      "statusBar.background": "#222739",
+      "statusBar.foreground": "#B3BEF5",
+      "statusBarItem.hoverBackground": "#FEA983",
+      "statusBarItem.hoverForeground": "#1D1E2D",
+      "statusBarItem.remoteBackground": "#A1D99B",
+      "statusBarItem.remoteForeground": "#B3BEF5",
       "sash.hoverBorder": "#879189"
     }
   },
@@ -191,7 +189,7 @@
   "workbench.editor.enablePreviewFromQuickOpen": false,
   "workbench.editor.focusRecentEditorAfterClose": false,
   "workbench.enableExperiments": false,
-  "workbench.iconTheme": "catppuccin-mocha",
+  "workbench.iconTheme": "catppuccin-perfect-mocha",
   "workbench.quickOpen.preserveInput": true,
   "workbench.settings.editor": "json",
   "workbench.settings.enableNaturalLanguageSearch": false,
@@ -303,5 +301,8 @@
   "window.zoomLevel": 1,
   "debug.javascript.autoAttachFilter": "always",
   "files.insertFinalNewline": true,
-  "files.trimTrailingWhitespace": true
+  "files.trimTrailingWhitespace": true,
+  "git.openRepositoryInParentFolders": "never",
+  "github.copilot.editor.enableAutoCompletions": true,
+  "workbench.colorTheme": "Catppuccin Mocha"
 }
