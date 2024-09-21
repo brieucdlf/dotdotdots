@@ -32,7 +32,7 @@ source <(kubectl completion zsh)
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # bun completions
-[ -s "/home/box0/.bun/_bun" ] && source "/home/box0/.bun/_bun"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/box0/.bun/_bun"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
