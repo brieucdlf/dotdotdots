@@ -2,9 +2,10 @@
 # some useful commands taken from @chrisatmachine
 
 # shell
-alias ll="ls -l"
-alias l="ls"
-alias la="ls -la"
+alias ls='ls --color=auto'
+alias ll='ls -l'
+alias la='ls -A'
+alias grep='grep --color=auto'
 alias dot="cd $HOME/.dotfiles"
 # confirm before overwriting something
 alias cp="cp -i"

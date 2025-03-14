@@ -1,43 +1,63 @@
-[ -f "$HOME/.local/share/zap/zap.zsh" ] && source "$HOME/.local/share/zap/zap.zsh"
-
-# source
-plug "$HOME/.config/zsh/aliases.zsh"
-plug "$HOME/.config/zsh/exports.zsh"
-plug "$HOME/.config/zsh/nvm.zsh"
-plug "$HOME/.config/zsh/fzf.zsh"
-
-# plugins
-plug "zap-zsh/supercharge"
-plug "zsh-users/zsh-autosuggestions"
-plug "zap-zsh/vim"
-plug "zsh-users/zsh-syntax-highlighting"
-plug "esc/conda-zsh-completion"
-plug "zap-zsh/fzf"
-plug "hlissner/zsh-autopair"
-
-# theme
-plug "zap-zsh/zap-prompt"
-
 export PATH="$HOME/.local/bin":$PATH
 
-# krew
-export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+# Set ZINIT_HOME to the user's XDG_DATA_HOME directory
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+[ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
+[ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 
-# add custom nord theme colors
-test -r "~/.dir_colors" && eval $(dircolors ~/.dir_colors)
+# Initialize ZINIT
+source "${ZINIT_HOME}/zinit.zsh"
 
-# enable kubectl completion
-source <(kubectl completion zsh)
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+# Initialize ZINIT plugins
+zinit ice wait lucid
+zinit load zdharma-continuum/fast-syntax-highlighting
+zinit load zsh-users/zsh-completions
+zinit load zsh-users/zsh-autosuggestions
+zinit load Aloxaf/fzf-tab
 
-# bun completions
-[ -s "$HOME/.bun/_bun" ] && source "$HOME/box0/.bun/_bun"
+# Snippets
+zinit snippet OMZP::git
+zinit snippet OMZP::sudo
+zinit snippet OMZP::aws
+zinit snippet OMZP::kubectl
+zinit snippet OMZP::kubectx
+zinit snippet OMZP::command-not-found
 
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
+# Load completions
+autoload -U compinit && compinit
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# Replay all cached completions
+zinit cdreplay -q
+
+# Completion styling
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' menu no
+zstyle ':fzf-tab:complete:*:*' fzf-preview 'bat --color=always --style=numbers --line-range=:50 {}'
+
+# Initialize oh-my-posh with the specified configuration file
+eval "$(oh-my-posh init zsh --config $HOME/.config/ohmyposh/farming3000.toml)"
+
+# History
+HISTFILE=~/.zsh_history
+HISTSIZE=5000
+SAVEHIST=5000
+HISTDUPS=erase
+setopt append_history
+setopt extended_history
+setopt hist_expire_dups_first
+setopt hist_ignore_dups
+setopt hist_ignore_space
+setopt hist_verify
+setopt inc_append_history
+setopt share_history
+
+# source files
+source "$HOME/.config/zsh/exports.zsh"
+source "$HOME/.config/zsh/aliases.zsh"
+source "$HOME/.config/zsh/keybindings.zsh"
+source "$HOME/.config/zsh/nvm.zsh"
+
+# Shell integration
+eval "$(fzf --zsh)"
