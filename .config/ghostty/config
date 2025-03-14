@@ -3,9 +3,20 @@ font-size = 14
 theme = catppuccin-mocha
 shell-integration = zsh
 shell-integration-features = no-cursor,sudo,no-title
-cursor-style = block
+cursor-style = bar
+cursor-style-blink = true
 adjust-cell-height = 35%
-background-opacity = 0.90
+background-opacity = 0.95
+background-blur = true
+title = ""
+window-theme = ghostty
+gtk-titlebar = false
+gtk-single-instance = true
+
+window-height = 500
+window-width = 800
+
+desktop-notifications = false
 
 mouse-hide-while-typing = true
 mouse-scroll-multiplier = 2
