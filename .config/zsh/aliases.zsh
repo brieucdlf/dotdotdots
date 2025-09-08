@@ -29,6 +29,11 @@ alias listp='sudo lsof -nP -iTCP -sTCP:LISTEN'
 alias v="fd --type f --hidden --exclude .git | fzf-tmux -p | xargs nvim"
 alias vim="v"
 
+# wireguard
+alias wgdeco="sudo wg-quick down wg0"
+alias wgco="sudo wg-quick up wg0"
+alias wgshow="sudo wg show"
+
 # git most used
 alias g="git"
 alias ga="git add"

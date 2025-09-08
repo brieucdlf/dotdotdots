@@ -46,6 +46,3 @@ export FZF_DEFAULT_OPTS=" \
 # add fd-find on T command to avoid ignored files
 export FZF_DEFAULT_COMMAND="fd --type f"
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-
-# Nix
-if [ -e /home/rogemon/.nix-profile/etc/profile.d/nix.sh ]; then . /home/rogemon/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
