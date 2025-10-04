@@ -1,0 +1,113 @@
+{
+  "theme": "Catppuccin Mocha",
+  "icon_theme": "Catppuccin Mocha",
+  "agent": {
+    "default_model": {
+      "provider": "zed.dev",
+      "model": "claude-sonnet-4"
+    },
+    "play_sound_when_agent_done": true,
+    "always_allow_tool_actions": true
+  },
+  "context_servers": {
+    "bloomflow-mcp": {
+      "source": "custom",
+      "enabled": true,
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "http://localhost:8000/mcp",
+        "--header",
+        "x-bflow-api-key:d6bb8c97618ec1e7c301bc0bf3deea310a466500"
+      ],
+      "env": {}
+    }
+  },
+  "project_panel": {
+    "dock": "left"
+  },
+  "toolbar": {
+    "breadcrumbs": true,
+    "quick_actions": false,
+    "selections_menu": false
+  },
+  "features": {
+    "edit_prediction_provider": "zed"
+  },
+  "inlay_hints": {
+    "enabled": false
+  },
+  "buffer_font_features": {
+    "calt": 1
+  },
+  "hide_mouse": "on_typing_and_movement",
+  "tab_bar": {
+    "show": true
+  },
+  "scrollbar": {
+    "show": "never"
+  },
+  "indent_guides": {
+    "enabled": true,
+    "coloring": "indent_aware"
+  },
+  "preview_tabs": {
+    "enabled": false
+  },
+  "relative_line_numbers": true,
+  "vim_mode": true,
+  "vim": {
+    "cursor_shape": {
+      "normal": "block",
+      "insert": "bar"
+    },
+    "use_system_clipboard": "on_yank"
+  },
+  "use_system_window_tabs": true,
+  "rounded_selection": true,
+  "minimap": {
+    "show": "never"
+  },
+  "search": {
+    "button": false,
+    "case_sensitive": true
+  },
+  "ui_font_size": 16,
+  "buffer_font_size": 15,
+  "cursor_blink": false,
+  "wrap_guides": [90],
+  "show_whitespaces": "all",
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
+  },
+  "git": {
+    "git_gutter": "tracked_files",
+    "inline_blame": {
+      "enabled": true
+    }
+  },
+  "languages": {
+    "JavaScript": {
+      "formatter": {
+        "external": {
+          "command": "prettier",
+          "arguments": ["--stdin-filepath", "{buffer_path}"]
+        }
+      },
+      "format_on_save": "off"
+    },
+    "Go": {
+      "format_on_save": "on"
+    }
+  },
+  "lsp": {
+    "tailwindcss-language-server": {
+      "settings": {
+        "tailwindCSS": {
+          "emmetCompletions": true
+        }
+      }
+    }
+  }
+}
