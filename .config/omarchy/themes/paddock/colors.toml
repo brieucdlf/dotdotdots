@@ -1,8 +1,8 @@
 # Paddock v2 — calibré sur les photos de référence
 # 911 GT3 Racing Green / intérieur cognac / étriers jaunes / forêt automnale
 
-accent               = "#d4b418"   # Racing Yellow — étriers Porsche, pur et saturé
-cursor               = "#e8cc30"   # jaune vif étrier en pleine lumière
+accent               = "#f0c000"   # Racing Yellow — étriers Porsche, pur et saturé
+cursor               = "#f5d020"   # jaune vif étrier en pleine lumière
 foreground           = "#d4b88a"   # cuir cognac intérieur — chaud, pas trop crème
 background           = "#0c1810"   # ombre profonde carrosserie BRG — noir très vert
 selection_foreground = "#0c1810"
@@ -11,7 +11,7 @@ selection_background = "#2a5040"   # vert forêt sélection
 color0  = "#1a2e20"   # black        — ombre forêt profonde
 color1  = "#8a5e3a"   # red          — cuir cognac sombre (sièges à l'ombre)
 color2  = "#3d8f58"   # green        — British Racing Green carrosserie
-color3  = "#d4b418"   # yellow       — Racing Yellow étriers
+color3  = "#f0c000"   # yellow       — Racing Yellow étriers
 color4  = "#2d6040"   # blue         — voiture dans l'ombre de la forêt
 color5  = "#7a5a38"   # magenta      — cuir selle mi-ton
 color6  = "#2d7060"   # cyan         — mousse forêt profonde
@@ -20,7 +20,7 @@ color7  = "#c4a878"   # white        — cognac muted / parchment chaud
 color8  = "#284038"   # br. black    — reflet BRG highlight
 color9  = "#c08848"   # br. red      — cuir cognac en plein soleil
 color10 = "#52a870"   # br. green    — BRG en lumière directe
-color11 = "#e8cc30"   # br. yellow   — jaune étrier vif
+color11 = "#f5d020"   # br. yellow   — jaune étrier vif
 color12 = "#4a7858"   # br. blue     — ombre forêt claire
 color13 = "#a88050"   # br. magenta  — cuir tan highlight
 color14 = "#4a9878"   # br. cyan     — mousse / lichen clair
