@@ -1,0 +1,14 @@
+[tools]
+elixir = "latest"
+erlang = "latest"
+go = "latest"
+java = "latest"
+node = "lts"
+python = "3.11"
+ruby = "latest"
+
+[settings]
+idiomatic_version_file_enable_tools = ["node", "ruby"]
+
+[settings.ruby]
+compile = false
