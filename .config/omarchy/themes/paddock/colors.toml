@@ -1,27 +1,27 @@
-# Paddock v2 — calibré sur les photos de référence
-# 911 GT3 Racing Green / intérieur cognac / étriers jaunes / forêt automnale
+# Paddock v3 — British Racing Green exact #004225
+# Porsche 911 GT3 Touring / forêt / cuir cognac / étriers GT Yellow
 
-accent               = "#f0c000"   # Racing Yellow — étriers Porsche, pur et saturé
-cursor               = "#f5d020"   # jaune vif étrier en pleine lumière
-foreground           = "#d4b88a"   # cuir cognac intérieur — chaud, pas trop crème
-background           = "#0c1810"   # ombre profonde carrosserie BRG — noir très vert
-selection_foreground = "#0c1810"
-selection_background = "#2a5040"   # vert forêt sélection
+accent               = "#f0c000"   # Porsche GT Yellow — étriers
+cursor               = "#f5d020"   # jaune vif
+foreground           = "#d4b88a"   # cuir cognac intérieur
+background           = "#001a0f"   # noir BRG profond (dérivé de #004225)
+selection_foreground = "#001a0f"
+selection_background = "#004225"   # BRG exact — sélection
 
-color0  = "#1a2e20"   # black        — ombre forêt profonde
-color1  = "#8a5e3a"   # red          — cuir cognac sombre (sièges à l'ombre)
-color2  = "#3d8f58"   # green        — British Racing Green carrosserie
-color3  = "#f0c000"   # yellow       — Racing Yellow étriers
-color4  = "#2d6040"   # blue         — voiture dans l'ombre de la forêt
-color5  = "#7a5a38"   # magenta      — cuir selle mi-ton
-color6  = "#2d7060"   # cyan         — mousse forêt profonde
-color7  = "#c4a878"   # white        — cognac muted / parchment chaud
+color0  = "#0a1f13"   # black        — ombre forêt
+color1  = "#6b3a1f"   # red          — cognac sombre / écorce
+color2  = "#004225"   # green        — British Racing Green EXACT
+color3  = "#f0c000"   # yellow       — GT Yellow
+color4  = "#0d3326"   # blue         — forêt profonde
+color5  = "#5a3a1a"   # magenta      — cuir sombre
+color6  = "#1d6648"   # cyan         — mousse forêt
+color7  = "#b8a07a"   # white        — cognac muted
 
-color8  = "#284038"   # br. black    — reflet BRG highlight
-color9  = "#c08848"   # br. red      — cuir cognac en plein soleil
-color10 = "#52a870"   # br. green    — BRG en lumière directe
-color11 = "#f5d020"   # br. yellow   — jaune étrier vif
-color12 = "#4a7858"   # br. blue     — ombre forêt claire
-color13 = "#a88050"   # br. magenta  — cuir tan highlight
-color14 = "#4a9878"   # br. cyan     — mousse / lichen clair
-color15 = "#e8d8b0"   # br. white    — reflet cuir clair
+color8  = "#132b1d"   # br. black    — forêt mid
+color9  = "#a06030"   # br. red      — cognac en plein soleil
+color10 = "#0a6b38"   # br. green    — BRG en lumière directe
+color11 = "#f5d020"   # br. yellow   — GT Yellow vif
+color12 = "#2a5a3a"   # br. blue     — forêt claire
+color13 = "#8a6835"   # br. magenta  — cuir tan
+color14 = "#2d8060"   # br. cyan     — mousse claire
+color15 = "#e0cba0"   # br. white    — reflet cuir clair
