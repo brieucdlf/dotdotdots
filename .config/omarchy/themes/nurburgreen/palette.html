@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nurburgreen — Color Palette</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #001a0f;
+      color: #d4b88a;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      padding: 48px 40px;
+      min-height: 100vh;
+    }
+
+    header {
+      margin-bottom: 48px;
+      border-left: 3px solid #004225;
+      padding-left: 16px;
+    }
+
+    header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #d4b88a;
+    }
+
+    header p {
+      margin-top: 6px;
+      font-size: 13px;
+      color: #8a6835;
+      letter-spacing: 0.08em;
+    }
+
+    section {
+      margin-bottom: 40px;
+    }
+
+    section h2 {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #5a3a1a;
+      margin-bottom: 16px;
+    }
+
+    .swatches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .swatch {
+      display: flex;
+      flex-direction: column;
+      width: 140px;
+    }
+
+    .swatch-color {
+      height: 64px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .swatch-info {
+      margin-top: 8px;
+    }
+
+    .swatch-name {
+      font-size: 11px;
+      color: #8a6835;
+      letter-spacing: 0.05em;
+    }
+
+    .swatch-hex {
+      font-size: 13px;
+      color: #d4b88a;
+      margin-top: 2px;
+    }
+
+    .swatch-desc {
+      font-size: 10px;
+      color: #5a3a1a;
+      margin-top: 2px;
+      font-style: italic;
+    }
+
+    .terminal-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .terminal-swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .terminal-color {
+      width: 48px;
+      height: 48px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .terminal-label {
+      font-size: 9px;
+      color: #5a3a1a;
+      text-align: center;
+    }
+
+    .terminal-hex-small {
+      font-size: 9px;
+      color: #8a6835;
+      text-align: center;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #1a1e1a;
+      margin: 8px 0 32px;
+    }
+
+    footer {
+      margin-top: 56px;
+      font-size: 10px;
+      color: #2a5a3a;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Nurburgreen</h1>
+    <p>Porsche 911 GT3 · British Racing Green · Cognac leather · Carbon fiber</p>
+  </header>
+
+  <section>
+    <h2>Core</h2>
+    <hr class="divider">
+    <div class="swatches">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#001a0f;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">background</div>
+          <div class="swatch-hex">#001a0f</div>
+          <div class="swatch-desc">BRG dark</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#d4b88a;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">foreground</div>
+          <div class="swatch-hex">#d4b88a</div>
+          <div class="swatch-desc">cognac leather</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#f0c000;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">accent</div>
+          <div class="swatch-hex">#f0c000</div>
+          <div class="swatch-desc">GT Yellow</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#004225;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">selection</div>
+          <div class="swatch-hex">#004225</div>
+          <div class="swatch-desc">British Racing Green</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#0e100e;border-color:rgba(255,255,255,0.1);"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">border</div>
+          <div class="swatch-hex">#0e100e</div>
+          <div class="swatch-desc">carbon fiber</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Terminal — Normal</h2>
+    <hr class="divider">
+    <div class="terminal-row">
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#0c100c;"></div>
+        <div class="terminal-label">color0</div>
+        <div class="terminal-hex-small">#0c100c</div>
+        <div class="terminal-label">black</div>
+      </div>
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#6b3a1f;"></div>
+        <div class="terminal-label">color1</div>
+        <div class="terminal-hex-small">#6b3a1f</div>
+        <div class="terminal-label">red</div>
+      </div>
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#004225;"></div>
+        <div class="terminal-label">color2</div>
+        <div class="terminal-hex-small">#004225</div>
+        <div class="terminal-label">green</div>
+      </div>
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#f0c000;"></div>
+        <div class="terminal-label">color3</div>
+        <div class="terminal-hex-small">#f0c000</div>
+        <div class="terminal-label">yellow</div>
+      </div>
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#0d3326;"></div>
+        <div class="terminal-label">color4</div>
+        <div class="terminal-hex-small">#0d3326</div>
+        <div class="terminal-label">blue</div>
+      </div>
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#5a3a1a;"></div>
+        <div class="terminal-label">color5</div>
+        <div class="terminal-hex-small">#5a3a1a</div>
+        <div class="terminal-label">magenta</div>
+      </div>
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#1d6648;"></div>
+        <div class="terminal-label">color6</div>
+        <div class="terminal-hex-small">#1d6648</div>
+        <div class="terminal-label">cyan</div>
+      </div>
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#b8a07a;"></div>
+        <div class="terminal-label">color7</div>
+        <div class="terminal-hex-small">#b8a07a</div>
+        <div class="terminal-label">white</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Terminal — Bright</h2>
+    <hr class="divider">
+    <div class="terminal-row">
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#1a1e1a;"></div>
+        <div class="terminal-label">color8</div>
+        <div class="terminal-hex-small">#1a1e1a</div>
+        <div class="terminal-label">br. black</div>
+      </div>
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#a06030;"></div>
+        <div class="terminal-label">color9</div>
+        <div class="terminal-hex-small">#a06030</div>
+        <div class="terminal-label">br. red</div>
+      </div>
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#0a6b38;"></div>
+        <div class="terminal-label">color10</div>
+        <div class="terminal-hex-small">#0a6b38</div>
+        <div class="terminal-label">br. green</div>
+      </div>
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#f5d020;"></div>
+        <div class="terminal-label">color11</div>
+        <div class="terminal-hex-small">#f5d020</div>
+        <div class="terminal-label">br. yellow</div>
+      </div>
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#2a5a3a;"></div>
+        <div class="terminal-label">color12</div>
+        <div class="terminal-hex-small">#2a5a3a</div>
+        <div class="terminal-label">br. blue</div>
+      </div>
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#8a6835;"></div>
+        <div class="terminal-label">color13</div>
+        <div class="terminal-hex-small">#8a6835</div>
+        <div class="terminal-label">br. magenta</div>
+      </div>
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#2d8060;"></div>
+        <div class="terminal-label">color14</div>
+        <div class="terminal-hex-small">#2d8060</div>
+        <div class="terminal-label">br. cyan</div>
+      </div>
+      <div class="terminal-swatch">
+        <div class="terminal-color" style="background:#e0cba0;"></div>
+        <div class="terminal-label">color15</div>
+        <div class="terminal-hex-small">#e0cba0</div>
+        <div class="terminal-label">br. white</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>brieucdlf / dotdotdots · Nurburgreen</footer>
+
+</body>
+</html>
