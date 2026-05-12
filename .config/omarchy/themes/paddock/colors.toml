@@ -8,7 +8,7 @@ background           = "#001a0f"   # noir BRG profond (dérivé de #004225)
 selection_foreground = "#001a0f"
 selection_background = "#004225"   # BRG exact — sélection
 
-color0  = "#0a1f13"   # black        — ombre forêt
+color0  = "#0c0c0a"   # black        — carbone (capot GT3 RS)
 color1  = "#6b3a1f"   # red          — cognac sombre / écorce
 color2  = "#004225"   # green        — British Racing Green EXACT
 color3  = "#f0c000"   # yellow       — GT Yellow
@@ -17,7 +17,7 @@ color5  = "#5a3a1a"   # magenta      — cuir sombre
 color6  = "#1d6648"   # cyan         — mousse forêt
 color7  = "#b8a07a"   # white        — cognac muted
 
-color8  = "#132b1d"   # br. black    — forêt mid
+color8  = "#1c1c1a"   # br. black    — carbone gris (fibre tressée)
 color9  = "#a06030"   # br. red      — cognac en plein soleil
 color10 = "#0a6b38"   # br. green    — BRG en lumière directe
 color11 = "#f5d020"   # br. yellow   — GT Yellow vif
