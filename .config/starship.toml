@@ -6,8 +6,8 @@ format = """
 [╰─](bold #2a5a3a)$character"""
 
 [character]
-error_symbol   = "[❯](bold #6b3a1f)"
-success_symbol = "[❯](bold #2a5a3a)"
+error_symbol   = "[▶](bold #6b3a1f)"
+success_symbol = "[▶](bold #2a5a3a)"
 
 [directory]
 style             = "bold #d4b88a"
