@@ -13,7 +13,7 @@ done=$(grep -cF -e '- [x]' "$TODO_FILE" 2>/dev/null || echo 0)
 tooltip=$(grep -F -e '- [ ]' "$TODO_FILE" | sed 's/^- \[ \] /• /' | head -10)
 
 if [ "$pending" -eq 0 ]; then
-    echo "{\"text\": \" \", \"tooltip\": \"Tout est fait ✓\", \"class\": \"done\"}"
+    echo "{\"text\": \"󰄳\", \"tooltip\": \"Tout est fait ✓\", \"class\": \"done\"}"
 else
-    echo "{\"text\": \"  $pending\", \"tooltip\": $(echo "$tooltip" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read().strip()))"), \"class\": \"pending\"}"
+    echo "{\"text\": \"󰄲 $pending\", \"tooltip\": $(echo "$tooltip" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read().strip()))"), \"class\": \"pending\"}"
 fi
