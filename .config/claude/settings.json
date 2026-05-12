@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(fd:*)",
+      "Bash(rg:*)",
+      "Bash(cat:*)",
+      "Bash(bat:*)",
+      "Bash(nvim:*)",
+      "Bash(pnpm:*)",
+      "Bash(npm:*)",
+      "Bash(go:*)"
+    ]
+  }
+}

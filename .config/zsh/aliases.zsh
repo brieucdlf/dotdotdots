@@ -1,40 +1,38 @@
-#!/bin/sh
-# some useful commands taken from @chrisatmachine
+#!/bin/zsh
 
 # shell
 alias ls='ls --color=auto'
 alias ll='ls -l'
 alias la='ls -A'
-alias grep='grep --color=auto'
-alias dot="cd $HOME/.dotfiles"
-# confirm before overwriting something
 alias cp="cp -i"
 alias mv='mv -i'
 alias rm='rm -i'
-# Colorize grep output (good for log files)
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
-# check open ssh process
-alias pssh="ps aux | grep ssh"
-# get top process eating memory
-alias psmem='ps auxf | sort -nr -k 4 | head -5'
-# get top process eating cpu ##
-alias pscpu='ps auxf | sort -nr -k 3 | head -5'
 
-# list used port
+# process info
+alias pssh="ps aux | grep ssh"
+alias psmem='ps auxf | sort -nr -k 4 | head -5'
+alias pscpu='ps auxf | sort -nr -k 3 | head -5'
 alias listp='sudo lsof -nP -iTCP -sTCP:LISTEN'
 
-# lvim - nvim
+# nvim via fzf
 alias v="fd --type f --hidden --exclude .git | fzf-tmux -p | xargs nvim"
 alias vim="v"
+
+# lazygit
+command -v lazygit &>/dev/null && alias lg="lazygit"
+
+# mods (AI CLI)
+command -v mods &>/dev/null && alias ai="mods"
 
 # wireguard
 alias wgdeco="sudo wg-quick down wg0"
 alias wgco="sudo wg-quick up wg0"
 alias wgshow="sudo wg show"
 
-# git most used
+# git
 alias g="git"
 alias ga="git add"
 alias gcs="git commit -S"
@@ -61,14 +59,6 @@ alias gloga="git log --oneline --decorate --graph --all"
 # kubectl
 alias k="kubectl"
 alias kctx="kubectl config use-context"
-alias loki="kubectl -n loki get pods"
-alias monito="kubectl -n monitoring get pods"
 
-# works only
-alias front="cd $HOME/Repos/bloomflow/sflow-flamingo"
-alias api="cd $HOME/Repos/bloomflow/api-platform"
-alias bo="cd $HOME/Repos/bloomflow/back-office"
-alias infra="cd $HOME/Repos/bloomflow/sflow-infra"
-alias deploy="cd $HOME/Repos/bloomflow/sflow-deploy"
-alias e2e="cd $HOME/Repos/bloomflow/automated-e2e"
-alias cubejs="cd $HOME/Repos/bloomflow/cubejs"
+# work (bloomflow) — chargé uniquement si le repo existe
+[[ -d "$HOME/Repos/bloomflow" ]] && source "$HOME/.config/zsh/work.zsh"

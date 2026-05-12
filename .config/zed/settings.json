@@ -9,20 +9,6 @@
     "play_sound_when_agent_done": true,
     "always_allow_tool_actions": true
   },
-  "context_servers": {
-    "bloomflow-mcp": {
-      "source": "custom",
-      "enabled": true,
-      "command": "npx",
-      "args": [
-        "mcp-remote",
-        "http://localhost:8000/mcp",
-        "--header",
-        "x-bflow-api-key:d6bb8c97618ec1e7c301bc0bf3deea310a466500"
-      ],
-      "env": {}
-    }
-  },
   "project_panel": {
     "dock": "left"
   },

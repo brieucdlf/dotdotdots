@@ -1,0 +1,14 @@
+#!/bin/zsh
+# Machine-specific config — copier ce fichier en local.zsh (gitignored)
+# local.zsh est sourcé en dernier, il peut overrider n'importe quelle config.
+
+# Secrets et clés API
+# export BLOOMFLOW_API_KEY="..."
+# export ANTHROPIC_API_KEY="..."
+
+# Email git (si différent du global)
+# export GIT_AUTHOR_EMAIL="..."
+# export GIT_COMMITTER_EMAIL="..."
+
+# Aliases spécifiques à cette machine
+# alias custom="..."
