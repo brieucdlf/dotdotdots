@@ -1,0 +1,27 @@
+# Paddock — Porsche Racing Green / Forest
+# Deep forest dark, warm leather cream, GT Yellow amber, British Racing Green
+
+accent               = "#c9a84c"   # Porsche GT Yellow amber — forest sunlight
+cursor               = "#e0c06a"   # bright gold
+foreground           = "#d6ccaa"   # warm cream — leather race notes
+background           = "#0f1a13"   # near-black deep forest — Porsche engine bay
+selection_foreground = "#0f1a13"
+selection_background = "#2e4a38"   # dark green selection
+
+color0  = "#1c2b21"   # black        — forest shadow
+color1  = "#8c5e3c"   # red          — dark tree bark
+color2  = "#5aab72"   # green        — British Racing Green
+color3  = "#c9a84c"   # yellow       — amber gold / GT Yellow
+color4  = "#3d6e58"   # blue         — deep forest blue-green
+color5  = "#7c5c3e"   # magenta      — warm mushroom
+color6  = "#3d8c7a"   # cyan         — forest moss teal
+color7  = "#c4ba94"   # white        — muted parchment
+
+color8  = "#2e4a38"   # br. black    — muted mid-forest
+color9  = "#b87840"   # br. red      — amber rust, autumn
+color10 = "#72c488"   # br. green    — bright racing green
+color11 = "#e0c06a"   # br. yellow   — bright gold
+color12 = "#527a62"   # br. blue     — lighter forest
+color13 = "#9e7c52"   # br. magenta  — warm tan, leather
+color14 = "#56a892"   # br. cyan     — bright moss
+color15 = "#e8e0c4"   # br. white    — bright cream
