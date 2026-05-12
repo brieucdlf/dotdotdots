@@ -1,6 +1,6 @@
-#!/bin/zsh
-# Machine-specific config — copier ce fichier en local.zsh (gitignored)
-# local.zsh est sourcé en dernier, il peut overrider n'importe quelle config.
+#!/bin/bash
+# Machine-specific config — copier ce fichier en local.bash (gitignored)
+# local.bash est sourcé en dernier, il peut overrider n'importe quelle config.
 
 # Secrets et clés API
 # export BLOOMFLOW_API_KEY="..."

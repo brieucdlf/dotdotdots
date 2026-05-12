@@ -1,17 +1,13 @@
-#!/bin/zsh
+#!/bin/bash
+# Aliases perso — Omarchy gère déjà : ls/lsa/lt, cd (zoxide), g, n, d, t, ff, .., ...
 
-# shell
-alias ls='ls --color=auto'
-alias ll='ls -l'
-alias la='ls -A'
+# shell utils
 alias cp="cp -i"
 alias mv='mv -i'
 alias rm='rm -i'
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
-
-# process info
 alias pssh="ps aux | grep ssh"
 alias psmem='ps auxf | sort -nr -k 4 | head -5'
 alias pscpu='ps auxf | sort -nr -k 3 | head -5'
@@ -19,7 +15,6 @@ alias listp='sudo lsof -nP -iTCP -sTCP:LISTEN'
 
 # nvim via fzf
 alias v="fd --type f --hidden --exclude .git | fzf-tmux -p | xargs nvim"
-alias vim="v"
 
 # lazygit
 command -v lazygit &>/dev/null && alias lg="lazygit"
@@ -32,8 +27,7 @@ alias wgdeco="sudo wg-quick down wg0"
 alias wgco="sudo wg-quick up wg0"
 alias wgshow="sudo wg show"
 
-# git
-alias g="git"
+# git (complète les alias Omarchy : g, gcm, gcam, gcad)
 alias ga="git add"
 alias gcs="git commit -S"
 alias gco="git checkout"
@@ -56,9 +50,9 @@ alias gpf="git push --force"
 alias glog="git log --oneline --decorate --graph"
 alias gloga="git log --oneline --decorate --graph --all"
 
-# kubectl
+# kubectl (complète le snippet omz::kubectl)
 alias k="kubectl"
 alias kctx="kubectl config use-context"
 
-# work (bloomflow) — chargé uniquement si le repo existe
-[[ -d "$HOME/Repos/bloomflow" ]] && source "$HOME/.config/zsh/work.zsh"
+# work (bloomflow) — chargé uniquement si le dossier existe
+[[ -d "$HOME/Work/bloomflow" ]] && source "$HOME/.config/bash/work.bash"
