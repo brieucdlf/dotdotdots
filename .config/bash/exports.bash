@@ -1,11 +1,13 @@
-#!/bin/zsh
-# Pure exports — variables d'environnement uniquement
+#!/bin/bash
+# Pure exports — Omarchy gère déjà : mise, zoxide, fzf, starship, eza, brew
 
 # PATH
 export PATH="$HOME/.local/bin:$PATH"
 export GOPATH="$HOME/go"
 export PATH="$PATH:$GOPATH/bin"
 export PATH="$PATH:/usr/bin/mongosh"
+export PATH="$HOME/.opencode/bin:$PATH"
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
 # pnpm
 export PNPM_HOME="$HOME/.local/share/pnpm"
@@ -14,7 +16,7 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 
-# fzf
+# fzf (Catppuccin Mocha) — keybindings chargés par Omarchy
 export FZF_DEFAULT_OPTS=" \
 --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
 --color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \

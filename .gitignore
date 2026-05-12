@@ -1,6 +1,6 @@
 # env / secrets
 .config/values.yaml
-.config/zsh/local.zsh
+.config/bash/local.bash
 .config/zed/.env
 
 # claude code session files
