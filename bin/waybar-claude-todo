@@ -8,9 +8,9 @@ if [ ! -f "$TODO_FILE" ]; then
     exit 0
 fi
 
-pending=$(grep -cF '- [ ]' "$TODO_FILE" 2>/dev/null || echo 0)
-done=$(grep -cF '- [x]' "$TODO_FILE" 2>/dev/null || echo 0)
-tooltip=$(grep -F '- [ ]' "$TODO_FILE" | sed 's/^- \[ \] /• /' | head -10)
+pending=$(grep -cF -e '- [ ]' "$TODO_FILE" 2>/dev/null || echo 0)
+done=$(grep -cF -e '- [x]' "$TODO_FILE" 2>/dev/null || echo 0)
+tooltip=$(grep -F -e '- [ ]' "$TODO_FILE" | sed 's/^- \[ \] /• /' | head -10)
 
 if [ "$pending" -eq 0 ]; then
     echo "{\"text\": \" \", \"tooltip\": \"Tout est fait ✓\", \"class\": \"done\"}"
