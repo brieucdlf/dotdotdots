@@ -1,0 +1,30 @@
+[user]
+  name = brieucdlf
+  email = github.e24q4@simplelogin.fr
+
+[core]
+  pager = delta
+  editor = nvim
+
+[delta]
+  navigate = true
+  side-by-side = true
+  line-numbers = true
+  syntax-theme = Catppuccin-mocha
+
+[merge]
+  conflictstyle = diff3
+
+[diff]
+  colorMoved = default
+
+[pull]
+  rebase = true
+
+[push]
+  autoSetupRemote = true
+
+[alias]
+  lg = log --oneline --decorate --graph --all
+  sw = switch
+  unstage = restore --staged

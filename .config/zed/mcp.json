@@ -1,3 +1,17 @@
 {
-  "providers": {}
+  "providers": {},
+  "context_servers": {
+    "bloomflow-mcp": {
+      "source": "custom",
+      "enabled": true,
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "http://localhost:8000/mcp",
+        "--header",
+        "x-bflow-api-key:${BLOOMFLOW_API_KEY}"
+      ],
+      "env": {}
+    }
+  }
 }

@@ -1,29 +1,30 @@
-# env variables
+# env / secrets
 .config/values.yaml
+.config/zsh/local.zsh
+.config/zed/.env
 
-# tmux
+# claude code session files
+.claude/settings.local.json
+
+# tmux plugins
 .config/tmux/plugins
 tmux-client*.log
 
-# VSCode config
-# no need since sync with github
+# VSCode (synced via github)
 .config/Code/*
 
-# get nerd fonts repo
-getnf
-
-# alacritty
-.config/alacritty/catppuccin
-
-# nvim ignore stuff
+# nvim — garder uniquement les fichiers de config, pas les dépendances
+.config/nvim/LICENSE
+.config/nvim/README.md
+.config/nvim/lazy-lock.json
+.config/nvim/plugin/
 .config/nvim/.git
 .config/nvim/.github
 .config/nvim/.gitignore
 .config/nvim/.ignore
-.config/nvim/init.lua
-.config/nvim/lazy-lock.json
-.config/nvim/LICENSE
-.config/nvim/.stylua.toml
 
-.config/nvim/lua/core
-.config/nvim/lua/plugins
+# alacritty themes
+.config/alacritty/catppuccin
+
+# fonts
+getnf
