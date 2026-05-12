@@ -16,7 +16,7 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 
-# fzf — paddock palette
+# fzf — nurburgreen palette
 export FZF_DEFAULT_OPTS=" \
 --color=bg+:#0d3326,bg:#001a0f,spinner:#d4b88a,hl:#f0c000 \
 --color=fg:#d4b88a,header:#8a6835,info:#8a6835,pointer:#f0c000 \
