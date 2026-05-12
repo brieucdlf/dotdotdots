@@ -110,6 +110,10 @@ tooltip {
   margin-right: 7.5px;
 }
 
+#custom-claude-todo {
+  margin-left: 12px;
+}
+
 #custom-weather.unavailable {
   min-width: 0;
   margin: 0;
