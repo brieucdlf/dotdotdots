@@ -1,0 +1,31 @@
+#!/bin/bash
+# Claude Code status for tmux — préfère busy, ignore les sessions sans nom
+
+SESSIONS_DIR="$HOME/.claude/sessions"
+[ -d "$SESSIONS_DIR" ] || exit 0
+
+busy_name=""
+idle_name=""
+
+for f in "$SESSIONS_DIR"/*.json; do
+    [ -f "$f" ] || continue
+    pid=$(jq -r '.pid // empty' "$f" 2>/dev/null)
+    [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null || continue
+
+    name=$(jq -r '.name // empty' "$f" 2>/dev/null)
+    [ -z "$name" ] || [ "$name" = "null" ] && continue
+
+    status=$(jq -r '.status // "idle"' "$f" 2>/dev/null)
+
+    if [ "$status" = "busy" ]; then
+        busy_name="$name"
+    elif [ -z "$idle_name" ]; then
+        idle_name="$name"
+    fi
+done
+
+if [ -n "$busy_name" ]; then
+    echo " $busy_name"
+elif [ -n "$idle_name" ]; then
+    echo " $idle_name"
+fi
