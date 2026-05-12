@@ -12,11 +12,7 @@
 }
 
 window#waybar {
-  background: linear-gradient(
-    to bottom,
-    rgba(22, 26, 22, 0.78),
-    rgba(8, 10, 8, 0.90)
-  );
+  background-color: rgba(10, 12, 10, 0.55);
 }
 
 .modules-left {
