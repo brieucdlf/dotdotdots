@@ -55,6 +55,8 @@ dotdotdots/
 
 Custom theme built around a Porsche 911 GT3 in British Racing Green.
 
+![](.config/omarchy/themes/nurburgreen/assets/palette.png)
+
 ```
 background  #001a0f   BRG dark
 foreground  #d4b88a   cognac leather
