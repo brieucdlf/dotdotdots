@@ -40,6 +40,7 @@ local c = {
 
   -- cognac family
   cognac_dark  = "#6b3a1f",
+  carbon       = "#2a302a",
   cognac       = "#8a6835",
   cognac_mid   = "#a06030",
   cognac_light = "#b8a07a",
@@ -138,8 +139,8 @@ hi("Directory",       { fg = c.green_mid, bold = true })
 hi("QuickFixLine",    { bg = c.surface1 })
 
 -- ── Syntax ────────────────────────────────────────────────────────────────────
-hi("Comment",         { fg = c.green_light, italic = true })
-hi("SpecialComment",  { fg = c.teal,        italic = true })
+hi("Comment",         { fg = c.carbon, italic = true })
+hi("SpecialComment",  { fg = c.carbon, italic = true })
 hi("Todo",            { fg = c.yellow,      bg = c.surface1, bold = true })
 
 -- keywords
@@ -158,10 +159,10 @@ hi("Function",        { fg = c.fg_bright,  bold = true })
 -- strings & constants
 hi("String",          { fg = c.teal })
 hi("Character",       { fg = c.teal })
-hi("Number",          { fg = c.yellow_dim })
-hi("Float",           { fg = c.yellow_dim })
+hi("Number",          { fg = c.cognac_dark })
+hi("Float",           { fg = c.cognac_dark })
 hi("Boolean",         { fg = c.yellow,     bold = true })
-hi("Constant",        { fg = c.yellow_dim })
+hi("Constant",        { fg = c.cognac_dark })
 
 -- types
 hi("Type",            { fg = c.teal_light })
@@ -223,7 +224,7 @@ hi("@variable.builtin",        { fg = c.cognac_light, italic = true })
 hi("@variable.parameter",      { fg = c.fg_muted })
 hi("@variable.member",         { fg = c.fg })
 
-hi("@constant",                { fg = c.yellow_dim })
+hi("@constant",                { fg = c.cognac_dark })
 hi("@constant.builtin",        { fg = c.yellow, bold = true })
 hi("@constant.macro",          { fg = c.cognac_mid })
 
@@ -232,8 +233,8 @@ hi("@string.escape",           { fg = c.teal_light })
 hi("@string.special",          { fg = c.cognac_light })
 hi("@string.regexp",           { fg = c.teal_light })
 
-hi("@number",                  { fg = c.yellow_dim })
-hi("@number.float",            { fg = c.yellow_dim })
+hi("@number",                  { fg = c.cognac_dark })
+hi("@number.float",            { fg = c.cognac_dark })
 hi("@boolean",                 { fg = c.yellow, bold = true })
 
 hi("@function",                { fg = c.fg_bright, bold = true })
@@ -259,7 +260,7 @@ hi("@type.definition",         { fg = c.teal_light, bold = true })
 
 hi("@module",                  { fg = c.cognac_light })
 hi("@label",                   { fg = c.green_mid })
-hi("@comment",                 { fg = c.green_light, italic = true })
+hi("@comment",                 { fg = c.carbon, italic = true })
 hi("@comment.todo",            { fg = c.yellow, bg = c.surface1, bold = true })
 hi("@comment.warning",         { fg = c.cognac_mid, bg = c.surface1, bold = true })
 hi("@punctuation.delimiter",   { fg = c.overlay2 })
@@ -286,7 +287,7 @@ hi("@markup.list.unchecked",   { fg = c.overlay2 })
 -- ── LSP ───────────────────────────────────────────────────────────────────────
 hi("@lsp.type.class",          { fg = c.teal_light, bold = true })
 hi("@lsp.type.enum",           { fg = c.teal_light })
-hi("@lsp.type.enumMember",     { fg = c.yellow_dim })
+hi("@lsp.type.enumMember",     { fg = c.cognac_dark })
 hi("@lsp.type.function",       { fg = c.fg_bright, bold = true })
 hi("@lsp.type.interface",      { fg = c.teal_light, italic = true })
 hi("@lsp.type.keyword",        { fg = c.green_mid, bold = true })
@@ -338,8 +339,8 @@ hi("CmpItemKindProperty",   { fg = c.fg })
 hi("CmpItemKindKeyword",    { fg = c.green_mid })
 hi("CmpItemKindSnippet",    { fg = c.cognac })
 hi("CmpItemKindEnum",       { fg = c.teal_light })
-hi("CmpItemKindEnumMember", { fg = c.yellow_dim })
-hi("CmpItemKindConstant",   { fg = c.yellow_dim })
+hi("CmpItemKindEnumMember", { fg = c.cognac_dark })
+hi("CmpItemKindConstant",   { fg = c.cognac_dark })
 hi("CmpItemKindStruct",     { fg = c.teal_light })
 hi("CmpItemKindTypeParameter", { fg = c.teal })
 
