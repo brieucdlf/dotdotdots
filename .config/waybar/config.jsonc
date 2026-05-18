@@ -176,7 +176,8 @@
   },
   "custom/claude-todo": {
     "exec": "~/.dots/bin/waybar-claude-todo",
-    "interval": 30,
+    "interval": 15,
+    "signal": 8,
     "format": "{}",
     "return-type": "json",
     "on-click": "~/.dots/bin/todo-popup",

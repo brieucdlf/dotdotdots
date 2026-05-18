@@ -1,19 +1,79 @@
 #!/bin/bash
-# Waybar module — Claude Code personal todos from ~/todo/TODO.md
+# Waybar module — reads today's tasks directly from Anytype API
 
-TODO_FILE="$HOME/todo/TODO.md"
+SPACE="bafyreieedjj6ok45lfivlyrh6jxkdpdlfpmgkcgd42wqndgefnkspdj5gy.28p3xydg3zl8t"
+TOKEN=$(cat "$HOME/.config/anytype/waybar-token" 2>/dev/null)
+API="http://localhost:31009/v1"
+WEEK=$(date +"%Y-W%V")
 
-if [ ! -f "$TODO_FILE" ]; then
-    echo '{"text": "", "tooltip": "No todo file", "class": "empty"}'
-    exit 0
-fi
+DAYS=(""  "Lundi" "Mardi" "Mercredi" "Jeudi" "Vendredi" "Samedi" "Dimanche")
+TODAY=${DAYS[$(date +%u)]}
 
-pending=$(grep -cF -e '- [ ]' "$TODO_FILE" 2>/dev/null || echo 0)
-done=$(grep -cF -e '- [x]' "$TODO_FILE" 2>/dev/null || echo 0)
-tooltip=$(grep -F -e '- [ ]' "$TODO_FILE" | sed 's/^- \[ \] /• /' | head -10)
+fallback() {
+    local file="$HOME/todo/TODO.md"
+    [ ! -f "$file" ] && echo '{"text": "", "tooltip": "Anytype offline", "class": "empty"}' && return
+    local pending=$(grep -cF '- [ ]' "$file" 2>/dev/null || echo 0)
+    local tooltip=$(grep -F '- [ ]' "$file" | sed 's/^- \[ \] /• /' | head -5)
+    if [ "$pending" -eq 0 ]; then
+        echo '{"text": "󰄳", "tooltip": "Tout est fait ✓", "class": "done"}'
+    else
+        echo "{\"text\": \"󰄲 $pending\", \"tooltip\": $(echo "$tooltip" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read().strip()))"), \"class\": \"pending\"}"
+    fi
+}
 
-if [ "$pending" -eq 0 ]; then
-    echo "{\"text\": \"󰄳\", \"tooltip\": \"Tout est fait ✓\", \"class\": \"done\"}"
-else
-    echo "{\"text\": \"󰄲 $pending\", \"tooltip\": $(echo "$tooltip" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read().strip()))"), \"class\": \"pending\"}"
-fi
+if [ -z "$TOKEN" ]; then fallback; exit 0; fi
+
+SEARCH=$(curl -sf --max-time 3 "${API}/spaces/${SPACE}/search" \
+    -H "Authorization: Bearer ${TOKEN}" \
+    -H "Anytype-Version: 2025-11-08" \
+    -H "Content-Type: application/json" \
+    -d "{\"query\": \"${WEEK}\", \"limit\": 1}") || { fallback; exit 0; }
+
+OBJ_ID=$(echo "$SEARCH" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+items = d.get('data', [])
+print(items[0]['id'] if items else '')
+" 2>/dev/null)
+
+[ -z "$OBJ_ID" ] && { fallback; exit 0; }
+
+MARKDOWN=$(curl -sf --max-time 3 "${API}/spaces/${SPACE}/objects/${OBJ_ID}" \
+    -H "Authorization: Bearer ${TOKEN}" \
+    -H "Anytype-Version: 2025-11-08" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+print(d.get('object', {}).get('markdown', ''))
+" 2>/dev/null) || { fallback; exit 0; }
+
+python3 - "$MARKDOWN" "$TODAY" <<'EOF'
+import sys, re, json, html
+
+text  = sys.argv[1] if len(sys.argv) > 1 else ""
+today = sys.argv[2] if len(sys.argv) > 2 else ""
+
+m = re.search(rf'## {re.escape(today)}\s*\n(.*?)(?=## |\Z)', text, re.DOTALL)
+if not m:
+    tooltip = f'<span foreground="#8fa888"><b>{today.upper()}</b></span>\n\n<span foreground="#4a6650">rien de prévu</span>'
+    print(json.dumps({"text": "󰄳", "tooltip": tooltip, "class": "done"}))
+    sys.exit(0)
+
+pending = [t.strip() for t in re.findall(r'- \[ \] (.+?)   *$', m.group(1), re.MULTILINE)]
+done    = [t.strip() for t in re.findall(r'- \[x\] (.+?)   *$', m.group(1), re.MULTILINE)]
+
+header = f'<span foreground="#8fa888" size="small"><b>{today.upper()}</b></span>'
+
+if not pending:
+    done_str = "\n".join(f'<span foreground="#4a6650">󰄳  <s>{html.escape(t)}</s></span>' for t in done)
+    body = done_str if done_str else '<span foreground="#4a6650">rien de prévu</span>'
+    tooltip = f"{header}\n\n{body}"
+    print(json.dumps({"text": "󰄳", "tooltip": tooltip, "class": "done"}))
+else:
+    lines = [header, ""]
+    lines += [f'<span foreground="#d4b88a">󰄲  {html.escape(t)}</span>' for t in pending]
+    if done:
+        lines.append("")
+        lines += [f'<span foreground="#3d5c43">󰄳  <s>{html.escape(t)}</s></span>' for t in done]
+    tooltip = "\n".join(lines)
+    print(json.dumps({"text": f"󰄲 {len(pending)}", "tooltip": tooltip, "class": "pending"}))
+EOF

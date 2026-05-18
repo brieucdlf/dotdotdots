@@ -61,7 +61,14 @@ window#waybar {
 }
 
 tooltip {
-  padding: 2px;
+  padding: 10px 14px;
+  background-color: @background;
+  border-radius: 10px;
+  border: 1px solid rgba(212, 184, 138, 0.15);
+}
+
+tooltip label {
+  font-size: 12px;
 }
 
 #custom-update {
@@ -112,6 +119,14 @@ tooltip {
 
 #custom-claude-todo {
   margin-left: 10px;
+}
+
+#custom-claude-todo.done {
+  opacity: 0.4;
+}
+
+#custom-claude-todo.pending {
+  color: @foreground;
 }
 
 #custom-weather.unavailable {

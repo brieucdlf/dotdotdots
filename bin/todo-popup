@@ -1,3 +1,3 @@
 #!/bin/bash
-# Ouvre la todo list dans une fenêtre flottante Hyprland
-hyprctl dispatch exec "[float;size 680 480;center] ghostty --class=todo-popup -e nvim ~/todo/TODO.md"
+# Ouvre Claude Code dans ~/todo/ dans une fenêtre flottante
+hyprctl dispatch exec "[float;size 900 600;center] ghostty --class=todo-popup -e bash -c 'cd ~/todo && claude'"
