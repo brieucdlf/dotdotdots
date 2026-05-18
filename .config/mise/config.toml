@@ -4,6 +4,7 @@ erlang = "latest"
 go = "latest"
 java = "latest"
 node = "lts"
+"npm:pnpm" = "11.1.2"
 python = "3.11"
 ruby = "latest"
 
