@@ -41,6 +41,7 @@ local c = {
   -- cognac family
   cognac_dark  = "#6b3a1f",
   carbon       = "#2a302a",
+  comment      = "#4e6a54",
   cognac       = "#8a6835",
   cognac_mid   = "#a06030",
   cognac_light = "#b8a07a",
@@ -61,9 +62,9 @@ local function hi(group, opts)
 end
 
 -- ── Editor ────────────────────────────────────────────────────────────────────
-hi("Normal",          { fg = c.fg,        bg = c.bg })
+hi("Normal",          { fg = c.fg,        bg = c.none })
 hi("NormalFloat",     { fg = c.fg,        bg = c.bg_dark })
-hi("NormalNC",        { fg = c.fg_muted,  bg = c.bg })
+hi("NormalNC",        { fg = c.fg_muted,  bg = c.none })
 hi("EndOfBuffer",     { fg = c.surface3 })
 hi("NonText",         { fg = c.surface3 })
 hi("Whitespace",      { fg = c.surface2 })
@@ -76,10 +77,10 @@ hi("CursorColumn",    { bg = c.surface0 })
 hi("ColorColumn",     { bg = c.surface1 })
 
 -- line numbers
-hi("LineNr",          { fg = c.surface3 })
-hi("CursorLineNr",    { fg = c.cognac,   bold = true })
-hi("LineNrAbove",     { fg = c.surface2 })
-hi("LineNrBelow",     { fg = c.surface2 })
+hi("LineNr",          { fg = c.green_light })
+hi("CursorLineNr",    { fg = c.cognac,      bold = true })
+hi("LineNrAbove",     { fg = c.green_dim })
+hi("LineNrBelow",     { fg = c.green_dim })
 
 -- folds
 hi("Folded",          { fg = c.overlay1,  bg = c.surface1 })
@@ -139,8 +140,8 @@ hi("Directory",       { fg = c.green_mid, bold = true })
 hi("QuickFixLine",    { bg = c.surface1 })
 
 -- ── Syntax ────────────────────────────────────────────────────────────────────
-hi("Comment",         { fg = c.carbon, italic = true })
-hi("SpecialComment",  { fg = c.carbon, italic = true })
+hi("Comment",         { fg = c.comment, italic = true })
+hi("SpecialComment",  { fg = c.comment, italic = true })
 hi("Todo",            { fg = c.yellow,      bg = c.surface1, bold = true })
 
 -- keywords
@@ -260,7 +261,7 @@ hi("@type.definition",         { fg = c.teal_light, bold = true })
 
 hi("@module",                  { fg = c.cognac_light })
 hi("@label",                   { fg = c.green_mid })
-hi("@comment",                 { fg = c.carbon, italic = true })
+hi("@comment",                 { fg = c.comment, italic = true })
 hi("@comment.todo",            { fg = c.yellow, bg = c.surface1, bold = true })
 hi("@comment.warning",         { fg = c.cognac_mid, bg = c.surface1, bold = true })
 hi("@punctuation.delimiter",   { fg = c.overlay2 })
@@ -362,6 +363,28 @@ hi("SnacksNotifierBorderInfo",  { fg = c.green_light })
 hi("SnacksNotifierBorderDebug", { fg = c.overlay2 })
 hi("SnacksNotifierBorderTrace", { fg = c.overlay1 })
 
+-- ── Snacks Picker ─────────────────────────────────────────────────────────────
+hi("SnacksPickerNormal",        { fg = c.fg,          bg = c.bg_dark })
+hi("SnacksPickerBorder",        { fg = c.green_light, bg = c.bg_dark })
+hi("SnacksPickerTitle",         { fg = c.cognac,      bg = c.bg_dark, bold = true })
+hi("SnacksPickerFooter",        { fg = c.overlay2,    bg = c.bg_dark })
+-- input
+hi("SnacksPickerInputNormal",   { fg = c.fg,          bg = c.surface0 })
+hi("SnacksPickerInputBorder",   { fg = c.green_mid,   bg = c.surface0 })
+hi("SnacksPickerPrompt",        { fg = c.green_mid,   bg = c.surface0 })
+-- list items
+hi("SnacksPickerMatch",         { fg = c.yellow,      bold = true })
+hi("SnacksPickerCursor",        { bg = c.green_dim })
+hi("SnacksPickerDir",           { fg = c.comment })
+hi("SnacksPickerFile",          { fg = c.fg })
+hi("SnacksPickerPathHidden",    { fg = c.comment })
+hi("SnacksPickerGitFile",       { fg = c.fg })
+hi("SnacksPickerGitStatus",     { fg = c.cognac })
+-- preview
+hi("SnacksPickerPreviewNormal", { fg = c.fg,          bg = c.bg_dark })
+hi("SnacksPickerPreviewBorder", { fg = c.surface3,    bg = c.bg_dark })
+hi("SnacksPickerPreviewTitle",  { fg = c.overlay2,    bg = c.bg_dark })
+
 -- ── indent-blankline ──────────────────────────────────────────────────────────
 hi("IblIndent",     { fg = c.surface2 })
 hi("IblScope",      { fg = c.green_dim })
@@ -410,6 +433,21 @@ hi("MiniClueDescGroup",         { fg = c.cognac, bold = true })
 hi("MiniClueDescSingle",        { fg = c.fg_muted })
 hi("MiniClueNextKey",           { fg = c.green_mid })
 hi("MiniClueNextKeyWithPostkeys",{ fg = c.yellow })
+
+-- ── Diffview ─────────────────────────────────────────────────────────────────
+hi("DiffviewNormal",              { fg = c.fg_muted,   bg = c.bg_dark })
+hi("DiffviewFilePanelTitle",      { fg = c.fg_bright,  bold = true })
+hi("DiffviewFilePanelCounter",    { fg = c.overlay2 })
+hi("DiffviewFilePanelFileName",   { fg = c.fg })
+hi("DiffviewFilePanelPath",       { fg = c.fg_dim })
+hi("DiffviewFilePanelRootPath",   { fg = c.green_mid,  bold = true })
+hi("DiffviewFilePanelInsertions", { fg = c.green_mid })
+hi("DiffviewFilePanelDeletions",  { fg = c.cognac_mid })
+hi("DiffviewStatusModified",      { fg = c.cognac })
+hi("DiffviewStatusAdded",         { fg = c.green_mid })
+hi("DiffviewStatusDeleted",       { fg = c.cognac_mid })
+hi("DiffviewStatusRenamed",       { fg = c.teal_light })
+hi("DiffviewStatusUnmerged",      { fg = c.yellow })
 
 -- ── Noice ────────────────────────────────────────────────────────────────────
 hi("NoiceCmdlinePopupBorder", { fg = c.green_light })
