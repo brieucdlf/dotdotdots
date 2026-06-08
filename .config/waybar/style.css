@@ -118,7 +118,9 @@ tooltip label {
 }
 
 #custom-claude-todo {
+  min-width: 12px;
   margin-left: 10px;
+  margin-right: 7.5px;
 }
 
 #custom-claude-todo.done {
