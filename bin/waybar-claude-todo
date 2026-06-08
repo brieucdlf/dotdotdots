@@ -4,7 +4,7 @@
 SPACE="bafyreieedjj6ok45lfivlyrh6jxkdpdlfpmgkcgd42wqndgefnkspdj5gy.28p3xydg3zl8t"
 TOKEN=$(cat "$HOME/.config/anytype/waybar-token" 2>/dev/null)
 API="http://localhost:31009/v1"
-WEEK=$(date +"%Y-W%V")
+WEEK="Semaine $(date +%-V)"
 
 DAYS=(""  "Lundi" "Mardi" "Mercredi" "Jeudi" "Vendredi" "Samedi" "Dimanche")
 TODAY=${DAYS[$(date +%u)]}
@@ -58,8 +58,8 @@ if not m:
     print(json.dumps({"text": "󰄳", "tooltip": tooltip, "class": "done"}))
     sys.exit(0)
 
-pending = [t.strip() for t in re.findall(r'- \[ \] (.+?)   *$', m.group(1), re.MULTILINE)]
-done    = [t.strip() for t in re.findall(r'- \[x\] (.+?)   *$', m.group(1), re.MULTILINE)]
+pending = [s for t in re.findall(r'- \[ \] (.+?)   *$', m.group(1), re.MULTILINE) if (s := t.strip())]
+done    = [s for t in re.findall(r'- \[x\] (.+?)   *$', m.group(1), re.MULTILINE) if (s := t.strip())]
 
 header = f'<span foreground="#8fa888" size="small"><b>{today.upper()}</b></span>'
 
