@@ -1,97 +1,135 @@
 # dotdotdots
 
-My dotfiles. Arch Linux, [Omarchy](https://omarchy.org/), Hyprland. Managed with GNU Stow.
+Mes dotfiles, sur deux machines :
 
-Not trying to be a framework. Not trying to be portable. This is what I run.
+| Machine | OS | Desktop | Profil |
+|---|---|---|---|
+| pro | Arch + [Omarchy](https://omarchy.org/) | Hyprland | `omarchy` |
+| perso | Pop!_OS 24.04 | COSMIC | `popos` |
 
----
-
-## Stack
-
-| Layer | Tool |
-|---|---|
-| OS | Arch Linux |
-| WM | Hyprland (via Omarchy) |
-| Shell | Bash |
-| Terminal | Ghostty + tmux |
-| Editor | Neovim (LazyVim) |
-| Bar | Waybar |
+Le terminal, le thème et les outils CLI sont **identiques** sur les deux. Le
+desktop ne l'est pas, et n'essaie pas de l'être.
 
 ---
 
-## Structure
+## Installation
+
+```bash
+git clone git@github.com:brieucdlf/dotdotdots ~/.dotfiles
+cd ~/.dotfiles && ./install.sh
+```
+
+Le script détecte le profil, installe les paquets manquants, stow les paquets,
+rend le thème et lance `mise install`. Il est idempotent — relançable à volonté.
+Tout fichier existant qui bloquerait stow est déplacé dans
+`~/.dotfiles-backup/<horodatage>/`, jamais écrasé.
+
+```bash
+./install.sh --profile popos   # forcer un profil
+./install.sh --no-packages     # stow + thème seulement
+```
+
+---
+
+## Les trois couches
+
+**La règle qui tranche : si ça tourne dans un terminal → `common/`. Si ça dépend
+du compositeur ou du gestionnaire de paquets → un profil.**
 
 ```
-dotdotdots/
+common/            # les 2 machines, identique au byte près
+├── .bashrc                     # loader : Omarchy si présent, puis init.bash
+├── .gitconfig
 ├── .config/
-│   ├── bash/
-│   │   ├── aliases.bash       # shell aliases (git, ls, nav)
-│   │   ├── exports.bash       # PATH, FZF, env vars
-│   │   ├── work.bash          # work-specific aliases (loaded conditionally)
-│   │   └── local.bash.sample  # machine-local secrets template (gitignored)
-│   ├── hypr/                  # Hyprland overrides on top of Omarchy defaults
-│   │   ├── looknfeel.conf     # borders, blur, shadows, window rules
-│   │   ├── bindings.conf      # keybindings
-│   │   ├── monitors.conf      # display config
-│   │   └── ...
-│   ├── tmux/tmux.conf         # Nurburgreen theme, vim nav, claude status bar
-│   ├── nvim/                  # LazyVim config + Nurburgreen lualine theme
-│   ├── waybar/                # bar layout + glass style
-│   ├── ghostty/               # terminal config
-│   ├── starship.toml          # prompt
-│   ├── omarchy/themes/nurburgreen # custom Nurburgreen theme (see below)
-│   └── claude/                # Claude Code settings
-├── bin/
-│   ├── waybar-claude-todo     # reads ~/todo/TODO.md, outputs JSON for waybar
-│   ├── todo-popup             # opens todo in floating ghostty+nvim
-│   ├── tmux-claude-status     # shows active Claude Code sessions in tmux bar
-│   └── dev-tmux               # spins up dev environment windows
-└── wallpapers/
+│   ├── bash/init.bash          # socle shell indépendant de la distro
+│   ├── bash/{exports,aliases,work}.bash
+│   ├── ghostty/  tmux/  nvim/  starship.toml
+│   ├── mise/config.toml        # ← versions des outils, la clé de l'iso
+│   ├── claude/  zed/
+└── .local/bin/                 # tmux-claude-status, dev-tmux, dots-shell-dump
+
+theme/nurburgreen/  # colors.toml = SOURCE UNIQUE des couleurs
+└── ../render.sh    # colors.toml → ~/.config/theme/current/{ghostty,tmux,colors.sh}
+
+profiles/
+├── omarchy/        # hypr/, waybar/, todo-popup, waybar-claude-todo
+└── popos/          # vide : COSMIC n'est pas géré (voir son README)
 ```
 
 ---
 
-## Nurburgreen Theme
+## Thème Nurburgreen
 
-Custom theme built around a Porsche 911 GT3 in British Racing Green.
+Construit autour d'une Porsche 911 GT3 en British Racing Green.
 
-![](.config/omarchy/themes/nurburgreen/assets/palette.png)
+![](theme/nurburgreen/assets/palette.png)
 
 ```
 background  #001a0f   BRG dark
 foreground  #d4b88a   cognac leather
 accent      #f0c000   GT yellow (used sparingly)
-border      #0e100e   carbon fiber
 ```
 
-Applied consistently across terminal, tmux, waybar, neovim, starship, eza, fzf.
+`theme/nurburgreen/colors.toml` est la seule source de vérité. `theme/render.sh`
+en dérive les fichiers consommés par ghostty, tmux, fzf et eza dans
+`~/.config/theme/current/` — **aucune couleur n'est codée en dur dans une config**.
+Les tokens qui n'existent pas dans le format Omarchy (bordures, fond de barre)
+sont dans `ui.toml`, à côté.
+
+Changer une couleur = éditer `colors.toml`, relancer `./install.sh --no-packages`.
+
+Sur la machine Omarchy, `install.sh` lie aussi le thème dans le sélecteur Omarchy
+pour que Waybar et Hyprland le voient. Le terminal, lui, ne dépend pas d'Omarchy :
+c'est ce qui rend l'iso vraie.
 
 ---
 
-## Setup
+## Iso des outils
 
-Requires GNU Stow.
+`common/.config/mise/config.toml` fixe les versions de tout le socle CLI
+(eza, fzf, zoxide, starship, delta, lazygit, fd, rg, btop, bat, gh, jq, neovim)
+en plus des runtimes. Un `mise install` et les deux machines ont les mêmes
+binaires, indépendamment d'apt et de pacman.
+
+⚠️ Sur la machine Omarchy, les shims mise passent devant les binaires pacman.
+C'est voulu.
+
+Restent hors mise, installés par `install.sh` : **ghostty** (`.deb`
+[mkasberg/ghostty-ubuntu](https://github.com/mkasberg/ghostty-ubuntu) sur Pop,
+pacman sur Arch), **tmux**, **stow** et la **JetBrainsMono Nerd Font**.
+
+### Vérifier que les deux machines ont convergé
+
+Le socle shell vient d'Omarchy sur la machine pro et de `init.bash` sur Pop :
+rien ne garantit qu'ils soient identiques. Pour rendre l'écart visible :
 
 ```bash
-git clone https://github.com/brieucdlf/dotdotdots ~/.dots
-cd ~/.dots
-stow .
+dots-shell-dump > ~/shell-$(hostname).txt   # sur chaque machine
+diff ~/shell-pro.txt ~/shell-perso.txt
 ```
 
-Machine-local config (API keys, work email, etc.) goes in `~/.config/bash/local.bash` — copy from `local.bash.sample`, never committed.
+Ce qui manque côté Pop est à recopier dans `common/.config/bash/init.bash`.
 
 ---
 
-## AI Integration
+## Machine-specific
 
-tmux status bar shows active Claude Code sessions via `bin/tmux-claude-status`.
+Rien de tout ça n'est committé :
 
-Waybar center shows a personal todo count (`bin/waybar-claude-todo`) backed by `~/todo/TODO.md`. Clicking opens a floating editor. The todo directory runs a Claude Code agent that syncs with Anytype via MCP.
+| Fichier | Usage |
+|---|---|
+| `~/.config/bash/local.bash` | secrets, clés API, overrides — sourcé en dernier |
+| `~/.config/ghostty/local.conf` | `font-size` selon le DPI de la machine |
+| `profiles/omarchy/.config/hypr/monitors.conf` | résolutions et scaling (committé, mais par profil) |
+
+`work.bash` se charge seulement si `~/Work/bloomflow` existe — une machine
+fraîche ne casse pas.
 
 ---
 
 ## Notes
 
-- Omarchy manages the base system. These dotfiles are overrides only — `~/.local/share/omarchy/` is never touched.
-- `work.bash` loads conditionally (`~/Repos/bloomflow` must exist) — fresh machines don't break.
-- Hyprland reloads most changes live. Waybar needs `omarchy restart waybar`.
+- Omarchy gère le système de base. Ces dotfiles sont des overrides —
+  `~/.local/share/omarchy/` n'est jamais touché.
+- Hyprland recharge à chaud. Waybar demande `omarchy restart waybar`.
+- tpm vit dans `~/.config/tmux/plugins` (XDG), pas `~/.tmux`.

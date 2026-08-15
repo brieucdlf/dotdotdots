@@ -1,0 +1,72 @@
+// Zed keymap
+// documentation: https://zed.dev/docs/key-bindings
+[
+  {
+    "context": "vim_mode == normal",
+    "bindings": {
+      ", p": "file_finder::Toggle",
+      "shift-L": "pane::ActivateNextItem",
+      "shift-H": "pane::ActivatePreviousItem",
+      "shift-C": "pane::ActivateLastItem",
+      ", e": "workspace::ToggleLeftDock",
+      ", r": "workspace::ToggleRightDock"
+    }
+  },
+  {
+    "context": "Workspace",
+    "use_key_equivalents": true,
+    "bindings": {
+      "ctrl-w i": "terminal_panel::ToggleFocus",
+      "ctrl-w p": "agent::ToggleFocus",
+      "ctrl-w o": "project_panel::ToggleFocus"
+    }
+  },
+  {
+    // I had to add this here because it seems like setting them to null doesn't
+    // really does anything. Duplicating the workspace panel focus works.
+    "context": "(VimControl || (!Editor && !Terminal))",
+    "use_key_equivalents": true,
+    "bindings": {
+      "ctrl-w i": "terminal_panel::ToggleFocus",
+      "ctrl-w p": "agent::ToggleFocus",
+      "ctrl-w o": "project_panel::ToggleFocus"
+    }
+  },
+  {
+    "context": "Editor && vim_mode == insert",
+    "bindings": {
+      // "j k": "vim::NormalBefore"
+    }
+  },
+  {
+    "context": "Editor && vim_mode == normal && !VimWaiting && !menu",
+    "bindings": {
+      // Key-bindings to work only in normal mode
+      "space e": "editor::Hover",
+
+      // Buffers
+      "s v": "pane::SplitRight",
+      "s s": "pane::SplitDown",
+      "s l": "workspace::ActivatePaneRight",
+      "s h": "workspace::ActivatePaneLeft",
+      "s k": "workspace::ActivatePaneUp",
+      "s j": "workspace::ActivatePaneDown",
+      "space c": "pane::CloseActiveItem",
+      "space p f": "file_finder::Toggle",
+      "space p s": "pane::DeploySearch",
+      "space f": "editor::Format",
+      "space m": "tab_switcher::Toggle",
+      "ctrl-w l": "workspace::ToggleRightDock",
+      "ctrl-w h": "workspace::ToggleLeftDock",
+      "ctrl-w j": "workspace::ToggleBottomDock",
+
+      // Error navigation
+      "[ e": "editor::GoToDiagnostic",
+      "] e": "editor::GoToPreviousDiagnostic",
+
+      // Git
+      "[ g": "editor::GoToHunk",
+      "] g": "editor::GoToPreviousHunk"
+    }
+  }
+]

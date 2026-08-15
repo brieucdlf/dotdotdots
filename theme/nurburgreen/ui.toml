@@ -1,0 +1,6 @@
+# Tokens UI dérivés — volontairement séparés de colors.toml, dont le parser
+# Omarchy n'attend que les clés du format standard (accent/foreground/colorN).
+# Ne rien mettre ici qui existe déjà dans colors.toml.
+
+border_inactive = "#2a2e2a"   # bordure de pane tmux inactive — carbone froid
+statusbar_bg    = "#0e100e"   # fond de barre (tmux, waybar) — carbone

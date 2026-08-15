@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Dump du vocabulaire shell de la machine courante, pour vérifier que les deux
+# machines ont convergé.
+#
+# Le socle vient d'Omarchy sur la machine pro et de init.bash sur Pop!_OS : rien
+# ne garantit qu'ils soient identiques. Ce script rend l'écart visible.
+#
+#   # sur chaque machine
+#   dots-shell-dump > ~/shell-<machine>.txt
+#   # puis
+#   diff ~/shell-omarchy.txt ~/shell-popos.txt
+#
+# Tout ce qui apparaît côté Omarchy et manque côté Pop est à recopier dans
+# common/.config/bash/init.bash.
+set -uo pipefail
+
+echo "### profil"
+[[ -d $HOME/.local/share/omarchy ]] && echo "omarchy" || echo "standalone"
+
+echo
+echo "### alias"
+alias | sed 's/^alias //' | sort
+
+echo
+echo "### fonctions"
+declare -F | awk '{print $3}' | grep -v '^_' | sort
+
+echo
+echo "### outils (versions)"
+for t in bash tmux nvim ghostty starship mise zoxide fzf eza fd rg delta lazygit btop bat gh jq git; do
+  if command -v "$t" &>/dev/null; then
+    printf '%-10s %s\n' "$t" "$("$t" --version 2>/dev/null | head -1)"
+  else
+    printf '%-10s ABSENT\n' "$t"
+  fi
+done
+
+echo
+echo "### variables de thème"
+for v in FZF_DEFAULT_OPTS FZF_DEFAULT_COMMAND EZA_COLORS EDITOR; do
+  printf '%s=%s\n' "$v" "${!v:-<unset>}"
+done
