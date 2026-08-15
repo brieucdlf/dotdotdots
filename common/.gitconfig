@@ -10,7 +10,10 @@
   navigate = true
   side-by-side = true
   line-numbers = true
-  syntax-theme = Catppuccin-mocha
+  # 'ansi' = delta rend avec les 16 couleurs du terminal, donc la palette
+  # nurburgreen de ghostty. Aucun thème bat externe à installer, et identique
+  # sur les deux machines. (Avant : Catppuccin-mocha, un thème bat à part.)
+  syntax-theme = ansi
 
 [merge]
   conflictstyle = diff3
@@ -28,9 +31,16 @@
   lg = log --oneline --decorate --graph --all
   sw = switch
   unstage = restore --staged
+
+# Identité pro appliquée automatiquement sous ~/Work — plus besoin de diverger
+# entre les deux machines. Le fichier est gitignored (email pro non committé).
+[includeIf "gitdir:~/Work/"]
+  path = ~/.config/git/work.gitconfig
+
+# gh, sans chemin en dur : il peut venir de pacman comme de mise
 [credential "https://github.com"]
-	helper = 
-	helper = !/usr/bin/gh auth git-credential
+	helper =
+	helper = !gh auth git-credential
 [credential "https://gist.github.com"]
-	helper = 
-	helper = !/usr/bin/gh auth git-credential
+	helper =
+	helper = !gh auth git-credential

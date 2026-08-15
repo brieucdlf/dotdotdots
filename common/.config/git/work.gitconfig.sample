@@ -1,0 +1,9 @@
+# Identité pro — copier en work.gitconfig (gitignored).
+# Chargé automatiquement par ~/.gitconfig pour tout repo sous ~/Work/.
+
+[user]
+  # email = prenom.nom@bloomflow.example
+  # signingkey = ...
+
+# [commit]
+#   gpgsign = true
