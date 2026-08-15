@@ -1,0 +1,38 @@
+# Source unique des versions d'outils, partagée par les deux machines.
+# Un `mise install` suffit pour que Pop!_OS et Omarchy aient exactement les
+# mêmes binaires — indépendamment d'apt et de pacman.
+#
+# Sur la machine Omarchy, les shims mise passent devant les binaires pacman.
+# C'est voulu : c'est ce qui garantit l'iso.
+
+[tools]
+# runtimes
+elixir = "latest"
+erlang = "latest"
+go = "latest"
+java = "latest"
+node = "lts"
+"npm:pnpm" = "11.1.2"
+python = "3.11"
+ruby = "latest"
+
+# CLI — le socle qui doit être identique partout
+bat = "latest"
+btop = "latest"
+eza = "latest"
+fd = "latest"
+fzf = "latest"
+gh = "latest"
+"git-delta" = "latest"
+jq = "latest"
+lazygit = "latest"
+neovim = "latest"
+ripgrep = "latest"
+starship = "latest"
+zoxide = "latest"
+
+[settings]
+idiomatic_version_file_enable_tools = ["node", "ruby"]
+
+[settings.ruby]
+compile = false
