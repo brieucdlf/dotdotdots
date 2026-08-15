@@ -1,6 +1,7 @@
 # env / secrets — jamais committés, vivent dans le repo mais ignorés
 common/.config/bash/local.bash
 common/.config/ghostty/local.conf
+common/.config/git/work.gitconfig
 common/.config/zed/.env
 
 # claude code session files
@@ -19,9 +20,6 @@ common/.config/nvim/.git
 common/.config/nvim/.github
 common/.config/nvim/.gitignore
 common/.config/nvim/.ignore
-
-# thème généré depuis colors.toml — ne pas committer les dérivés
-theme/nurburgreen/generated/
 
 # fonts
 getnf

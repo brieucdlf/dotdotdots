@@ -120,6 +120,7 @@ Rien de tout ça n'est committé :
 |---|---|
 | `~/.config/bash/local.bash` | secrets, clés API, overrides — sourcé en dernier |
 | `~/.config/ghostty/local.conf` | `font-size` selon le DPI de la machine |
+| `~/.config/git/work.gitconfig` | identité pro, appliquée d'office sous `~/Work/` |
 | `profiles/omarchy/.config/hypr/monitors.conf` | résolutions et scaling (committé, mais par profil) |
 
 `work.bash` se charge seulement si `~/Work/bloomflow` existe — une machine
