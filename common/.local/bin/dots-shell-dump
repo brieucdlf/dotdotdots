@@ -6,37 +6,42 @@
 # ne garantit qu'ils soient identiques. Ce script rend l'écart visible.
 #
 #   # sur chaque machine
-#   dots-shell-dump > ~/shell-<machine>.txt
+#   dots-shell-dump > ~/shell-$(hostname).txt
 #   # puis
-#   diff ~/shell-omarchy.txt ~/shell-popos.txt
+#   diff ~/shell-pro.txt ~/shell-perso.txt
 #
 # Tout ce qui apparaît côté Omarchy et manque côté Pop est à recopier dans
 # common/.config/bash/init.bash.
+#
+# Les alias et fonctions ne traversent pas la frontière de processus, et un
+# script tourne en shell NON interactif — où .bashrc sort à la première ligne.
+# On interroge donc un bash interactif frais (DOTS_NO_TMUX pour ne pas attacher
+# tmux au passage).
 set -uo pipefail
+
+ask() { DOTS_NO_TMUX=1 bash -i -c "$1" 2>/dev/null; }
 
 echo "### profil"
 [[ -d $HOME/.local/share/omarchy ]] && echo "omarchy" || echo "standalone"
 
 echo
 echo "### alias"
-alias | sed 's/^alias //' | sort
+ask 'alias' | sed 's/^alias //' | sort
 
 echo
 echo "### fonctions"
-declare -F | awk '{print $3}' | grep -v '^_' | sort
+ask 'declare -F' | awk '{print $3}' | grep -v '^_' | sort
 
 echo
 echo "### outils (versions)"
 for t in bash tmux nvim ghostty starship mise zoxide fzf eza fd rg delta lazygit btop bat gh jq git; do
-  if command -v "$t" &>/dev/null; then
-    printf '%-10s %s\n' "$t" "$("$t" --version 2>/dev/null | head -1)"
-  else
-    printf '%-10s ABSENT\n' "$t"
-  fi
+  # tmux ne connaît que -V, pas --version
+  flag="--version"; [[ $t == tmux ]] && flag="-V"
+  printf '%-10s %s\n' "$t" "$(ask "command -v $t >/dev/null && $t $flag 2>&1 | head -1 || echo ABSENT")"
 done
 
 echo
 echo "### variables de thème"
 for v in FZF_DEFAULT_OPTS FZF_DEFAULT_COMMAND EZA_COLORS EDITOR; do
-  printf '%s=%s\n' "$v" "${!v:-<unset>}"
+  printf '%s=%s\n' "$v" "$(ask "printf '%s' \"\${$v:-<unset>}\"")"
 done

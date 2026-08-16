@@ -12,8 +12,10 @@ source "$HOME/.config/bash/init.bash"
 source "$HOME/.config/bash/exports.bash"
 source "$HOME/.config/bash/aliases.bash"
 
-# Auto-attach tmux au démarrage
-if [ -z "$TMUX" ] && command -v tmux &>/dev/null; then
+# Auto-attach tmux au démarrage.
+# DOTS_NO_TMUX=1 permet d'ouvrir un shell interactif sans tmux (outillage,
+# scripts d'inspection type dots-shell-dump).
+if [ -z "$TMUX" ] && [ -z "$DOTS_NO_TMUX" ] && command -v tmux &>/dev/null; then
   tmux
 fi
 
