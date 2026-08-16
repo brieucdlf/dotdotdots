@@ -31,12 +31,29 @@ Ce qui est personnalisé par rapport au thème sombre stock :
 | `active_hint` | `2` | reprend `border_size = 2` d'Hyprland |
 | `frosted` + `frosted_windows`/`_panel`/`_applets` | `Medium` / `true` | pour retrouver le blur d'Hyprland |
 
-`frosted_windows: true` n'est pas cosmétique : `background-opacity = 0.85` de
-ghostty a été calibré pour Hyprland, dont le `looknfeel.conf` floute derrière
-les fenêtres (`size 12, passes 4`). Sans blur, le même alpha donne de la
-transparence brute et le terminal devient illisible. Activer le blur COSMIC
-permet de garder le **même** `background-opacity` sur les deux machines plutôt
-que de faire diverger la config ghostty.
+⚠️ `frosted_windows` ne concerne **que les applications COSMIC**. Les `frosted_*`
+sont rendus par libcosmic, la bibliothèque d'interface : Réglages, Fichiers et
+consorts se dessinent dépolis. Le compositeur, lui, ne floute rien — `cosmic-comp`
+n'a aucune clé de blur (ses seuls réglages sont `active_hint`,
+`appearance_settings`, `autotile`, `autotile_behavior`, `xkb_config`).
+
+Un client Wayland tiers comme **ghostty ne peut donc pas être flouté**. Le blur
+d'Hyprland est une fonction de compositeur ; COSMIC n'a pas d'équivalent.
+
+## Opacité du terminal
+
+Conséquence directe : `background-opacity = 0.85` dans `common/` a été calibré
+pour Hyprland, dont le `looknfeel.conf` floute derrière les fenêtres (`size 12,
+passes 4`). Le blur transforme la transparence en verre dépoli. Sous COSMIC, le
+même alpha donne de la transparence brute, fatigante à la lecture.
+
+D'où `popos/.config/ghostty/local.conf`, qui remonte l'opacité à `0.95` — inclus
+en fin de `common/.config/ghostty/config`, donc il gagne. La machine pro garde
+ses `0.85` avec blur.
+
+Ce fichier est **copié par `install.sh`, pas stowé** : voir
+`popos/.stow-local-ignore` pour la raison (stow 2.3.1 refuse de déplier
+`~/.config/ghostty`, que `common` a plié en un lien unique).
 
 La rampe neutre (`neutral_0..10`, `gray_1/2`) est surchargée avec les carbones
 BRG : c'est elle qui porte tout le chrome de COSMIC. Le reste de la palette —
@@ -109,6 +126,6 @@ Les deux schémas se reconnaissent d'ailleurs à leurs clés : `v1` a `is_froste
 
 ## Si tu passes cette machine sous Hyprland
 
-La bascule consiste à déplacer `profiles/omarchy/.config/{hypr,waybar}` vers
+La bascule consiste à déplacer `omarchy/.config/{hypr,waybar}` vers
 `common/` et à ne laisser dans les profils que `monitors.conf` et les modules
 Waybar liés à Omarchy.
