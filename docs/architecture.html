@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dotdotdots · Architecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #001a0f;
+      --color-ink:    #d4b88a;
+      --color-muted:  #b8a07a;
+      --color-accent: #f0c000;
+      --font-sans:  'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --font-serif: 'Instrument Serif', Georgia, serif;
+      --font-mono:  'Geist Mono', ui-monospace, 'DejaVu Sans Mono', monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1240px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem; font-weight: 500;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--color-muted); margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400; letter-spacing: -0.02em; line-height: 1.15;
+      color: var(--color-ink); margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 960px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · dotdotdots</p>
+    <h1>Un dépôt, deux machines</h1>
+
+    <svg viewBox="0 72 1120 412" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="dotfiles-arch-title dotfiles-arch-desc">
+      <title id="dotfiles-arch-title">Architecture des dotfiles dotdotdots</title>
+      <desc id="dotfiles-arch-desc">Le dépôt réunit une source unique de couleurs et une couche commune ; install.sh détecte le système et n'applique que le profil correspondant, Omarchy sur la machine Arch ou popos sur la machine Pop!_OS.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b8a07a"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#f0c000"/></marker>
+      </defs>
+
+      <rect x="0" y="72" width="1120" height="412" fill="#001a0f"/>
+
+      <!-- Zones (before arrows and nodes) -->
+      <rect x="24" y="88" width="784" height="312" rx="8" fill="rgba(212,184,138,0.02)" stroke="rgba(212,184,138,0.10)" stroke-width="0.8"/>
+      <rect x="48" y="92" width="52" height="12" rx="2" fill="#001a0f"/>
+      <text x="74" y="101" fill="rgba(212,184,138,0.40)" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">DÉPÔT</text>
+
+      <rect x="856" y="88" width="240" height="312" rx="8" fill="rgba(212,184,138,0.02)" stroke="rgba(212,184,138,0.10)" stroke-width="0.8"/>
+      <rect x="880" y="92" width="64" height="12" rx="2" fill="#001a0f"/>
+      <text x="912" y="101" fill="rgba(212,184,138,0.40)" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">MACHINES</text>
+
+      <!-- Arrows (before boxes) -->
+      <path d="M 224,172 H 256 Q 264,172 264,180 V 220 Q 264,228 272,228 H 336" fill="none" stroke="#b8a07a" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <path d="M 224,316 H 280 Q 288,316 288,308 V 268 Q 288,260 296,260 H 336" fill="none" stroke="#b8a07a" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <path d="M 520,228 H 564 Q 572,228 572,220 V 160 Q 572,152 580,152 H 624" fill="none" stroke="#b8a07a" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <path d="M 520,260 H 588 Q 596,260 596,268 V 336 Q 596,344 604,344 H 624" fill="none" stroke="#b8a07a" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <line x1="784" y1="152" x2="888" y2="152" stroke="#f0c000" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+      <line x1="784" y1="344" x2="888" y2="344" stroke="#f0c000" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+
+      <!-- Arrow labels -->
+      <rect x="284" y="208" width="40" height="12" rx="2" fill="#001a0f"/>
+      <text x="304" y="217" fill="#b8a07a" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">RENDER</text>
+
+      <rect x="300" y="240" width="32" height="12" rx="2" fill="#001a0f"/>
+      <text x="316" y="249" fill="#b8a07a" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">STOW</text>
+
+      <rect x="526" y="208" width="32" height="12" rx="2" fill="#001a0f"/>
+      <text x="542" y="217" fill="#b8a07a" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">ARCH</text>
+
+      <rect x="540" y="240" width="28" height="12" rx="2" fill="#001a0f"/>
+      <text x="554" y="249" fill="#b8a07a" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">POP</text>
+
+      <!-- Node: colors.toml (focal) -->
+      <rect x="48" y="136" width="176" height="72" rx="6" fill="#001a0f"/>
+      <rect x="48" y="136" width="176" height="72" rx="6" fill="rgba(240,192,0,0.08)" stroke="#f0c000" stroke-width="1"/>
+      <rect x="56" y="144" width="28" height="12" rx="2" fill="transparent" stroke="rgba(240,192,0,0.50)" stroke-width="0.8"/>
+      <text x="70" y="152" fill="#f0c000" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">SRC</text>
+      <text x="136" y="176" fill="#d4b88a" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">colors.toml</text>
+      <text x="136" y="192" fill="#b8a07a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">source unique · render.sh</text>
+
+      <!-- Node: common/ -->
+      <rect x="48" y="280" width="176" height="72" rx="6" fill="#001a0f"/>
+      <rect x="48" y="280" width="176" height="72" rx="6" fill="#0e2418" stroke="#d4b88a" stroke-width="1"/>
+      <rect x="56" y="288" width="28" height="12" rx="2" fill="transparent" stroke="rgba(212,184,138,0.40)" stroke-width="0.8"/>
+      <text x="70" y="296" fill="#d4b88a" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">PKG</text>
+      <text x="136" y="320" fill="#d4b88a" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">common/</text>
+      <text x="136" y="336" fill="#b8a07a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">shell · tmux · nvim · mise</text>
+
+      <!-- Node: install.sh (focal) -->
+      <rect x="336" y="200" width="184" height="88" rx="6" fill="#001a0f"/>
+      <rect x="336" y="200" width="184" height="88" rx="6" fill="rgba(240,192,0,0.08)" stroke="#f0c000" stroke-width="1"/>
+      <rect x="344" y="208" width="28" height="12" rx="2" fill="transparent" stroke="rgba(240,192,0,0.50)" stroke-width="0.8"/>
+      <text x="358" y="216" fill="#f0c000" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">RUN</text>
+      <text x="428" y="248" fill="#d4b88a" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">install.sh</text>
+      <text x="428" y="264" fill="#b8a07a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">détecte l'OS · stow · mise</text>
+
+      <!-- Node: omarchy/ -->
+      <rect x="624" y="120" width="160" height="64" rx="6" fill="#001a0f"/>
+      <rect x="624" y="120" width="160" height="64" rx="6" fill="rgba(212,184,138,0.05)" stroke="#b8a07a" stroke-width="1"/>
+      <rect x="632" y="128" width="28" height="12" rx="2" fill="transparent" stroke="rgba(184,160,122,0.50)" stroke-width="0.8"/>
+      <text x="646" y="136" fill="#b8a07a" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">PKG</text>
+      <text x="704" y="156" fill="#d4b88a" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">omarchy/</text>
+      <text x="704" y="172" fill="#b8a07a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">hypr · waybar</text>
+
+      <!-- Node: popos/ -->
+      <rect x="624" y="312" width="160" height="64" rx="6" fill="#001a0f"/>
+      <rect x="624" y="312" width="160" height="64" rx="6" fill="rgba(212,184,138,0.05)" stroke="#b8a07a" stroke-width="1"/>
+      <rect x="632" y="320" width="28" height="12" rx="2" fill="transparent" stroke="rgba(184,160,122,0.50)" stroke-width="0.8"/>
+      <text x="646" y="328" fill="#b8a07a" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">PKG</text>
+      <text x="704" y="348" fill="#d4b88a" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">popos/</text>
+      <text x="704" y="364" fill="#b8a07a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">cosmic · ghostty</text>
+
+      <!-- Node: Machine pro -->
+      <rect x="888" y="120" width="192" height="64" rx="6" fill="#001a0f"/>
+      <rect x="888" y="120" width="192" height="64" rx="6" fill="rgba(212,184,138,0.03)" stroke="rgba(212,184,138,0.30)" stroke-width="1"/>
+      <rect x="896" y="128" width="28" height="12" rx="2" fill="transparent" stroke="rgba(212,184,138,0.25)" stroke-width="0.8"/>
+      <text x="910" y="136" fill="#8a6835" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">PRO</text>
+      <text x="984" y="156" fill="#d4b88a" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Machine pro</text>
+      <text x="984" y="172" fill="#b8a07a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">Arch · Omarchy · Hyprland</text>
+
+      <!-- Node: Machine perso -->
+      <rect x="888" y="312" width="192" height="64" rx="6" fill="#001a0f"/>
+      <rect x="888" y="312" width="192" height="64" rx="6" fill="rgba(212,184,138,0.03)" stroke="rgba(212,184,138,0.30)" stroke-width="1"/>
+      <rect x="896" y="320" width="36" height="12" rx="2" fill="transparent" stroke="rgba(212,184,138,0.25)" stroke-width="0.8"/>
+      <text x="914" y="328" fill="#8a6835" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">PERSO</text>
+      <text x="984" y="348" fill="#d4b88a" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Machine perso</text>
+      <text x="984" y="364" fill="#b8a07a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">Pop!_OS · COSMIC</text>
+
+      <!-- Legend strip -->
+      <line x1="24" y1="424" x2="1096" y2="424" stroke="rgba(212,184,138,0.10)" stroke-width="0.8"/>
+      <text x="24" y="440" fill="#b8a07a" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" letter-spacing="0.18em">LÉGENDE</text>
+
+      <rect x="24" y="458" width="14" height="10" rx="2" fill="rgba(240,192,0,0.08)" stroke="#f0c000" stroke-width="1"/>
+      <text x="44" y="466" fill="#b8a07a" font-size="8.5" font-family="'Geist', system-ui, sans-serif">Source &amp; orchestrateur</text>
+
+      <rect x="216" y="458" width="14" height="10" rx="2" fill="#0e2418" stroke="#d4b88a" stroke-width="1"/>
+      <text x="236" y="466" fill="#b8a07a" font-size="8.5" font-family="'Geist', system-ui, sans-serif">Couche partagée</text>
+
+      <rect x="384" y="458" width="14" height="10" rx="2" fill="rgba(212,184,138,0.05)" stroke="#b8a07a" stroke-width="1"/>
+      <text x="404" y="466" fill="#b8a07a" font-size="8.5" font-family="'Geist', system-ui, sans-serif">Profil par OS</text>
+
+      <rect x="536" y="458" width="14" height="10" rx="2" fill="rgba(212,184,138,0.03)" stroke="rgba(212,184,138,0.30)" stroke-width="1"/>
+      <text x="556" y="466" fill="#b8a07a" font-size="8.5" font-family="'Geist', system-ui, sans-serif">Machine</text>
+
+      <line x1="676" y1="464" x2="704" y2="464" stroke="#b8a07a" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <text x="712" y="466" fill="#b8a07a" font-size="8.5" font-family="'Geist', system-ui, sans-serif">Selon l'OS détecté</text>
+
+      <line x1="888" y1="464" x2="916" y2="464" stroke="#f0c000" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+      <text x="924" y="466" fill="#b8a07a" font-size="8.5" font-family="'Geist', system-ui, sans-serif">Application</text>
+    </svg>
+  </div>
+</body>
+</html>

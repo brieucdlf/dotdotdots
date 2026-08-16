@@ -33,6 +33,8 @@ Tout fichier existant qui bloquerait stow est déplacé dans
 
 ## Les trois couches
 
+![Architecture des dotfiles : colors.toml et common/ alimentent install.sh, qui n'applique que le profil correspondant au système détecté](docs/architecture.svg)
+
 **La règle qui tranche : si ça tourne dans un terminal → `common/`. Si ça dépend
 du compositeur ou du gestionnaire de paquets → un profil.**
 
