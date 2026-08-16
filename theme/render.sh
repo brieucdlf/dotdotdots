@@ -129,7 +129,9 @@ EOF
 COSMIC_PALETTE="$(dirname "${BASH_SOURCE[0]}")/cosmic/palette-dark.ron"
 if [[ -f $COSMIC_PALETTE ]]; then
   {
-    echo "// $THEME pour COSMIC — généré par theme/render.sh depuis colors.toml"
+    # Pas de commentaire d'en-tête : les thèmes système commencent directement
+    # par "(". RON accepte les commentaires, mais on ne peut pas tester le
+    # parseur de l'import COSMIC d'ici — on colle au format connu qui marche.
     echo "("
     cat "$COSMIC_PALETTE"
     cat <<EOF
