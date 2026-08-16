@@ -191,15 +191,22 @@ post_popos() {
   # Seul le thème est fourni, pour que le desktop soit dans la même palette que
   # le terminal.
   local src="$HOME/.config/theme/current/cosmic-nurburgreen-dark.ron"
-  [[ -f $src ]] || return 0
-  mkdir -p "$HOME/.local/share/cosmic-themes"
-  cp -f "$src" "$HOME/.local/share/cosmic-themes/"
-  say "thème COSMIC disponible : $src"
-  say "  à importer via Réglages > Apparence > Importer un thème"
-  # Volontairement pas d'écriture directe dans com.system76.CosmicTheme.*.Builder :
-  # le thème dérivé est reconstruit par cosmic-settings, écrire les clés à la
-  # main ne l'appliquerait pas de façon fiable et casserait la session en cas
-  # d'erreur.
+  if [[ -f $src ]]; then
+    mkdir -p "$HOME/.local/share/cosmic-themes"
+    cp -f "$src" "$HOME/.local/share/cosmic-themes/"
+    say "thème COSMIC disponible : $src"
+    say "  à importer via Réglages > Apparence > Importer un thème"
+  fi
+
+  # Polices. Elles ne font pas partie du thème : le schéma .ron n'a aucun champ
+  # de typo, COSMIC les range dans com.system76.CosmicTk.
+  # On copie plutôt qu'on ne symlink : cosmic-settings réécrit ces fichiers de
+  # façon atomique (temp + rename), ce qui remplacerait un lien par un fichier.
+  local tk_src="$ROOT/theme/cosmic/tk" tk_dst="$HOME/.config/cosmic/com.system76.CosmicTk/v1"
+  if [[ -d $tk_src && -d $tk_dst ]]; then
+    cp -f "$tk_src"/* "$tk_dst"/
+    say "polices COSMIC posées (interface + monospace)"
+  fi
 }
 
 "post_$PROFILE"

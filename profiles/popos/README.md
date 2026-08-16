@@ -36,6 +36,28 @@ BRG : c'est elle qui porte tout le chrome de COSMIC. Le reste de la palette —
 `accent_*`, `bright_*`, `ext_*` — est la palette sémantique stock du design
 system, reprise telle quelle.
 
+## Polices
+
+Elles ne sont **pas** dans le thème : le schéma `.ron` n'a aucun champ de typo.
+COSMIC les range dans `com.system76.CosmicTk/v1/{interface_font,monospace_font}`.
+
+Le repo en garde une copie dans `theme/cosmic/tk/`, qu'`install.sh` recopie :
+
+```
+interface_font   JetBrainsMono Nerd Font
+monospace_font   JetBrainsMono Nerd Font Mono   (la même que ghostty)
+```
+
+`install.sh` **copie** au lieu de symlinker, parce que cosmic-settings réécrit
+ces fichiers de façon atomique (temp + rename) : un lien serait remplacé par un
+fichier au premier changement dans l'interface, et le repo divergerait en
+silence. Corollaire : si tu changes les polices dans les Réglages, recapture-les
+pour ne pas les perdre au prochain `install.sh` —
+
+```bash
+cp ~/.config/cosmic/com.system76.CosmicTk/v1/{interface_font,monospace_font} theme/cosmic/tk/
+```
+
 ## ⚠️ Le piège du schéma
 
 Il existe **deux formats** de thème COSMIC, et le mauvais échoue silencieusement.
@@ -59,6 +81,24 @@ Le schéma réellement attendu est celui des thèmes communautaires
 `render.sh` génère le format courant. Sa structure est vérifiable par diff
 contre n'importe quel thème du repo communautaire : seules les valeurs doivent
 différer.
+
+### Où vérifier qu'un import a pris
+
+**Dans `v2`, pas `v1`.** `~/.config/cosmic/com.system76.CosmicTheme.Dark/`
+contient les deux, et `v1` est un reliquat d'une version antérieure de COSMIC
+qui n'est plus jamais écrit — il garde éternellement les valeurs stock. Regarder
+`v1` donne l'illusion qu'aucun import ne fonctionne.
+
+```bash
+# le bon endroit
+grep family ~/.config/cosmic/com.system76.CosmicTheme.Dark.Builder/v2/accent
+cat ~/.config/cosmic/com.system76.CosmicTheme.Dark.Builder/v2/bg_color   # Some("#001A0FFF")
+```
+
+Les deux schémas se reconnaissent d'ailleurs à leurs clés : `v1` a `is_frosted`,
+`v2` a `frosted` + `alpha_map` + les quatre `frosted_*`.
+
+`CosmicTk` (les polices), lui, est resté en `v1` — il n'a pas de `v2`.
 
 ## Si tu passes cette machine sous Hyprland
 
