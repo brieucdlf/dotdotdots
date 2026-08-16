@@ -10,6 +10,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
 PROFILE=""
 DO_PACKAGES=1
+BACKED_UP=0
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -116,16 +117,28 @@ have stow || { echo "stow est requis" >&2; exit 1; }
 # On déplace ces conflits dans ~/.dotfiles-backup/<horodatage>/ plutôt que de
 # les perdre.
 backup_conflicts() {
-  local pkgdir="$1" rel target
+  local pkgdir="$1" rel target resolved
   while IFS= read -r -d '' src; do
     rel="${src#"$pkgdir"/}"
     target="$HOME/$rel"
     [[ -e $target || -L $target ]] || continue
-    [[ -L $target && "$(readlink -f "$target")" == "$(readlink -f "$src")" ]] && continue
-    [[ -L $target && ! -e $target ]] && { rm -f "$target"; continue; }  # lien mort
-    [[ -L $target ]] && continue        # symlink vers autre chose: stow gérera
+
+    resolved="$(readlink -f "$target" 2>/dev/null || true)"
+
+    # Déjà posé par un passage précédent. Attention : après tree-folding, le
+    # parent est un lien mais $target n'en est pas un — il faut comparer les
+    # chemins RÉSOLUS, sinon on déplace le fichier du repo lui-même.
+    [[ $resolved == "$(readlink -f "$src")" ]] && continue
+
+    # Filet de sécurité : ne jamais déplacer quoi que ce soit qui vit dans le repo.
+    [[ $resolved == "$ROOT"/* ]] && continue
+
+    if [[ -L $target && ! -e $target ]]; then rm -f "$target"; continue; fi  # lien mort
+    [[ -L $target ]] && continue        # symlink étranger: laisser stow signaler
+
     mkdir -p "$BACKUP/$(dirname "$rel")"
     mv "$target" "$BACKUP/$rel"
+    BACKED_UP=1
     warn "sauvegardé: ~/$rel -> $BACKUP/$rel"
   done < <(find "$pkgdir" -type f -print0)
 }
@@ -174,5 +187,5 @@ post_popos() {
 "post_$PROFILE"
 
 say "terminé. Ouvre un nouveau terminal (ou 'exec bash') pour recharger le shell."
-[[ -d $BACKUP ]] && warn "des fichiers ont été sauvegardés dans $BACKUP"
+[[ $BACKED_UP -eq 1 ]] && warn "des fichiers ont été sauvegardés dans $BACKUP"
 exit 0
