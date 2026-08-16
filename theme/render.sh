@@ -173,7 +173,7 @@ if [[ -f $COSMIC_STOCK ]]; then
     gaps: (0, 8),
     active_hint: 2,
     window_hint: Some("$(hexa "$(get foreground)")"),
-    frosted_windows: false,
+    frosted_windows: true,
     frosted_system_interface: false,
     frosted_panel: true,
     frosted_applets: true,
