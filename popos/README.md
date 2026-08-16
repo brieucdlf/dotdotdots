@@ -124,6 +124,35 @@ Les deux schémas se reconnaissent d'ailleurs à leurs clés : `v1` a `is_froste
 
 `CosmicTk` (les polices), lui, est resté en `v1` — il n'a pas de `v2`.
 
+## Signal — clés chiffrées
+
+Signal lance son password store en **clair** par défaut, et repose la question à
+chaque démarrage. La raison est légitime : les backends chiffrés ont eu des bugs
+de corruption de base, donc Signal ne les active pas tout seul.
+
+`install.sh` pose l'override :
+
+```bash
+flatpak override --user --env=SIGNAL_PASSWORD_STORE=gnome-libsecret org.signal.Signal
+```
+
+Deux conditions, vérifiées sur cette machine :
+- `gnome-keyring-daemon` tourne sous COSMIC et sert `org.freedesktop.secrets` ;
+- le manifeste du flatpak accorde déjà `org.freedesktop.secrets=talk`, aucune
+  permission à ajouter.
+
+⚠️ `--user` est indispensable — c'est ce que la commande affichée par Signal
+omet. L'installation est en user ; un override système ne s'appliquerait pas, et
+demanderait root pour rien.
+
+Conséquence à connaître : Signal dépend maintenant du trousseau. S'il ne démarre
+plus (changement d'environnement de bureau, keyring cassé), Signal ne pourra plus
+déchiffrer ses clés et il faudra relier l'appareil. Pour revenir en arrière :
+
+```bash
+flatpak override --user --unset-env=SIGNAL_PASSWORD_STORE org.signal.Signal
+```
+
 ## Si tu passes cette machine sous Hyprland
 
 La bascule consiste à déplacer `omarchy/.config/{hypr,waybar}` vers
