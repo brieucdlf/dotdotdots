@@ -47,6 +47,12 @@ bootstrap_popos() {
   sudo apt-get install -y --no-install-recommends \
     stow tmux git curl unzip fontconfig ca-certificates
 
+  # Erlang est compilé depuis les sources par mise (kerl) : sans ces headers,
+  # le configure échoue sur "No curses library functions found" et entraîne
+  # Elixir avec lui. Omarchy fournit déjà l'équivalent côté Arch.
+  sudo apt-get install -y --no-install-recommends \
+    build-essential autoconf m4 libncurses-dev libssl-dev
+
   if ! have mise; then
     say "installation de mise"
     curl -fsSL https://mise.run | sh
