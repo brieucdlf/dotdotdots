@@ -53,10 +53,13 @@ theme/
 ├── cosmic/         # palette sémantique stock de COSMIC, reprise telle quelle
 └── render.sh       # → ~/.config/theme/current/{ghostty,tmux,colors.sh,*.ron}
 
-profiles/
-├── omarchy/        # hypr/, waybar/, todo-popup, waybar-claude-todo
-└── popos/          # thème COSMIC seulement (voir son README)
+omarchy/            # hypr/, waybar/, todo-popup, waybar-claude-todo
+popos/              # thème COSMIC + override ghostty (voir son README)
 ```
+
+`common/` et le profil sont stowés **en une seule invocation**
+(`stow --restow common $PROFILE`) : traités séparément, stow refuse de déplier
+un dossier posé par l'autre passage.
 
 ---
 
@@ -86,7 +89,7 @@ c'est ce qui rend l'iso vraie.
 
 Sur Pop!_OS, le desktop COSMIC a droit au même traitement : `render.sh` produit
 un `cosmic-nurburgreen-dark.ron` importable via **Réglages > Apparence >
-Importer un thème**. Détail du mapping dans `profiles/popos/README.md`.
+Importer un thème**. Détail du mapping dans `popos/README.md`.
 
 ---
 
@@ -125,9 +128,9 @@ Rien de tout ça n'est committé :
 | Fichier | Usage |
 |---|---|
 | `~/.config/bash/local.bash` | secrets, clés API, overrides — sourcé en dernier |
-| `~/.config/ghostty/local.conf` | `font-size` selon le DPI de la machine |
+| `~/.config/ghostty/local.conf` | `font-size` selon le DPI ; posé par le profil popos pour l'opacité |
 | `~/.config/git/work.gitconfig` | identité pro, appliquée d'office sous `~/Work/` |
-| `profiles/omarchy/.config/hypr/monitors.conf` | résolutions et scaling (committé, mais par profil) |
+| `omarchy/.config/hypr/monitors.conf` | résolutions et scaling (committé, mais par profil) |
 
 `work.bash` se charge seulement si `~/Work/bloomflow` existe — une machine
 fraîche ne casse pas.

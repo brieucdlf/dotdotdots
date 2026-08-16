@@ -1,0 +1,23 @@
+# ATTENTION : ce fichier REMPLACE la liste d'exclusion par défaut de stow.
+# Les entrées standard (.git, README, LICENSE…) doivent donc être répétées ici.
+
+# --- défauts stow ---
+\.git
+\.gitignore
+^/README.*
+^/LICENSE.*
+^/COPYING
+.+~
+\#.*\#
+
+# --- spécifique à ce paquet ---
+# On exclut le DOSSIER, pas juste local.conf : ~/.config/ghostty est un lien
+# unique vers common/.config/ghostty (tree-folding), et il suffit que le dossier
+# existe dans ce paquet pour que stow tente d'y descendre. En --restow il délie
+# d'abord le lien posé par common, puis échoue dessus :
+#   « unstow_contents() called with invalid target: .config/ghostty »
+#
+# install.sh copie donc local.conf à la place (post_popos), comme les polices
+# COSMIC. La destination ~/.config/ghostty/local.conf résout dans common/, où
+# elle est gitignorée — le fichier de référence reste versionné ici.
+^/\.config/ghostty$

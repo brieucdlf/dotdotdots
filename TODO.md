@@ -3,7 +3,7 @@
 ## Machine pro (Omarchy) — migration vers `two-profiles`
 
 ⚠️ **L'ordre compte.** Le repo passe d'une arbo plate (`stow .`) à des paquets
-stow (`common` + `profiles/omarchy`). Si tu pulls avant de dé-stower, les
+stow (`common` + `omarchy`). Si tu pulls avant de dé-stower, les
 anciens liens deviennent orphelins et stow refusera de poser les nouveaux.
 
 ```bash
@@ -51,4 +51,4 @@ diff ~/shell-pro.txt ~/shell-Heartbeat.txt
 - [ ] `bin/oh-my-posh` (19 Mo) reste dans l'historique git ; un `filter-repo`
       allégerait les clones, mais réécrit les hashes
 - [ ] COSMIC : `corner_radii` laissé au barème stock, on pourrait l'aligner sur
-      le `rounding = 10` d'Hyprland (voir `profiles/popos/README.md`)
+      le `rounding = 10` d'Hyprland (voir `popos/README.md`)

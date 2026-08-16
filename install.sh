@@ -37,7 +37,7 @@ detect_profile() {
 
 [[ -n $PROFILE ]] || PROFILE="$(detect_profile)"
 [[ -n $PROFILE ]] || { echo "profil indétectable, utilise --profile <omarchy|popos>" >&2; exit 1; }
-[[ -d "$ROOT/profiles/$PROFILE" ]] || { echo "profil inconnu: $PROFILE" >&2; exit 1; }
+[[ -d "$ROOT/$PROFILE" ]] || { echo "profil inconnu: $PROFILE" >&2; exit 1; }
 say "profil: $PROFILE"
 
 # ── paquets système ──────────────────────────────────────────────────────────
@@ -150,13 +150,16 @@ backup_conflicts() {
 }
 
 backup_conflicts "$ROOT/common"
-backup_conflicts "$ROOT/profiles/$PROFILE"
+backup_conflicts "$ROOT/$PROFILE"
 
 # ── stow ─────────────────────────────────────────────────────────────────────
-say "stow common"
-stow --dir="$ROOT" --target="$HOME" --restow common
-say "stow profiles/$PROFILE"
-stow --dir="$ROOT/profiles" --target="$HOME" --restow "$PROFILE"
+# Les deux paquets sont stowés en UNE invocation, pas deux. Sinon stow traite
+# `common` puis `$PROFILE` séparément et refuse de déplier un dossier posé par
+# l'autre passage : « existing target is not owned by stow: .config/ghostty ».
+# C'est ce qui bloque dès qu'un profil ajoute un fichier dans un dossier que
+# common a déjà plié en un seul lien.
+say "stow common + $PROFILE"
+stow --dir="$ROOT" --target="$HOME" --restow common "$PROFILE"
 
 # ── thème ────────────────────────────────────────────────────────────────────
 say "rendu du thème"
@@ -206,6 +209,13 @@ post_popos() {
   if [[ -d $tk_src && -d $tk_dst ]]; then
     cp -f "$tk_src"/* "$tk_dst"/
     say "polices COSMIC posées (interface + monospace)"
+  fi
+
+  # Override ghostty : copié et non stowé, voir popos/.stow-local-ignore.
+  local gs="$ROOT/popos/.config/ghostty/local.conf"
+  if [[ -f $gs ]]; then
+    cp -f "$gs" "$HOME/.config/ghostty/local.conf"
+    say "override ghostty posé (opacité sans blur COSMIC)"
   fi
 }
 
