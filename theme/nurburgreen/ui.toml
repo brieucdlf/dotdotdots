@@ -4,3 +4,9 @@
 
 border_inactive = "#2a2e2a"   # bordure de pane tmux inactive — carbone froid
 statusbar_bg    = "#0e100e"   # fond de barre (tmux, waybar) — carbone
+
+# COSMIC teinte tous ses gris de chrome avec neutral_tint. Les thèmes système
+# utilisent un gris neutre (#777777) ; on garde la même clarté en décalant la
+# teinte vers le vert, pour retrouver la famille carbone BRG (#0c100c, #1a1e1a,
+# #2a2e2a) où le canal vert dépasse légèrement le rouge et le bleu.
+cosmic_neutral_tint = "#6d7a6d"
