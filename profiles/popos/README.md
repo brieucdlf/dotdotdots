@@ -29,7 +29,14 @@ Ce qui est personnalisé par rapport au thème sombre stock :
 | `success` / `warning` / `destructive` | `#0a6b38` / `#f5d020` / `#a06030` | vert BRG, GT Yellow vif, cognac plein soleil |
 | `window_hint` | `#d4b88a` | reprend `col.active_border` d'Hyprland |
 | `active_hint` | `2` | reprend `border_size = 2` d'Hyprland |
-| `is_frosted` | `true` | pour retrouver la translucidité du blur Hyprland / de Ghostty |
+| `frosted` + `frosted_windows`/`_panel`/`_applets` | `Medium` / `true` | pour retrouver le blur d'Hyprland |
+
+`frosted_windows: true` n'est pas cosmétique : `background-opacity = 0.85` de
+ghostty a été calibré pour Hyprland, dont le `looknfeel.conf` floute derrière
+les fenêtres (`size 12, passes 4`). Sans blur, le même alpha donne de la
+transparence brute et le terminal devient illisible. Activer le blur COSMIC
+permet de garder le **même** `background-opacity` sur les deux machines plutôt
+que de faire diverger la config ghostty.
 
 La rampe neutre (`neutral_0..10`, `gray_1/2`) est surchargée avec les carbones
 BRG : c'est elle qui porte tout le chrome de COSMIC. Le reste de la palette —
