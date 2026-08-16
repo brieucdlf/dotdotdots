@@ -5,8 +5,23 @@
 border_inactive = "#2a2e2a"   # bordure de pane tmux inactive — carbone froid
 statusbar_bg    = "#0e100e"   # fond de barre (tmux, waybar) — carbone
 
-# COSMIC teinte tous ses gris de chrome avec neutral_tint. Les thèmes système
-# utilisent un gris neutre (#777777) ; on garde la même clarté en décalant la
-# teinte vers le vert, pour retrouver la famille carbone BRG (#0c100c, #1a1e1a,
-# #2a2e2a) où le canal vert dépasse légèrement le rouge et le bleu.
-cosmic_neutral_tint = "#6d7a6d"
+# --- COSMIC ------------------------------------------------------------------
+# Rampe neutre : COSMIC construit tout son chrome (fonds de panneaux, boutons,
+# séparateurs) sur neutral_0..10. Plutôt que de passer par neutral_tint, qui
+# mélange une teinte de façon opaque, on donne la rampe complète : les trois
+# premiers crans sont les carbones exacts de la palette (color0, color8,
+# border_inactive), les suivants prolongent la même signature — canal vert
+# légèrement au-dessus du rouge et du bleu — jusqu'au blanc.
+cosmic_neutral_0  = "#000000"
+cosmic_neutral_1  = "#0c100c"   # = color0
+cosmic_neutral_2  = "#1a1e1a"   # = color8
+cosmic_neutral_3  = "#2a2e2a"   # = border_inactive
+cosmic_neutral_4  = "#454b45"
+cosmic_neutral_5  = "#616861"
+cosmic_neutral_6  = "#7e857e"
+cosmic_neutral_7  = "#9ba39b"
+cosmic_neutral_8  = "#bcc2bc"
+cosmic_neutral_9  = "#dee1de"
+cosmic_neutral_10 = "#ffffff"
+cosmic_gray_1     = "#1a1e1a"
+cosmic_gray_2     = "#262b26"

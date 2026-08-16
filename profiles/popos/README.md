@@ -31,16 +31,34 @@ Ce qui est personnalisé par rapport au thème sombre stock :
 | `active_hint` | `2` | reprend `border_size = 2` d'Hyprland |
 | `is_frosted` | `true` | pour retrouver la translucidité du blur Hyprland / de Ghostty |
 
-Le bloc `palette` est repris **tel quel** du thème système : il est strictement
-identique dans tous les thèmes livrés par COSMIC (`mocha-dark` et `nebula-dark`
-ne diffèrent que par la queue du fichier), c'est la palette sémantique du
-design system, pas une palette de terminal. On ne personnalise donc que ce que
-COSMIC prévoit de personnalisable.
+La rampe neutre (`neutral_0..10`, `gray_1/2`) est surchargée avec les carbones
+BRG : c'est elle qui porte tout le chrome de COSMIC. Le reste de la palette —
+`accent_*`, `bright_*`, `ext_*` — est la palette sémantique stock du design
+system, reprise telle quelle.
 
-`install.sh` n'écrit **pas** directement dans
-`com.system76.CosmicTheme.Dark.Builder` : le thème dérivé est reconstruit par
-cosmic-settings, écrire les clés à la main ne l'appliquerait pas de façon
-fiable et casserait la session en cas d'erreur.
+## ⚠️ Le piège du schéma
+
+Il existe **deux formats** de thème COSMIC, et le mauvais échoue silencieusement.
+
+Les fichiers livrés dans `/usr/share/cosmic-themes/` (`mocha-dark.ron`,
+`nebula-dark.ron`) sont dans un format **ancien** : couleurs en structs de
+flottants, `is_frosted: bool`, pas d'`alpha_map`. Les prendre pour gabarit
+produit un fichier qui **s'importe et s'applique visuellement, mais ne persiste
+pas** — après import, aucun fichier de `~/.config/cosmic` ne contient les
+couleurs du thème, et il est perdu à la fermeture de session.
+
+Le schéma réellement attendu est celui des thèmes communautaires
+([KodeBarista/cosmic-themes](https://github.com/KodeBarista/cosmic-themes)) :
+
+| | ancien (`/usr/share`) | courant |
+|---|---|---|
+| couleurs | `Some((red: 0.94, green: …))` | `Some("#F0C000FF")` |
+| flou | `is_frosted: false` | `frosted: Medium` + `frosted_windows`/`_panel`/`_applets`/`_system_interface` |
+| transparence | absent | bloc `alpha_map` |
+
+`render.sh` génère le format courant. Sa structure est vérifiable par diff
+contre n'importe quel thème du repo communautaire : seules les valeurs doivent
+différer.
 
 ## Si tu passes cette machine sous Hyprland
 

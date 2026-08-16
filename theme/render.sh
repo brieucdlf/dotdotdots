@@ -41,18 +41,6 @@ rgb() { # #rrggbb -> "r;g;b" (pour EZA_COLORS / séquences ANSI)
   printf '%d;%d;%d' "0x${h:0:2}" "0x${h:2:2}" "0x${h:4:2}"
 }
 
-ron_rgb() { # #rrggbb [alpha] -> champs RON en flottants normalisés (COSMIC)
-  local h="${1#\#}" indent="${3:-        }"
-  awk -v r="$((16#${h:0:2}))" -v g="$((16#${h:2:2}))" -v b="$((16#${h:4:2}))" \
-      -v a="${2:-}" -v i="$indent" '
-    # RON attend des flottants : zero doit rester 0.0, jamais 0
-    function f(x,   s) { s = sprintf("%.8g", x); return (s ~ /\./) ? s : s ".0" }
-    BEGIN{
-      printf "%sred: %s,\n%sgreen: %s,\n%sblue: %s,", i, f(r/255), i, f(g/255), i, f(b/255)
-      if (a != "") printf "\n%salpha: %s,", i, f(a)
-    }'
-}
-
 mkdir -p "$OUT"
 
 # --- ghostty ----------------------------------------------------------------
@@ -121,20 +109,37 @@ EOF
 # --- COSMIC (Pop!_OS) ------------------------------------------------------
 # Fichier importable via Réglages > Apparence > Importer un thème.
 #
-# Le bloc `palette` est la palette sémantique stock de COSMIC : elle est
-# strictement identique dans tous les thèmes livrés par le système (vérifié :
-# mocha-dark et nebula-dark ne diffèrent que par la queue du fichier). On la
-# reprend telle quelle et on ne personnalise que ce que COSMIC prévoit —
-# les tints, le fond, l'accent et les hints.
-COSMIC_PALETTE="$(dirname "${BASH_SOURCE[0]}")/cosmic/palette-dark.ron"
-if [[ -f $COSMIC_PALETTE ]]; then
+# ATTENTION au schéma. Les fichiers de /usr/share/cosmic-themes livrés par le
+# système sont dans un format ANCIEN (couleurs en structs de flottants,
+# `is_frosted: bool`). Le schéma que le parseur attend réellement — celui des
+# thèmes communautaires qui fonctionnent — utilise des chaînes "#RRGGBBAA",
+# un enum `frosted`, et les champs frosted_*/alpha_map. Un fichier à l'ancien
+# format s'applique visuellement mais ne persiste pas.
+#
+# La palette sémantique stock (accents, bright_*, ext_*) est reprise telle
+# quelle ; on ne surcharge que la rampe neutre, qui porte tout le chrome.
+COSMIC_STOCK="$(dirname "${BASH_SOURCE[0]}")/cosmic/palette-stock-dark.txt"
+
+hexa() { # #rrggbb -> "#RRGGBBAA" (alpha opaque)
+  printf '#%sFF' "$(printf '%s' "${1#\#}" | tr '[:lower:]' '[:upper:]')"
+}
+
+if [[ -f $COSMIC_STOCK ]]; then
   {
-    # Pas de commentaire d'en-tête : les thèmes système commencent directement
-    # par "(". RON accepte les commentaires, mais on ne peut pas tester le
-    # parseur de l'import COSMIC d'ici — on colle au format connu qui marche.
     echo "("
-    cat "$COSMIC_PALETTE"
+    echo "    palette: Dark(("
+    echo '        name: "cosmic-dark",'
+    while IFS= read -r line; do
+      [[ -n $line ]] || continue
+      key="${line%%:*}"
+      # la rampe neutre et les gris passent en carbone BRG, le reste reste stock
+      case $key in
+        neutral_*|gray_*) printf '        %s: "%s",\n' "$key" "$(hexa "$(get "cosmic_$key")")" ;;
+        *)                printf '        %s\n' "$line" ;;
+      esac
+    done < <(cat "$COSMIC_STOCK"; echo)
     cat <<EOF
+    )),
     spacing: (
         space_none: 0,
         space_xxxs: 4,
@@ -155,35 +160,39 @@ if [[ -f $COSMIC_PALETTE ]]; then
         radius_l: (32.0, 32.0, 32.0, 32.0),
         radius_xl: (160.0, 160.0, 160.0, 160.0),
     ),
-    neutral_tint: Some((
-$(ron_rgb "$(get cosmic_neutral_tint)")
-    )),
-    bg_color: Some((
-$(ron_rgb "$(get background)" 1.0)
-    )),
+    neutral_tint: None,
+    bg_color: Some("$(hexa "$(get background)")"),
     primary_container_bg: None,
     secondary_container_bg: None,
-    text_tint: Some((
-$(ron_rgb "$(get foreground)")
-    )),
-    accent: Some((
-$(ron_rgb "$(get accent)")
-    )),
-    success: Some((
-$(ron_rgb "$(get color10)")
-    )),
-    warning: Some((
-$(ron_rgb "$(get color11)")
-    )),
-    destructive: Some((
-$(ron_rgb "$(get color9)")
-    )),
-    is_frosted: true,
+    text_tint: None,
+    accent: Some("$(hexa "$(get accent)")"),
+    success: Some("$(hexa "$(get color10)")"),
+    warning: Some("$(hexa "$(get color11)")"),
+    destructive: Some("$(hexa "$(get color9)")"),
+    frosted: Medium,
     gaps: (0, 8),
     active_hint: 2,
-    window_hint: Some((
-$(ron_rgb "$(get foreground)")
-    )),
+    window_hint: Some("$(hexa "$(get foreground)")"),
+    frosted_windows: false,
+    frosted_system_interface: false,
+    frosted_panel: true,
+    frosted_applets: true,
+    alpha_map: (
+        extremely_low: 0.9,
+        extremely_low_2: 0.87692,
+        very_low: 0.85385,
+        very_low_2: 0.83076,
+        low: 0.80769,
+        low_2: 0.78461,
+        medium: 0.76154,
+        medium_2: 0.73846,
+        high: 0.71538,
+        high_2: 0.69231,
+        very_high: 0.66023,
+        very_high_2: 0.64615,
+        extremely_high: 0.62308,
+        extremely_high_2: 0.6,
+    ),
 )
 EOF
   } >"$OUT/cosmic-$THEME-dark.ron"
