@@ -217,6 +217,17 @@ post_popos() {
     cp -f "$gs" "$HOME/.config/ghostty/local.conf"
     say "override ghostty posé (opacité sans blur COSMIC)"
   fi
+
+  # Signal stocke ses clés en CLAIR par défaut (les backends chiffrés ont eu des
+  # bugs de corruption) et repose la question à chaque démarrage. gnome-libsecret
+  # fonctionne ici parce que gnome-keyring-daemon tourne sous COSMIC et que le
+  # manifeste du flatpak accorde déjà org.freedesktop.secrets=talk.
+  # --user est indispensable : l'install est en user, un override système
+  # n'aurait aucun effet (et demanderait root pour rien).
+  if have flatpak && flatpak info org.signal.Signal &>/dev/null; then
+    flatpak override --user --env=SIGNAL_PASSWORD_STORE=gnome-libsecret org.signal.Signal
+    say "Signal : clés dans le trousseau (gnome-libsecret)"
+  fi
 }
 
 "post_$PROFILE"
