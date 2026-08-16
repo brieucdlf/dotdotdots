@@ -1,6 +1,6 @@
 # TODO
 
-## Machine pro (Omarchy) — migration vers `two-profiles`
+## Machine pro (Omarchy) — migration vers la nouvelle arbo
 
 ⚠️ **L'ordre compte.** Le repo passe d'une arbo plate (`stow .`) à des paquets
 stow (`common` + `omarchy`). Si tu pulls avant de dé-stower, les
@@ -9,8 +9,7 @@ anciens liens deviennent orphelins et stow refusera de poser les nouveaux.
 ```bash
 cd ~/.dots                 # ou ~/.dotfiles — vérifier où il est là-bas
 stow -D .                  # 1. dé-stow l'ANCIENNE arbo, AVANT le pull
-git pull
-git checkout two-profiles
+git pull                   # tout est déjà dans master
 ./install.sh               # 2. détecte omarchy, re-stow, rend le thème, mise install
 ```
 
@@ -44,7 +43,7 @@ diff ~/shell-pro.txt ~/shell-Heartbeat.txt
 
 ## Divers
 
-- [ ] pousser la branche et merger dans `master` une fois les deux machines OK
+- [x] ~~pousser la branche et merger dans `master`~~ — fait, la machine Pop est validée
 - [ ] uniformiser l'emplacement du repo entre les deux machines (`~/.dots` vs `~/.dotfiles`)
 - [ ] `common/.config/nvim/colors/nurburgreen.lua` a encore la palette en dur —
       seul endroit qui ne dérive pas de `colors.toml`
