@@ -13,7 +13,10 @@ window-padding-x = 14
 window-padding-y = 14
 confirm-close-surface=false
 resize-overlay = never
-background-opacity = 0.90
+# Calibré pour Hyprland, qui floute derrière les fenêtres (looknfeel.conf).
+# Sans blur, cette valeur donne de la transparence brute : le profil popos
+# remonte l'opacité dans son local.conf, inclus en fin de fichier.
+background-opacity = 0.85
 
 # Cursor stlying
 cursor-style = "block"
