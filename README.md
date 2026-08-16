@@ -48,12 +48,14 @@ common/            # les 2 machines, identique au byte près
 │   ├── claude/  zed/
 └── .local/bin/                 # tmux-claude-status, dev-tmux, dots-shell-dump
 
-theme/nurburgreen/  # colors.toml = SOURCE UNIQUE des couleurs
-└── ../render.sh    # colors.toml → ~/.config/theme/current/{ghostty,tmux,colors.sh}
+theme/
+├── nurburgreen/    # colors.toml = SOURCE UNIQUE des couleurs (+ ui.toml)
+├── cosmic/         # palette sémantique stock de COSMIC, reprise telle quelle
+└── render.sh       # → ~/.config/theme/current/{ghostty,tmux,colors.sh,*.ron}
 
 profiles/
 ├── omarchy/        # hypr/, waybar/, todo-popup, waybar-claude-todo
-└── popos/          # vide : COSMIC n'est pas géré (voir son README)
+└── popos/          # thème COSMIC seulement (voir son README)
 ```
 
 ---
@@ -81,6 +83,10 @@ Changer une couleur = éditer `colors.toml`, relancer `./install.sh --no-package
 Sur la machine Omarchy, `install.sh` lie aussi le thème dans le sélecteur Omarchy
 pour que Waybar et Hyprland le voient. Le terminal, lui, ne dépend pas d'Omarchy :
 c'est ce qui rend l'iso vraie.
+
+Sur Pop!_OS, le desktop COSMIC a droit au même traitement : `render.sh` produit
+un `cosmic-nurburgreen-dark.ron` importable via **Réglages > Apparence >
+Importer un thème**. Détail du mapping dans `profiles/popos/README.md`.
 
 ---
 

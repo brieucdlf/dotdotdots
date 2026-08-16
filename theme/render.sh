@@ -41,6 +41,18 @@ rgb() { # #rrggbb -> "r;g;b" (pour EZA_COLORS / séquences ANSI)
   printf '%d;%d;%d' "0x${h:0:2}" "0x${h:2:2}" "0x${h:4:2}"
 }
 
+ron_rgb() { # #rrggbb [alpha] -> champs RON en flottants normalisés (COSMIC)
+  local h="${1#\#}" indent="${3:-        }"
+  awk -v r="$((16#${h:0:2}))" -v g="$((16#${h:2:2}))" -v b="$((16#${h:4:2}))" \
+      -v a="${2:-}" -v i="$indent" '
+    # RON attend des flottants : zero doit rester 0.0, jamais 0
+    function f(x,   s) { s = sprintf("%.8g", x); return (s ~ /\./) ? s : s ".0" }
+    BEGIN{
+      printf "%sred: %s,\n%sgreen: %s,\n%sblue: %s,", i, f(r/255), i, f(g/255), i, f(b/255)
+      if (a != "") printf "\n%salpha: %s,", i, f(a)
+    }'
+}
+
 mkdir -p "$OUT"
 
 # --- ghostty ----------------------------------------------------------------
@@ -105,6 +117,75 @@ set -g message-style         "fg=$(get foreground),bg=$(get statusbar_bg)"
 set -g message-command-style "fg=$(get foreground),bg=$(get statusbar_bg)"
 set -g mode-style            "fg=$(get color0),bg=$(get color13)"
 EOF
+
+# --- COSMIC (Pop!_OS) ------------------------------------------------------
+# Fichier importable via Réglages > Apparence > Importer un thème.
+#
+# Le bloc `palette` est la palette sémantique stock de COSMIC : elle est
+# strictement identique dans tous les thèmes livrés par le système (vérifié :
+# mocha-dark et nebula-dark ne diffèrent que par la queue du fichier). On la
+# reprend telle quelle et on ne personnalise que ce que COSMIC prévoit —
+# les tints, le fond, l'accent et les hints.
+COSMIC_PALETTE="$(dirname "${BASH_SOURCE[0]}")/cosmic/palette-dark.ron"
+if [[ -f $COSMIC_PALETTE ]]; then
+  {
+    echo "// $THEME pour COSMIC — généré par theme/render.sh depuis colors.toml"
+    echo "("
+    cat "$COSMIC_PALETTE"
+    cat <<EOF
+    spacing: (
+        space_none: 0,
+        space_xxxs: 4,
+        space_xxs: 8,
+        space_xs: 12,
+        space_s: 16,
+        space_m: 24,
+        space_l: 32,
+        space_xl: 48,
+        space_xxl: 64,
+        space_xxxl: 128,
+    ),
+    corner_radii: (
+        radius_0: (0.0, 0.0, 0.0, 0.0),
+        radius_xs: (4.0, 4.0, 4.0, 4.0),
+        radius_s: (8.0, 8.0, 8.0, 8.0),
+        radius_m: (16.0, 16.0, 16.0, 16.0),
+        radius_l: (32.0, 32.0, 32.0, 32.0),
+        radius_xl: (160.0, 160.0, 160.0, 160.0),
+    ),
+    neutral_tint: Some((
+$(ron_rgb "$(get cosmic_neutral_tint)")
+    )),
+    bg_color: Some((
+$(ron_rgb "$(get background)" 1.0)
+    )),
+    primary_container_bg: None,
+    secondary_container_bg: None,
+    text_tint: Some((
+$(ron_rgb "$(get foreground)")
+    )),
+    accent: Some((
+$(ron_rgb "$(get accent)")
+    )),
+    success: Some((
+$(ron_rgb "$(get color10)")
+    )),
+    warning: Some((
+$(ron_rgb "$(get color11)")
+    )),
+    destructive: Some((
+$(ron_rgb "$(get color9)")
+    )),
+    is_frosted: true,
+    gaps: (0, 8),
+    active_hint: 2,
+    window_hint: Some((
+$(ron_rgb "$(get foreground)")
+    )),
+)
+EOF
+  } >"$OUT/cosmic-$THEME-dark.ron"
+fi
 
 # --- fichiers statiques (pas de génération, juste exposés au même endroit) ---
 for f in btop.theme neovim.lua icons.theme; do

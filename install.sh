@@ -187,7 +187,19 @@ post_omarchy() {
 }
 
 post_popos() {
-  say "COSMIC n'est pas géré par ces dotfiles (par choix) — rien à faire"
+  # COSMIC lui-même (raccourcis, panel, dock) n'est pas géré ici — par choix.
+  # Seul le thème est fourni, pour que le desktop soit dans la même palette que
+  # le terminal.
+  local src="$HOME/.config/theme/current/cosmic-nurburgreen-dark.ron"
+  [[ -f $src ]] || return 0
+  mkdir -p "$HOME/.local/share/cosmic-themes"
+  cp -f "$src" "$HOME/.local/share/cosmic-themes/"
+  say "thème COSMIC disponible : $src"
+  say "  à importer via Réglages > Apparence > Importer un thème"
+  # Volontairement pas d'écriture directe dans com.system76.CosmicTheme.*.Builder :
+  # le thème dérivé est reconstruit par cosmic-settings, écrire les clés à la
+  # main ne l'appliquerait pas de façon fiable et casserait la session en cas
+  # d'erreur.
 }
 
 "post_$PROFILE"
