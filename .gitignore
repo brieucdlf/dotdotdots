@@ -11,6 +11,10 @@ common/.config/zed/.env
 common/.config/tmux/plugins
 tmux-client*.log
 
+# thèmes installés depuis Zed lui-même : ~/.config/zed est un lien vers ce
+# dossier, donc tout ce que Zed écrit atterrit ici. Seule la config est suivie.
+common/.config/zed/themes/
+
 # nvim — garder uniquement les fichiers de config, pas les dépendances
 common/.config/nvim/LICENSE
 common/.config/nvim/README.md
