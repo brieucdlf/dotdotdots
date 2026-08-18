@@ -26,16 +26,23 @@ if command -v mise &>/dev/null && [[ -z ${MISE_SHELL:-} ]]; then
   eval "$(mise activate bash)"
 fi
 
-if command -v zoxide &>/dev/null && ! declare -F __zoxide_z &>/dev/null; then
-  eval "$(zoxide init bash)"
-fi
-
 if command -v starship &>/dev/null && [[ ${PROMPT_COMMAND:-} != *starship* ]]; then
   eval "$(starship init bash)"
 fi
 
 if command -v fzf &>/dev/null && ! declare -F __fzf_history__ &>/dev/null; then
   eval "$(fzf --bash)" 2>/dev/null || true
+fi
+
+# zoxide EN DERNIER, après starship — c'est ce que demande son doctor.
+# starship ne concatène pas PROMPT_COMMAND : il l'écrase par `starship_precmd`
+# et rejoue l'ancien contenu via $STARSHIP_PROMPT_COMMAND. Le hook tournait
+# donc bel et bien (la base était à jour), mais `zoxide doctor` ne regarde que
+# PROMPT_COMMAND et hurlait « possible configuration issue » à chaque `z`.
+# Initialisé après, le hook s'ajoute derrière starship_precmd : plus de
+# STARSHIP_PROMPT_COMMAND, plus d'avertissement, et un seul appel par prompt.
+if command -v zoxide &>/dev/null && ! declare -F __zoxide_z &>/dev/null; then
+  eval "$(zoxide init bash)"
 fi
 
 # complétion bash (chemin différent selon la distro)
