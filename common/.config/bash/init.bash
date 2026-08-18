@@ -18,13 +18,22 @@ HISTFILESIZE=32768
 # ── environnement de base ────────────────────────────────────────────────────
 export EDITOR="${EDITOR:-nvim}"
 export VISUAL="${VISUAL:-$EDITOR}"
-export SUDO_EDITOR="$EDITOR"
 export MANPAGER="${MANPAGER:-less -R}"
+# SUDO_EDITOR est posé plus bas : il lui faut le PATH de mise.
 
 # ── init des outils (chacun no-op si déjà fait par Omarchy) ──────────────────
 if command -v mise &>/dev/null && [[ -z ${MISE_SHELL:-} ]]; then
   eval "$(mise activate bash)"
 fi
+
+# `sudo` remplace le PATH par le secure_path de /etc/sudoers, qui ne contient
+# évidemment pas ~/.local/share/mise/installs : `sudo nvim` -> command not
+# found. La bonne porte est `sudo -e` (sudoedit), qui édite une copie temporaire
+# avec NOTRE éditeur sous NOTRE utilisateur, puis réécrit le fichier en root.
+# Encore faut-il qu'il retrouve l'éditeur : le nom nu est cherché dans le PATH
+# restreint, donc on résout en absolu. Ici et pas plus haut : il faut que mise
+# ait déjà peuplé le PATH. Le fallback couvre Omarchy, où nvim est en /usr/bin.
+export SUDO_EDITOR="$(command -v "$EDITOR" 2>/dev/null || echo "$EDITOR")"
 
 if command -v starship &>/dev/null && [[ ${PROMPT_COMMAND:-} != *starship* ]]; then
   eval "$(starship init bash)"
