@@ -12,8 +12,13 @@ TODAY=${DAYS[$(date +%u)]}
 fallback() {
     local file="$HOME/todo/TODO.md"
     [ ! -f "$file" ] && echo '{"text": "", "tooltip": "Anytype offline", "class": "empty"}' && return
-    local pending=$(grep -cF '- [ ]' "$file" 2>/dev/null || echo 0)
-    local tooltip=$(grep -F '- [ ]' "$file" | sed 's/^- \[ \] /• /' | head -5)
+    # `--` obligatoire : le motif commence par un tiret, sans ça grep le prend
+    # pour une option et sort en erreur (« invalid option -- ' ' »).
+    # Pas de `|| echo 0` non plus : grep -c AFFICHE déjà 0 puis sort en 1, on
+    # concaténerait deux zéros et le test numérique suivant planterait.
+    local pending tooltip
+    pending=$(grep -cF -- '- [ ]' "$file" 2>/dev/null) || pending=0
+    tooltip=$(grep -F -- '- [ ]' "$file" | sed 's/^- \[ \] /• /' | head -5)
     if [ "$pending" -eq 0 ]; then
         echo '{"text": "󰄳", "tooltip": "Tout est fait ✓", "class": "done"}'
     else
