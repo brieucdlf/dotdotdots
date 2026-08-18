@@ -21,8 +21,19 @@ cd ~/.dotfiles && ./install.sh
 
 Le script détecte le profil, installe les paquets manquants, stow les paquets,
 rend le thème et lance `mise install`. Il est idempotent — relançable à volonté.
-Tout fichier existant qui bloquerait stow est déplacé dans
-`~/.dotfiles-backup/<horodatage>/`, jamais écrasé.
+
+Il déblaie aussi le terrain avant de stower, parce qu'un seul conflit fait
+avorter stow **en entier** et laisse la machine sans ancienne config ni
+nouvelle :
+
+- tout ce qui existe déjà et bloquerait stow — vrai fichier, mais aussi lien
+  posé par un autre outil, sur un fichier comme sur un dossier — part dans
+  `~/.dotfiles-backup/<horodatage>/`, jamais écrasé ;
+- les liens de `~` qui pointent dans le repo vers un chemin disparu (après un
+  renommage, par exemple) sont retirés : ils ne contiennent rien.
+
+Si stow refuse quand même, le script s'arrête en disant où sont les fichiers
+écartés — plutôt que de mourir sur l'erreur brute de stow.
 
 ```bash
 ./install.sh --profile popos   # forcer un profil

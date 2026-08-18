@@ -14,7 +14,9 @@ BACKED_UP=0
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --profile) PROFILE="$2"; shift 2 ;;
+    --profile)
+      [[ $# -ge 2 ]] || { echo "--profile attend un nom de profil" >&2; exit 1; }
+      PROFILE="$2"; shift 2 ;;
     --no-packages) DO_PACKAGES=0; shift ;;
     *) echo "option inconnue: $1" >&2; exit 1 ;;
   esac
@@ -37,7 +39,8 @@ detect_profile() {
 
 [[ -n $PROFILE ]] || PROFILE="$(detect_profile)"
 [[ -n $PROFILE ]] || { echo "profil indétectable, utilise --profile <omarchy|popos>" >&2; exit 1; }
-[[ -d "$ROOT/$PROFILE" ]] || { echo "profil inconnu: $PROFILE" >&2; exit 1; }
+[[ -d "$ROOT/$PROFILE" ]] || {
+  echo "profil inconnu: $PROFILE (disponibles: omarchy popos)" >&2; exit 1; }
 say "profil: $PROFILE"
 
 # ── paquets système ──────────────────────────────────────────────────────────
@@ -118,30 +121,153 @@ fi
 
 have stow || { echo "stow est requis" >&2; exit 1; }
 
+# ── migration depuis l'ancien layout plat ────────────────────────────────────
+# Avant e91b366 le dépôt ÉTAIT le paquet stow : tout vivait dans $ROOT/.config.
+# Le refactor a renommé ces fichiers vers common/ et les profils, mais git ne
+# déplace que ce qu'il suit : les fichiers ignorés (local.bash, zed/.env,
+# tmux/plugins, dépendances nvim) restent échoués dans $ROOT/.config après un
+# `git pull`, pendant que les liens de ~ pointent dans le vide.
+# Bloc jetable : à supprimer une fois les deux machines passées.
+
+# Déplace le contenu de $1 dans $2 sans jamais écraser — ce qui existe déjà côté
+# paquet fait foi, le reste est signalé plutôt que perdu.
+migrate_into() {
+  local src="$1" dst="$2" e target
+  for e in "$src"/* "$src"/.[!.]*; do
+    [[ -e $e || -L $e ]] || continue
+    target="$dst/${e##*/}"
+    if [[ ! -e $target && ! -L $target ]]; then
+      mv "$e" "$target"; say "migré: ${e#"$ROOT"/} -> ${target#"$ROOT"/}"
+    elif [[ -d $e && ! -L $e && -d $target && ! -L $target ]]; then
+      migrate_into "$e" "$target"
+    else
+      warn "conflit de migration, ancien gardé: ${e#"$ROOT"/}"
+    fi
+  done
+  rmdir "$src" 2>/dev/null || true
+}
+
+migrate_flat_layout() {
+  [[ -d "$ROOT/.config" ]] || return 0
+  say "ancien layout détecté — migration de .config/ vers les paquets"
+  local entry name dest pkg
+  for entry in "$ROOT"/.config/* "$ROOT"/.config/.[!.]*; do
+    [[ -e $entry || -L $entry ]] || continue
+    name="${entry##*/}"
+    # On ne migre que ce dont le nouveau layout a déjà un dossier : le reste
+    # (values.yaml, Code/, alacritty/…) ne fait plus partie du repo et
+    # atterrirait dans common/ non ignoré, donc à un doigt d'être committé.
+    dest=""
+    for pkg in common "$PROFILE"; do
+      [[ -d "$ROOT/$pkg/.config/$name" ]] && { dest="$ROOT/$pkg/.config/$name"; break; }
+    done
+    [[ -n $dest ]] || { warn "orphelin de l'ancien layout, laissé tel quel: .config/$name"; continue; }
+    migrate_into "$entry" "$dest"
+  done
+  rmdir "$ROOT/.config" 2>/dev/null \
+    && say "migration terminée" \
+    || warn "il reste des fichiers dans $ROOT/.config — à trier à la main"
+}
+
+migrate_flat_layout
+
+# ── liens morts pointant dans le repo ────────────────────────────────────────
+# Dès qu'un fichier est renommé ou supprimé côté repo, le lien correspondant
+# dans ~ pend dans le vide. stow ne le reprend que s'il est relatif ET sous un
+# chemin qu'il visite encore : un lien absolu, ou un dossier plié dont la cible
+# a disparu (~/.config/bash après le refactor), il le déclare « not owned by
+# stow » et avorte TOUT. Un lien mort ne contient rien : le retirer est sûr, et
+# ça rend le script auto-réparant après n'importe quel renommage.
+prune_dead_repo_links() {
+  local l n=0
+  while IFS= read -r -d '' l; do
+    [[ -e $l ]] && continue                                   # cible vivante
+    [[ "$(readlink -m "$l")" == "$ROOT"/* ]] || continue       # pas à nous
+    rm -f "$l"; n=$((n + 1))
+    warn "lien mort retiré: ${l#"$HOME"/}"
+  done < <(
+    find "$HOME" -maxdepth 1 -type l -print0 2>/dev/null
+    find "$HOME/.config" "$HOME/.local/bin" -maxdepth 4 -type l -print0 2>/dev/null
+  )
+  [[ $n -gt 0 ]] && say "$n lien(s) mort(s) de l'ancienne config retiré(s)"
+  return 0
+}
+
+prune_dead_repo_links
+
 # ── mise à l'abri des fichiers qui bloqueraient stow ─────────────────────────
 # stow refuse d'écraser un vrai fichier (ex: le ~/.bashrc par défaut de Pop!_OS).
 # On déplace ces conflits dans ~/.dotfiles-backup/<horodatage>/ plutôt que de
 # les perdre.
+
+# Si un dossier parent de la cible est lui-même un lien vers l'EXTÉRIEUR du
+# repo, la cible vit en réalité ailleurs : la déplacer irait modifier
+# l'emplacement d'un tiers. On laisse stow signaler le conflit.
+# Le lien vers l'intérieur du repo est exempté : c'est le tree-folding normal.
+parent_is_foreign_link() {
+  local p="${1%/*}"
+  while [[ $p == "$HOME"/* ]]; do
+    if [[ -L $p ]]; then
+      [[ "$(readlink -m "$p" 2>/dev/null || true)" == "$ROOT"/* ]] || return 0
+    fi
+    p="${p%/*}"
+  done
+  return 1
+}
+
 backup_conflicts() {
   local pkgdir="$1" rel target resolved
+
+  # 1) Les DOSSIERS d'abord. Un vrai dossier ne gêne pas — stow descend dedans.
+  # Mais un lien étranger posé là où le paquet a un dossier (~/.config/nvim
+  # pointant vers un autre dépôt, par exemple) fait avorter stow exactement
+  # comme un fichier en conflit. On l'écarte en premier : les fichiers qu'il
+  # contient disparaissent alors du passage suivant.
+  while IFS= read -r -d '' src; do
+    rel="${src#"$pkgdir"/}"
+    target="$HOME/$rel"
+    [[ -L $target ]] || continue
+    [[ "$(readlink -m "$target" 2>/dev/null || true)" == "$ROOT"/* ]] && continue
+    parent_is_foreign_link "$target" && continue
+    mkdir -p "$BACKUP/$(dirname "$rel")"
+    mv "$target" "$BACKUP/$rel"
+    BACKED_UP=1
+    warn "sauvegardé (lien de dossier): ~/$rel -> $BACKUP/$rel"
+  done < <(find "$pkgdir" -mindepth 1 -type d -print0)
+
+  # 2) puis les fichiers.
   while IFS= read -r -d '' src; do
     rel="${src#"$pkgdir"/}"
     target="$HOME/$rel"
     [[ -e $target || -L $target ]] || continue
 
-    resolved="$(readlink -f "$target" 2>/dev/null || true)"
+    # -m et non -f : -f rend une chaîne VIDE dès qu'un composant intermédiaire
+    # manque, ce qui est précisément le cas des liens de l'ancien layout. Avec
+    # -f, un lien mort vers le repo tombait dans le filet « vit dans le repo »
+    # ci-dessous et n'était jamais nettoyé.
+    resolved="$(readlink -m "$target" 2>/dev/null || true)"
 
     # Déjà posé par un passage précédent. Attention : après tree-folding, le
     # parent est un lien mais $target n'en est pas un — il faut comparer les
     # chemins RÉSOLUS, sinon on déplace le fichier du repo lui-même.
-    [[ $resolved == "$(readlink -f "$src")" ]] && continue
+    [[ $resolved == "$(readlink -m "$src")" ]] && continue
+
+    # Lien mort — testé AVANT le filet ci-dessous, sinon les liens morts qui
+    # pointent dans le repo y échappent.
+    if [[ -L $target && ! -e $target ]]; then rm -f "$target"; continue; fi
 
     # Filet de sécurité : ne jamais déplacer quoi que ce soit qui vit dans le repo.
     [[ $resolved == "$ROOT"/* ]] && continue
 
-    if [[ -L $target && ! -e $target ]]; then rm -f "$target"; continue; fi  # lien mort
-    [[ -L $target ]] && continue        # symlink étranger: laisser stow signaler
+    parent_is_foreign_link "$target" && continue
 
+    # Un lien étranger bloque stow aussi sûrement qu'un vrai fichier, et le
+    # laisser passer coûte cher : stow avorte TOUT (« All operations aborted »)
+    # alors qu'on a déjà écarté les vrais fichiers — la machine se retrouve
+    # sans l'ancienne config ni la nouvelle. C'est ce qu'a produit le lien
+    # ~/.config/nvim/lua/plugins/theme.lua posé par Omarchy vers son thème
+    # courant. On le sauvegarde comme le reste : `mv` déplace le lien lui-même,
+    # pas sa cible, donc rien n'est perdu et le rejouer est trivial.
     mkdir -p "$BACKUP/$(dirname "$rel")"
     mv "$target" "$BACKUP/$rel"
     BACKED_UP=1
@@ -159,7 +285,15 @@ backup_conflicts "$ROOT/$PROFILE"
 # C'est ce qui bloque dès qu'un profil ajoute un fichier dans un dossier que
 # common a déjà plié en un seul lien.
 say "stow common + $PROFILE"
-stow --dir="$ROOT" --target="$HOME" --restow common "$PROFILE"
+if ! stow --dir="$ROOT" --target="$HOME" --restow common "$PROFILE"; then
+  # stow avorte tout ou rien : aucun lien n'a été posé ni retiré. Mais
+  # backup_conflicts, lui, a déjà écarté ce qui gênait — sans ce message on
+  # laisse une machine sans ancienne config ni nouvelle, et sans explication.
+  warn "stow a refusé de continuer (conflit ci-dessus) — aucun lien posé."
+  [[ $BACKED_UP -eq 1 ]] && warn "les fichiers déjà écartés sont dans $BACKUP"
+  warn "règle le conflit puis relance ./install.sh"
+  exit 1
+fi
 
 # ── thème ────────────────────────────────────────────────────────────────────
 say "rendu du thème"
