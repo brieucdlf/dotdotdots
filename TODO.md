@@ -2,27 +2,31 @@
 
 ## Machine pro (Omarchy) — migration vers la nouvelle arbo
 
-⚠️ **L'ordre compte.** Le repo passe d'une arbo plate (`stow .`) à des paquets
-stow (`common` + `omarchy`). Si tu pulls avant de dé-stower, les
-anciens liens deviennent orphelins et stow refusera de poser les nouveaux.
+- [x] **Fait.** Le pull a été fait sans `stow -D` préalable : les liens de
+      l'ancienne arbo plate se sont retrouvés orphelins, `install.sh` a écarté
+      les vrais fichiers puis stow a tout avorté sur un conflit — la machine
+      s'est retrouvée sans ancienne config ni nouvelle.
 
-```bash
-cd ~/.dots                 # ou ~/.dotfiles — vérifier où il est là-bas
-stow -D .                  # 1. dé-stow l'ANCIENNE arbo, AVANT le pull
-git pull                   # tout est déjà dans master
-./install.sh               # 2. détecte omarchy, re-stow, rend le thème, mise install
-```
+`install.sh` ne peut plus produire cet état : il migre les restes de l'ancienne
+arbo, retire les liens morts qui pointent dans le repo, écarte aussi les liens
+étrangers (pas seulement les vrais fichiers), et s'arrête avec un message
+explicite si stow refuse malgré tout. **L'ordre n'a donc plus d'importance :
+`git pull && ./install.sh` suffit, y compris sur une machine encore en arbo
+plate.**
 
 Ce qu'`install.sh` fait de spécifique à Omarchy : lie `theme/nurburgreen` dans
 `~/.config/omarchy/themes/` pour que le sélecteur, Waybar et Hyprland le voient,
 puis `omarchy restart waybar`.
 
-À vérifier après coup :
-- [ ] la statusbar tmux affiche bien le statut Claude (le chemin était cassé avant : `~/.dots/bin/...`)
-- [ ] les modules waybar todo (`~/.local/bin/waybar-claude-todo`, `todo-popup`) répondent
-- [ ] tpm charge depuis `~/.config/tmux/plugins` et non `~/.tmux`
-- [ ] ghostty prend ses couleurs de `~/.config/theme/current/`, plus d'Omarchy
-- [ ] les shims mise passent devant les binaires pacman (c'est voulu, mais à constater)
+Vérifié après coup :
+- [x] la statusbar tmux affiche bien le statut Claude — `status-right` (généré
+      par `render.sh`) appelle `tmux-claude-status`, qui répond
+- [x] les modules waybar todo répondent — `waybar-claude-todo` était cassé en
+      repli (motif `grep` commençant par un tiret), corrigé
+- [x] tpm charge depuis `~/.config/tmux/plugins` et non `~/.tmux`
+- [x] ghostty prend ses couleurs de `~/.config/theme/current/`, plus d'Omarchy
+- [x] les shims mise passent devant les binaires pacman
+- [ ] `~/.tmux/plugins` traîne encore, vide, depuis l'ancienne install — à supprimer
 
 ## Converger le socle shell
 
