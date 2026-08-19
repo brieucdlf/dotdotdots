@@ -535,7 +535,7 @@ def price(model):
 def load_cache():
     try:
         d = json.loads(USAGE_CACHE.read_text())
-        if d.get("version") == 2:
+        if d.get("version") == 3:
             # Les clés de dédup sont sérialisées en liste mais interrogées des
             # milliers de fois par passage : en set, la recherche est en O(1).
             d["seen"] = {k: set(v) for k, v in d["seen"].items()}
@@ -544,7 +544,7 @@ def load_cache():
         pass
     # Schéma inconnu ou périmé : on repart de zéro plutôt que de mélanger deux
     # formes. Le cache se reconstruit en une passe sur les 8 derniers jours.
-    return {"version": 2, "cursors": {}, "hours": {}, "seen": {}, "names": {}}
+    return {"version": 3, "cursors": {}, "hours": {}, "seen": {}, "names": {}}
 
 
 def scan_usage():
@@ -634,12 +634,13 @@ def scan_usage():
                 w5 = usage.get("cache_creation_input_tokens", 0)
             slot = (hours.setdefault(when.strftime("%Y-%m-%dT%H"), {})
                          .setdefault(project, {})
-                         .setdefault(msg.get("model") or "?", [0, 0, 0, 0, 0]))
+                         .setdefault(msg.get("model") or "?", [0, 0, 0, 0, 0, 0]))
             slot[0] += usage.get("input_tokens", 0)
             slot[1] += usage.get("output_tokens", 0)
             slot[2] += w5
             slot[3] += w1h
             slot[4] += usage.get("cache_read_input_tokens", 0)
+            slot[5] += 1                    # une réponse = un tour facturé
 
     keep = cutoff.strftime("%Y-%m-%d")
     for h in [h for h in hours if h[:10] < keep]:
@@ -672,7 +673,7 @@ def totals(hours, since_hour):
     lecture de cache, qui ne pèse que 64 % de la note. Classer par volume
     désignerait le mauvais coupable.
     """
-    cost, out_tokens = 0.0, 0
+    cost, out_tokens, turns = 0.0, 0, 0
     by_project, by_model = {}, {}
     by_kind = dict.fromkeys(KINDS, 0.0)
 
@@ -680,8 +681,9 @@ def totals(hours, since_hour):
         if hkey < since_hour:
             continue
         for project, models in projects.items():
-            for model, (i, o, w5, w1h, cr) in models.items():
+            for model, (i, o, w5, w1h, cr, n) in models.items():
                 out_tokens += o
+                turns += n
                 p = price(model)
                 if not p:            # modèle inconnu : compté, mais pas chiffré
                     continue
@@ -699,7 +701,7 @@ def totals(hours, since_hour):
                     by_kind[k] += v / 1_000_000
                 by_project[project] = by_project.get(project, 0.0) + total
                 by_model[model] = by_model.get(model, 0.0) + total
-    return cost, out_tokens, by_project, by_model, by_kind
+    return cost, out_tokens, turns, by_project, by_model, by_kind
 
 
 def ranked(share, names=None, top=3):
@@ -714,22 +716,32 @@ def ranked(share, names=None, top=3):
 def render_usage(scan, width):
     hours, names = scan
     now = datetime.now()
-    today_cost, today_out, *_ = totals(hours, now.strftime("%Y-%m-%dT00"))
+    today_cost, today_out, today_turns, *_ = totals(hours, now.strftime("%Y-%m-%dT00"))
     week = (now - timedelta(days=7)).strftime("%Y-%m-%dT%H")
-    week_cost, week_out, by_project, by_model, by_kind = totals(hours, week)
+    week_cost, week_out, _, by_project, by_model, by_kind = totals(hours, week)
 
     lines = section("CONSO", width)
+    # « ici » n'est pas décoratif : les transcripts d'une autre machine et les
+    # sessions web ne laissent aucune trace locale. Aujourd'hui est complet,
+    # la semaine ne l'est pas, et comparer les deux sans le savoir induit en
+    # erreur.
     for label, c, o in (("aujourd'hui", today_cost, today_out),
-                        ("7 jours", week_cost, week_out)):
+                        ("7 j · ici", week_cost, week_out)):
         lines.append(f"   {C_TEXT}{pad(label, 12)}{RESET}"
                      f"{C_INFO}{'~%.2f $' % c:>10}{RESET}"
                      f"{C_DIM}{human_tokens(o):>6} sortie{RESET}")
+
+    lines.append("")
+    # Ce n'est PAS la facture : sur abonnement, 286 $ d'équivalent API tiennent
+    # dans 21 % du quota hebdomadaire. Le chiffre sert à comparer un projet ou
+    # un modèle à un autre, pas à savoir ce qu'on paie.
+    per_turn = f" · {today_cost / today_turns:.2f} $/tour" if today_turns else ""
+    lines.append(f"   {C_MUTED}≈ équivalent API{per_turn}{RESET}")
 
     # D'où vient la note, en une ligne : le détail par poste tient en trois
     # parts, le reste est du bruit.
     kinds = ranked(by_kind, top=3)
     if kinds:
-        lines.append("")
         lines.append(f"   {C_MUTED}"
                      + " · ".join(f"{int(v)}% {k}" for k, v in kinds)
                      + f"{RESET}")
@@ -845,6 +857,79 @@ def dismiss_window():
         tmux("set-option", "-w", "-t", win, "@claude_panel_off", "1")
 
 
+# ── conseils ────────────────────────────────────────────────────────────────
+# Seuils au-delà desquels il y a quelque chose à FAIRE. En dessous, la section
+# disparaît : un bandeau « tout va bien » permanent n'apprend rien et occupe la
+# place de ce qui compte.
+CTX_ADVICE = 70             # contexte : au-delà, /compact peut devenir rentable
+TURN_COST_ADVICE = 0.05     # ...mais seulement si le tour coûte vraiment
+QUOTA_5H_ADVICE = 75
+QUOTA_7D_ADVICE = 85
+MAX_TIPS = 3
+
+
+def turn_cost(meta):
+    """Coût de lecture de cache d'UN tour de cette session.
+
+    À chaque échange, la session relit tout son contexte. C'est le poste
+    dominant — 63 % de la note — et il croît linéairement avec le contexte :
+    c'est ce qui rend /compact rentable, bien plus qu'un changement de modèle.
+    """
+    ctx, window, mid = meta.get("ctx"), meta.get("window"), meta.get("mid")
+    p = price(mid) if mid else None
+    if ctx is None or not window or not p:
+        return None
+    return ctx / 100 * window * p[0] * CACHE_READ / 1_000_000
+
+
+def render_advice(agents, width):
+    tips = []
+
+    for a in sorted(agents, key=lambda x: -(session_meta(x.get("sessionId"))[0]
+                                            .get("ctx") or 0)):
+        meta, stale = session_meta(a.get("sessionId"))
+        ctx = meta.get("ctx")
+        if stale or ctx is None or ctx < CTX_ADVICE:
+            continue
+        cost = turn_cost(meta)
+        # Un pourcentage élevé ne suffit pas : 72 % d'une fenêtre de 200k sur
+        # Haiku, c'est un centime par tour — le conseiller est du bruit. On
+        # exige un coût réel, ou un contexte si haut que la compaction
+        # s'impose de toute façon.
+        if cost is not None and cost < TURN_COST_ADVICE and ctx < 90:
+            continue
+        name = a.get("name") or (a.get("sessionId") or "?")[:8]
+        tips.append((f"{trunc(name, 20)} à {int(ctx)}% de contexte",
+                     "/compact" + (f" — ~{cost:.2f} $ par tour sinon" if cost else "")))
+
+    rl, qstale = read_quota()
+    if rl and not qstale:
+        for key, label, seuil, action in (
+                ("five_hour", "5 h", QUOTA_5H_ADVICE,
+                 "passer sur un modèle plus léger"),
+                ("seven_day", "7 j", QUOTA_7D_ADVICE,
+                 "lever le pied jusqu'au reset")):
+            w = rl.get(key) or {}
+            pct = w.get("used_percentage")
+            if pct is None or pct < seuil:
+                continue
+            left = (w.get("resets_at") or 0) - time.time()
+            when = ""
+            if left > 0:
+                h, mn = int(left // 3600), int((left % 3600) // 60)
+                when = f" — réinit. dans {h}h{mn:02d}" if h else f" — réinit. dans {mn}m"
+            tips.append((f"quota {label} à {int(pct)}%{when}", action))
+
+    if not tips:
+        return []
+
+    lines = section("CONSEILS", width)
+    for observation, action in tips[:MAX_TIPS]:
+        lines.append(f"   {C_WARN}⚠ {trunc(observation, width - 6)}{RESET}")
+        lines.append(f"     {C_MUTED}{trunc(action, width - 6)}{RESET}")
+    return lines
+
+
 # ── rendus ──────────────────────────────────────────────────────────────────
 def current_id(agents):
     win = own_window()
@@ -865,11 +950,12 @@ def frame_full(width, force_cli, selected):
     rows = {k + len(out): v for k, v in rows.items()}
     cells = [(row + len(out), col) for row, col in cells]
     out.extend(agent_lines)
-    for section in ("", render_quota(width), "", render_usage(scan_usage(), width)):
-        if section == "":
+    for block in ("", render_quota(width), "", render_usage(scan_usage(), width),
+                  "", render_advice(agents, width)):
+        if block == "":
             out.append("")
         else:
-            out.extend(section)
+            out.extend(block)
     return out, rows, agents, note, cells
 
 

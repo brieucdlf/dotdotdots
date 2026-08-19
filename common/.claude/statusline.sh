@@ -43,6 +43,8 @@ if [[ $sid =~ ^[0-9a-fA-F-]{36}$ ]]; then
     effort: (.effort.level // null),
     cost:   (.cost.total_cost_usd // 0),
     ctx:    (.context_window.used_percentage // null),
+    window: (.context_window.context_window_size // null),
+    mid:    (.model.id // null),
     pr:     (.pr.number // null),
     at:     now
   }'

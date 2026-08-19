@@ -254,8 +254,9 @@ session parente tient le panneau ouvert.
  CONSO ────────────────────────────────────
 
    aujourd'hui   ~15.40 $   84k sortie
-   7 jours      ~112.90 $  1.1M sortie
+   7 j · ici    ~112.90 $  1.1M sortie
 
+   ≈ équivalent API · 0.22 $/tour
    63% lecture · 22% cache 1h · 13% sortie
 
    api-platform    45%  █████░░░░░░░
@@ -395,9 +396,35 @@ Le nom lisible d'un projet vient du `cwd` des entrées : le dossier de transcrip
 est un chemin encodé dont on ne peut pas redéduire le nom, les tirets du chemin
 et ceux des dossiers s'y confondent.
 
-Le coût reste une **estimation** locale, pas une facture : la table de tarifs
-est codée en dur, un modèle inconnu compte ses tokens sans être chiffré. Sur
-abonnement, c'est le bloc QUOTA qui contraint réellement.
+Deux mentions ne sont pas décoratives. **`· ici`** : les transcripts d'une autre
+machine et les sessions web ne laissent aucune trace locale, donc la journée est
+complète mais la semaine ne l'est pas — les comparer sans le savoir induit en
+erreur. **`≈ équivalent API`** : sur abonnement ces dollars ne sont pas la
+facture. 294 $ d'équivalent tiennent dans 21 % du quota hebdomadaire ; le
+chiffre sert à comparer un projet ou un modèle à un autre, le bloc QUOTA seul
+dit ce qui contraint. La table de tarifs est codée en dur, un modèle inconnu
+compte ses tokens sans être chiffré.
+
+Le **coût par tour** est le chiffre le plus actionnable : à chaque échange, une
+session relit tout son contexte. Une session à 86 % d'une fenêtre de 1M coûte
+0,43 $ le tour avant d'avoir généré un mot, contre 0,01 $ pour Haiku à 72 % de
+200k — trente fois moins.
+
+### Conseils
+
+Une section apparaît quand il y a quelque chose à faire, et disparaît sinon —
+un bandeau « tout va bien » permanent occupe la place de ce qui compte.
+
+| Déclencheur | Conseil |
+|---|---|
+| contexte ≥ 70 % **et** tour ≥ 0,05 $ (ou contexte ≥ 90 %) | `/compact`, avec le coût par tour évité |
+| quota 5 h ≥ 75 % | passer sur un modèle plus léger, avec l'heure de reset |
+| quota 7 j ≥ 85 % | lever le pied jusqu'au reset |
+
+Le double seuil sur le contexte n'est pas un raffinement gratuit : 72 % d'une
+fenêtre de 200k sur Haiku, c'est un centime par tour. Conseiller de compacter
+pour économiser un centime, c'est du bruit — et le bruit finit par faire ignorer
+la section entière.
 
 Le quota et le coût ne s'inventent pas : `rate_limits`, `cost.total_cost_usd` et
 `context_window.used_percentage` ne sont exposés qu'au stdin de la statusline.
