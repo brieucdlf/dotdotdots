@@ -899,7 +899,7 @@ def render_advice(agents, width):
         if cost is not None and cost < TURN_COST_ADVICE and ctx < 90:
             continue
         name = a.get("name") or (a.get("sessionId") or "?")[:8]
-        tips.append((f"{trunc(name, 20)} à {int(ctx)}% de contexte",
+        tips.append((f"{trunc(name, 26)} · {int(ctx)}% ctx",
                      "/compact" + (f" — ~{cost:.2f} $ par tour sinon" if cost else "")))
 
     rl, qstale = read_quota()
@@ -917,8 +917,8 @@ def render_advice(agents, width):
             when = ""
             if left > 0:
                 h, mn = int(left // 3600), int((left % 3600) // 60)
-                when = f" — réinit. dans {h}h{mn:02d}" if h else f" — réinit. dans {mn}m"
-            tips.append((f"quota {label} à {int(pct)}%{when}", action))
+                when = f" · reset {h}h{mn:02d}" if h else f" · reset {mn}m"
+            tips.append((f"quota {label} · {int(pct)}%{when}", action))
 
     if not tips:
         return []
@@ -950,12 +950,17 @@ def frame_full(width, force_cli, selected):
     rows = {k + len(out): v for k, v in rows.items()}
     cells = [(row + len(out), col) for row, col in cells]
     out.extend(agent_lines)
-    for block in ("", render_quota(width), "", render_usage(scan_usage(), width),
-                  "", render_advice(agents, width)):
+    # CONSEILS juste après AGENTS, et pas en fin de panneau : le rendu est
+    # tronqué à la hauteur du pane, et la section la plus actionnable serait la
+    # première sacrifiée. Elle parle des agents, sa place est à côté d'eux.
+    for block in ("", render_advice(agents, width), "", render_quota(width),
+                  "", render_usage(scan_usage(), width)):
         if block == "":
             out.append("")
-        else:
+        elif block:
             out.extend(block)
+        else:
+            out.pop()            # section absente : sa ligne de séparation aussi
     return out, rows, agents, note, cells
 
 
