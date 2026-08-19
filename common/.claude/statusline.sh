@@ -9,9 +9,10 @@
 #       - rate-limits.json  : les quotas, propres au compte. C'est le SEUL
 #         endroit où `rate_limits` est exposé — ni la CLI ni les transcripts
 #         ne les portent, le panneau ne pourrait qu'estimer.
-#       - sessions/<id>.json : modèle, effort, coût et contexte de CETTE
-#         session. Le coût et le pourcentage de contexte ne sont calculés que
-#         côté client, ils n'existent dans aucun fichier de session.
+#       - sessions/<id>.json : modèle, effort, coût, contexte et PR de CETTE
+#         session. Le coût, le pourcentage de contexte et le numéro de PR ne
+#         sont connus que du client, ils n'existent dans aucun fichier de
+#         session.
 #
 # Les couleurs sont les index ANSI 0-15, donc la palette du thème telle que
 # ghostty la pose : rien de codé en dur ici non plus.
@@ -42,6 +43,7 @@ if [[ $sid =~ ^[0-9a-fA-F-]{36}$ ]]; then
     effort: (.effort.level // null),
     cost:   (.cost.total_cost_usd // 0),
     ctx:    (.context_window.used_percentage // null),
+    pr:     (.pr.number // null),
     at:     now
   }'
 fi
@@ -54,7 +56,10 @@ c() {
   fi
 }
 
-read -r model effort ctx cost five seven < <(
+# IFS sur la TABULATION, et surtout pas de `tr '\t' ' '` : le nom de modèle
+# contient des espaces (« Opus 5 (1M context) »), les convertir décalait tous
+# les champs d'un cran.
+IFS=$'\t' read -r model effort ctx cost five seven < <(
   jq -r '[
     (.model.display_name // "?"),
     (.effort.level // "-"),
@@ -62,7 +67,7 @@ read -r model effort ctx cost five seven < <(
     (.cost.total_cost_usd // 0),
     (.rate_limits.five_hour.used_percentage // -1 | floor),
     (.rate_limits.seven_day.used_percentage // -1 | floor)
-  ] | @tsv' <<<"$in" | tr '\t' ' '
+  ] | @tsv' <<<"$in"
 )
 
 # Vert sous 50 %, jaune sous 80 %, rouge au-delà — même barème pour le contexte
