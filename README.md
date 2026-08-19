@@ -58,8 +58,9 @@ common/            # les 2 machines, identique au byte près
 │   ├── bash/{exports,aliases,work}.bash
 │   ├── ghostty/  tmux/  nvim/  starship.toml
 │   ├── mise/config.toml        # ← versions des outils, la clé de l'iso
-│   ├── claude/  zed/
-└── .local/bin/                 # tmux-claude-status, dev-tmux, dots-shell-dump
+│   └── zed/
+├── .claude/                    # config Claude Code (settings, skills, statusline)
+└── .local/bin/                 # claude-panel, tmux-claude-status, dev-tmux…
 
 theme/
 ├── nurburgreen/    # colors.toml = SOURCE UNIQUE des couleurs (+ ui.toml)
@@ -144,9 +145,87 @@ Rien de tout ça n'est committé :
 | `~/.config/ghostty/local.conf` | `font-size` selon le DPI ; posé par le profil popos pour l'opacité |
 | `~/.config/git/work.gitconfig` | identité pro, appliquée d'office sous `~/Work/` |
 | `omarchy/.config/hypr/monitors.conf` | résolutions et scaling (committé, mais par profil) |
+| `common/.claude/settings.private.json` | bloc `autoMode` de Claude Code, extrait par le filtre git |
 
 `work.bash` se charge seulement si `~/Work/bloomflow` existe — une machine
 fraîche ne casse pas.
+
+---
+
+## Claude Code
+
+`~/.claude/` est stowé depuis `common/.claude/` : `settings.json`, les skills
+perso et la statusline suivent d'une machine à l'autre.
+
+⚠️ Le chemin qui compte est `~/.claude/`, **pas** `~/.config/claude/` — Claude
+Code ne lit jamais ce dernier. Il n'existe pas non plus de
+`~/.claude/settings.local.json` : le suffixe `.local` n'a de sens qu'au niveau
+d'un projet.
+
+`~/.claude/settings.json` est un **lien** vers le dépôt, et c'est volontaire :
+Claude Code écrit lui-même dans ce fichier (`/config`, thème, effort, plugins
+activés), donc ses réglages atterrissent directement dans le dépôt, prêts à
+committer. S'il venait à remplacer le lien par un vrai fichier — écriture
+atomique, comme `cosmic-settings` —, `install.sh` récupère le contenu et
+re-soude le lien.
+
+Ne sont **pas** suivis : les serveurs MCP (ils vivent dans `~/.claude.json`,
+mélangés à l'OAuth et aux caches, chaînes de connexion en clair), l'historique
+(`projects/`, 169 Mo), les plugins (ils se réinstallent seuls depuis
+`enabledPlugins`). Sur une machine neuve, les MCP sont à rejouer à la main :
+
+```bash
+claude mcp add anytype ...
+claude mcp add mongodb ...
+```
+
+### Le bloc autoMode et le filtre git
+
+Ce dépôt est **public**, et `settings.json` porte un bloc `autoMode.environment`
+qui décrit l'environnement de travail (dépôt privé, bases Notion, politique de
+traitement des données personnelles). Un filtre git le retire :
+
+| | |
+|---|---|
+| `.gitattributes` | associe le fichier au filtre `claude-settings` |
+| `.githooks/claude-settings-filter` | `clean` retire le bloc et l'archive ; `smudge` le réinjecte |
+| `common/.claude/settings.private.json` | l'archive, gitignorée |
+| `.githooks/pre-commit` | refuse le commit si le bloc atteint quand même l'index |
+
+Les deux sens comptent. Sans `smudge`, le filtre serait **destructeur** : un
+`git stash`, un `git checkout` ou un `reset --hard` fait transiter le fichier par
+l'index et le bloc disparaîtrait de la config vivante, sans un mot.
+
+`install.sh` configure le tout (`filter.claude-settings.*`, `core.hooksPath`),
+avec `required = true` — un `jq` absent fait échouer l'indexation au lieu de
+publier le fichier brut. **Un clone sur lequel `install.sh` n'a pas tourné n'a
+pas cette protection** : le hook `pre-commit` est là pour ce cas.
+
+### Le panneau
+
+`prefix + a` ouvre à gauche un pane de 34 colonnes qui liste les sessions Claude
+en cours, le quota consommé et les tokens du jour. Re-`prefix + a` le referme.
+
+```
+ AGENTS                    4        QUOTA
+ ∘ retheme-charte-gra… 36j bloqué    5 h  ██░░░░░░░░  15%  ↻ 4h07
+ ✽ sflow-flamingo-d4          32m    7 j  ██░░░░░░░░  16%  ↻ 3j06h
+```
+
+Les agents viennent de `claude agents --json` (sessions interactives **et**
+background, avec leur état). Les tokens sont agrégés depuis les transcripts, en
+incrémental — un curseur d'octets par fichier dans `~/.cache/claude-panel/`,
+sans quoi 169 Mo de JSONL seraient relus à chaque rafraîchissement. Le coût
+affiché est une **estimation** locale, pas une facture.
+
+Le quota, lui, ne s'invente pas : `rate_limits` n'est exposé qu'au stdin de la
+statusline. `common/.claude/statusline.sh` l'affiche **et** le dépose dans un
+cache que le panneau relit. Le panneau marque le chiffre « périmé » au-delà de
+10 minutes plutôt que d'afficher une valeur morte.
+
+Contrepartie : avec une statusline active, Claude Code masque la plupart des
+rappels de raccourcis du footer (dont `esc to interrupt`). Retirer la clé
+`statusLine` de `settings.json` les fait revenir.
 
 ---
 

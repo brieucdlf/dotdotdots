@@ -45,6 +45,23 @@ diff ~/shell-pro.txt ~/shell-Heartbeat.txt
       Omarchy et manque côté Pop (alias, fonctions, variables)
 - [ ] re-differ jusqu'à ce qu'il ne reste que les écarts assumés (profil, polices)
 
+## Claude Code
+
+La config vit maintenant dans `common/.claude/` (voir README). Reste à faire :
+
+- [ ] passer la machine perso : `git pull && ./install.sh`, puis vérifier que
+      `settings.json` arrive **sans** `autoMode` et que Claude démarre. Son
+      ancienne config part dans `~/.dotfiles-backup/<horodatage>/`.
+- [ ] rejouer les serveurs MCP à la main sur la machine perso (`anytype`,
+      `mongodb`) — ils vivent dans `~/.claude.json` avec l'OAuth et les chaînes
+      de connexion, jamais dans un dépôt public
+- [ ] observer si Claude Code finit par remplacer le lien `~/.claude/settings.json`
+      par un vrai fichier (écriture atomique). `install.sh` sait le récupérer,
+      mais on ne sait pas encore si le cas se produit vraiment
+- [ ] la mémoire de projet (`~/.claude/projects/<projet>/memory/`) n'est pas
+      suivie — elle vit sous les 169 Mo de `projects/`. À remonter dans un
+      paquet à part si on veut qu'elle suive
+
 ## Divers
 
 - [x] ~~pousser la branche et merger dans `master`~~ — fait, la machine Pop est validée
