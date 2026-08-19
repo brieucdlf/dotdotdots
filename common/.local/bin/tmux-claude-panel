@@ -1,21 +1,37 @@
 #!/usr/bin/env bash
-# Ouvre/ferme le panneau Claude à gauche de la fenêtre tmux courante.
+# Cycle le panneau Claude à gauche de la fenêtre tmux courante.
 # Lié à prefix + a (voir ~/.config/tmux/tmux.conf).
+#
+#   fermé  ──▶  large (34 col)  ──▶  replié (5 col)  ──▶  fermé
+#
+# Le repli REDIMENSIONNE au lieu de tuer : le processus survit, donc pas de
+# redémarrage ni de rescan, et claude-panel bascule tout seul en rendu compact
+# (icônes d'état + quota) sous 14 colonnes. Un SIGWINCH le réveille aussitôt,
+# sans attendre le tick suivant.
 set -euo pipefail
+
+WIDE=34
+FOLD=5
 
 [[ -n ${TMUX:-} ]] || { echo "tmux-claude-panel: hors tmux" >&2; exit 1; }
 
 # Le pane est repéré par son TITRE et non par un index : le titre survit aux
 # redimensionnements, aux déplacements et à l'ouverture d'autres splits.
-existing=$(tmux list-panes -F '#{pane_id} #{pane_title}' \
+id=$(tmux list-panes -F '#{pane_id} #{pane_title}' \
   | awk '$2 == "claude-panel" { print $1; exit }')
 
-if [[ -n $existing ]]; then
-  tmux kill-pane -t "$existing"
+if [[ -z $id ]]; then
+  # Chemin absolu : `tmux run-shell` n'hérite pas forcément d'un PATH contenant
+  # ~/.local/bin, et un « command not found » fermerait le pane aussitôt ouvert.
+  id=$(tmux split-window -hb -l "$WIDE" -d -P -F '#{pane_id}' \
+    "$HOME/.local/bin/claude-panel")
+  tmux select-pane -t "$id" -T claude-panel
   exit 0
 fi
 
-# Chemin absolu : `tmux run-shell` n'hérite pas forcément d'un PATH contenant
-# ~/.local/bin, et un « command not found » fermerait le pane aussitôt ouvert.
-id=$(tmux split-window -hb -l 34 -d -P -F '#{pane_id}' "$HOME/.local/bin/claude-panel")
-tmux select-pane -t "$id" -T claude-panel
+width=$(tmux display-message -p -t "$id" '#{pane_width}')
+if (( width > FOLD + 2 )); then
+  tmux resize-pane -t "$id" -x "$FOLD"
+else
+  tmux kill-pane -t "$id"
+fi

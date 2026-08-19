@@ -203,20 +203,43 @@ pas cette protection** : le hook `pre-commit` est là pour ce cas.
 
 ### Le panneau
 
-`prefix + a` ouvre à gauche un pane de 34 colonnes qui liste les sessions Claude
-en cours, le quota consommé et les tokens du jour. Re-`prefix + a` le referme.
+`prefix + a` cycle sur trois états :
 
 ```
- AGENTS                    4        QUOTA
- ∘ retheme-charte-gra… 36j bloqué    5 h  ██░░░░░░░░  15%  ↻ 4h07
- ✽ sflow-flamingo-d4          32m    7 j  ██░░░░░░░░  16%  ↻ 3j06h
+fermé  ──▶  large (34 col)  ──▶  replié (5 col)  ──▶  fermé
 ```
 
-Les agents viennent de `claude agents --json` (sessions interactives **et**
-background, avec leur état). Les tokens sont agrégés depuis les transcripts, en
-incrémental — un curseur d'octets par fichier dans `~/.cache/claude-panel/`,
-sans quoi 169 Mo de JSONL seraient relus à chaque rafraîchissement. Le coût
-affiché est une **estimation** locale, pas une facture.
+```
+ AGENTS                    4          ∘
+ ∘ retheme-charte-gra… 36j bloqué     ✽
+   say « go » to commit + push t…     ∙
+ ✽ sflow-flamingo-d4          32m     ∙
+                                      4
+ QUOTA
+  5 h  ██░░░░░░░░  15%  ↻ 4h07       5h
+  7 j  ██░░░░░░░░  16%  ↻ 3j06h     19%
+                                     7j
+                                    16%
+```
+
+Le repli **redimensionne** au lieu de tuer : le processus survit, donc pas de
+rescan, et le rendu bascule tout seul en compact sous 14 colonnes. Un SIGWINCH
+réveille le panneau, il n'attend pas le tick suivant. Ni noms ni coûts en
+replié — à cinq colonnes, tout ce qui est tronqué est du bruit.
+
+Les agents sont lus **directement** dans `~/.claude/{sessions,jobs}/`.
+`claude agents --json` est l'interface documentée, mais elle coûte ~270 ms par
+appel (démarrage d'un runtime node) pour des données déjà sur le disque —
+27 ms contre 290 ms par rendu, dans un pane qui se rafraîchit toutes les cinq
+secondes. Les fichiers donnent en prime le `needs` de chaque agent bloqué,
+affiché sous son nom : « bloqué » tout seul ne dit pas ce qu'on attend de toi.
+Si l'arborescence n'est pas celle attendue, le panneau repasse par la CLI
+plutôt que d'afficher un vide mensonger (`--cli` force ce chemin).
+
+Les tokens sont agrégés depuis les transcripts, en incrémental — un curseur
+d'octets par fichier dans `~/.cache/claude-panel/`, sans quoi 169 Mo de JSONL
+seraient relus à chaque rafraîchissement. Le coût affiché est une **estimation**
+locale, pas une facture.
 
 Le quota, lui, ne s'invente pas : `rate_limits` n'est exposé qu'au stdin de la
 statusline. `common/.claude/statusline.sh` l'affiche **et** le dépose dans un

@@ -6,15 +6,21 @@ parsing de JSONL incrémental avec cache, ce que bash ne fait pas sans un jq par
 ligne. La règle du repo qui tient toujours : aucune couleur codée en dur, tout
 vient de ~/.config/theme/current/palette.sh, généré par theme/render.sh.
 
-    claude-panel            boucle, rafraîchit toutes les 5 s (usage tmux)
-    claude-panel --once     un seul rendu puis sortie
-    claude-panel -i 10      autre intervalle
+Deux rendus selon la largeur du pane : complet à partir de 14 colonnes, replié
+en dessous (icônes d'état empilées + quota). C'est tmux-claude-panel qui
+redimensionne, le script ne fait que s'adapter.
+
+    claude-panel             boucle, rafraîchit toutes les 5 s (usage tmux)
+    claude-panel --once      un seul rendu puis sortie
+    claude-panel -i 10       autre intervalle
+    claude-panel --width 5   forcer une largeur (mise au point)
+    claude-panel --cli       forcer la lecture via `claude agents --json`
 """
 
 import json
 import os
 import re
-import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -27,8 +33,11 @@ CACHE = HOME / ".cache" / "claude-panel"
 USAGE_CACHE = CACHE / "usage.json"
 RATE_CACHE = CACHE / "rate-limits.json"
 
-# $ par million de tokens. Les multiplicateurs de cache sont ceux de l'API :
-# lecture 0.1x le prix d'entrée, écriture 1.25x en TTL 5 min et 2x en TTL 1 h.
+COMPACT_UNDER = 14          # en dessous, rendu replié
+RETENTION_DAYS = 8
+
+# $ par million de tokens. Multiplicateurs de cache de l'API : lecture 0.1x le
+# prix d'entrée, écriture 1.25x en TTL 5 min et 2x en TTL 1 h.
 PRICING = {
     "fable-5": (10.0, 50.0),
     "mythos-5": (10.0, 50.0),
@@ -42,7 +51,9 @@ PRICING = {
 }
 CACHE_READ, CACHE_W5M, CACHE_W1H = 0.1, 1.25, 2.0
 
-RETENTION_DAYS = 8
+# États qu'un agent background ne conserve qu'en historique : `claude agents`
+# sans --all ne les liste pas, on fait pareil.
+FINISHED = {"done", "failed", "stopped"}
 
 
 # ── couleurs ────────────────────────────────────────────────────────────────
@@ -68,8 +79,7 @@ def fg(key, fallback="#ffffff"):
     return f"\033[38;2;{r};{g};{b}m"
 
 
-RESET = "\033[0m"
-BOLD = "\033[1m"
+RESET, BOLD = "\033[0m", "\033[1m"
 C_TITLE = fg("THEME_ACCENT")
 C_TEXT = fg("THEME_FOREGROUND")
 C_DIM = fg("THEME_COLOR13")
@@ -123,23 +133,31 @@ def trunc(s, width):
     return s if len(s) <= width else s[: max(0, width - 1)] + "…"
 
 
-# ── agents ──────────────────────────────────────────────────────────────────
-def read_agents():
-    """`claude agents --json` est la source : elle couvre les sessions
-    interactives ET background, avec leur état. Repli sur ~/.claude/sessions/
-    (même logique que tmux-claude-status) si la CLI ne répond pas."""
+def iso_ms(value):
     try:
-        out = subprocess.run(
-            ["claude", "agents", "--json"],
-            capture_output=True, text=True, timeout=5,
-        )
-        if out.returncode == 0 and out.stdout.strip():
-            return json.loads(out.stdout), True
-    except (OSError, ValueError, subprocess.SubprocessError):
-        pass
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp() * 1000
+    except (AttributeError, ValueError):
+        return None
 
-    sessions = []
-    for f in sorted((CLAUDE / "sessions").glob("*.json")):
+
+# ── agents ──────────────────────────────────────────────────────────────────
+def read_agents_disk():
+    """Lecture directe de ~/.claude/{sessions,jobs}/.
+
+    `claude agents --json` est l'interface documentée, mais elle coûte ~270 ms
+    par appel (démarrage d'un runtime node) pour des données déjà posées sur le
+    disque — inacceptable dans un pane qui se rafraîchit toutes les 5 s. Les
+    fichiers donnent en prime le `detail`/`needs` de chaque agent background,
+    que la sortie JSON de la CLI ne porte pas.
+
+    Retourne None si l'arborescence n'est pas celle attendue : appelant repasse
+    alors par la CLI plutôt que d'afficher un panneau vide et mensonger.
+    """
+    if not (CLAUDE / "sessions").is_dir():
+        return None
+
+    out = []
+    for f in (CLAUDE / "sessions").glob("*.json"):
         try:
             d = json.loads(f.read_text())
         except (OSError, ValueError):
@@ -148,11 +166,51 @@ def read_agents():
         if not pid:
             continue
         try:
-            os.kill(int(pid), 0)
-        except OSError:
+            os.kill(int(pid), 0)          # session morte = fichier resté là
+        except (OSError, ValueError):
             continue
-        sessions.append(d)
-    return sessions, False
+        out.append({
+            "kind": "interactive", "pid": pid, "cwd": d.get("cwd"),
+            "name": d.get("name"), "sessionId": d.get("sessionId"),
+            "startedAt": d.get("startedAt"), "status": d.get("status"),
+        })
+
+    for state_file in (CLAUDE / "jobs").glob("*/state.json"):
+        try:
+            d = json.loads(state_file.read_text())
+        except (OSError, ValueError):
+            continue
+        if d.get("state") in FINISHED:
+            continue
+        out.append({
+            "kind": "background", "id": state_file.parent.name, "cwd": d.get("cwd"),
+            "name": d.get("name"), "sessionId": d.get("sessionId"),
+            "state": d.get("state"), "startedAt": iso_ms(d.get("createdAt")),
+            "detail": (d.get("needs") or d.get("detail") or "").strip(),
+        })
+    return out
+
+
+def read_agents_cli():
+    try:
+        r = subprocess.run(["claude", "agents", "--json"],
+                           capture_output=True, text=True, timeout=5)
+        if r.returncode == 0 and r.stdout.strip():
+            return json.loads(r.stdout)
+    except (OSError, ValueError, subprocess.SubprocessError):
+        pass
+    return None
+
+
+def read_agents(force_cli=False):
+    if not force_cli:
+        disk = read_agents_disk()
+        if disk is not None:
+            return disk, None
+    cli = read_agents_cli()
+    if cli is not None:
+        return cli, "via CLI"
+    return [], "source muette"
 
 
 STATE_STYLE = {
@@ -172,26 +230,31 @@ def agent_state(a):
     return a.get("state") or a.get("status") or "idle"
 
 
-def render_agents(width):
-    agents, live = read_agents()
+def sorted_agents(force_cli=False):
+    agents, note = read_agents(force_cli)
     agents.sort(key=lambda a: (STATE_ORDER.get(agent_state(a), 9),
                                -(a.get("startedAt") or 0)))
-    lines = [f"{C_TITLE}{BOLD}AGENTS{RESET}  {C_DIM}{len(agents)}{RESET}"]
-    if not live:
-        lines.append(f"  {C_MUTED}(repli sessions, CLI muette){RESET}")
+    return agents, note
+
+
+def render_agents(agents, note, width):
+    head = f"{C_TITLE}{BOLD}AGENTS{RESET}  {C_DIM}{len(agents)}{RESET}"
+    if note:
+        head += f"  {C_MUTED}{note}{RESET}"
+    lines = [head]
     if not agents:
         lines.append(f"  {C_MUTED}aucune session{RESET}")
         return lines
 
     for a in agents:
         st = agent_state(a)
-        icon, color, note = STATE_STYLE.get(st, ("·", C_MUTED, st))
+        icon, color, label = STATE_STYLE.get(st, ("·", C_MUTED, st))
         # Pas de colonne projet : Claude dérive le nom de session du dossier
         # (api-platform-c1, sflow-flamingo-d4…), l'afficher en plus ne ferait
-        # que voler la place au nom dans un pane de 34 colonnes.
+        # que voler la place au nom.
         name = a.get("name") or Path(a.get("cwd") or "").name \
             or (a.get("sessionId") or "?")[:8]
-        right = f"{human_age(a.get('startedAt'))} {note}".strip()
+        right = f"{human_age(a.get('startedAt'))} {label}".strip()
         # Processus mort mais session encore attachable : la vue agents native
         # distingue les deux par la forme de l'icône, on garde l'idée.
         if a.get("kind") == "background" and not a.get("pid"):
@@ -201,22 +264,28 @@ def render_agents(width):
             f"{color}{pad(left, width - len(right) - 1)}{RESET}"
             f"{C_DIM}{right}{RESET}"
         )
+        # « bloqué » tout seul ne dit pas ce qu'on attend de toi. Le détail
+        # n'est affiché que là, et seulement là : ailleurs il ferait du bruit.
+        if st == "blocked" and a.get("detail"):
+            lines.append(f"   {C_MUTED}{trunc(a['detail'], width - 4)}{RESET}")
     return lines
 
 
 # ── quota (écrit par la statusline) ─────────────────────────────────────────
-def render_quota(width):
+def read_quota():
     try:
         d = json.loads(RATE_CACHE.read_text())
     except (OSError, ValueError):
-        return [
-            f"{C_TITLE}{BOLD}QUOTA{RESET}",
-            f"  {C_MUTED}en attente d'une session Claude{RESET}",
-        ]
+        return None, False
+    return (d.get("rate_limits") or {}), (time.time() - d.get("at", 0) > 600)
 
-    age = time.time() - d.get("at", 0)
-    stale = age > 600
-    rl = d.get("rate_limits") or {}
+
+def render_quota(width):
+    rl, stale = read_quota()
+    if rl is None:
+        return [f"{C_TITLE}{BOLD}QUOTA{RESET}",
+                f"  {C_MUTED}en attente d'une session Claude{RESET}"]
+
     header = f"{C_TITLE}{BOLD}QUOTA{RESET}"
     if stale:
         # Un quota figé affiché comme s'il était frais est pire que pas de
@@ -226,10 +295,9 @@ def render_quota(width):
 
     for key, label in (("five_hour", "5 h"), ("seven_day", "7 j")):
         w = rl.get(key) or {}
-        pct = w.get("used_percentage")
-        if pct is None:
+        if w.get("used_percentage") is None:
             continue
-        pct = int(pct)
+        pct = int(w["used_percentage"])
         color = C_MUTED if stale else tint(pct)
         resets = ""
         if w.get("resets_at"):
@@ -253,8 +321,8 @@ def render_quota(width):
 
 # ── conso (transcripts) ─────────────────────────────────────────────────────
 def price(model):
-    """Retourne (in, out) $/MTok, ou None si le modèle est inconnu — auquel cas
-    on compte les tokens mais pas le coût, plutôt que d'inventer un tarif."""
+    """(in, out) en $/MTok, ou None si le modèle est inconnu — on compte alors
+    les tokens sans inventer un tarif."""
     m = (model or "").removeprefix("claude-")
     for key, val in PRICING.items():
         if m.startswith(key):
@@ -266,8 +334,11 @@ def load_cache():
     try:
         d = json.loads(USAGE_CACHE.read_text())
         if d.get("version") == 1:
+            # Les clés de dédup sont sérialisées en liste mais interrogées des
+            # milliers de fois par passage : en set, la recherche est en O(1).
+            d["seen"] = {k: set(v) for k, v in d["seen"].items()}
             return d
-    except (OSError, ValueError):
+    except (OSError, ValueError, AttributeError):
         pass
     return {"version": 1, "cursors": {}, "hours": {}, "seen": {}}
 
@@ -279,21 +350,21 @@ def scan_usage():
     cache = load_cache()
     cursors, hours, seen = cache["cursors"], cache["hours"], cache["seen"]
     cutoff = datetime.now() - timedelta(days=RETENTION_DAYS)
+    dirty = False
 
     for path in (CLAUDE / "projects").glob("*/*.jsonl"):
         key = str(path)
         try:
-            size = path.stat().st_size
-            mtime = path.stat().st_mtime
+            stat = path.stat()
         except OSError:
             continue
-        if datetime.fromtimestamp(mtime) < cutoff:
-            cursors.pop(key, None)
+        if datetime.fromtimestamp(stat.st_mtime) < cutoff:
+            dirty |= cursors.pop(key, None) is not None
             continue
         start = cursors.get(key, 0)
-        if start > size:      # fichier tronqué ou remplacé
+        if start > stat.st_size:      # fichier tronqué ou remplacé
             start = 0
-        if start == size:
+        if start == stat.st_size:
             continue
         try:
             with path.open("rb") as fh:
@@ -302,6 +373,7 @@ def scan_usage():
                 cursors[key] = fh.tell()
         except OSError:
             continue
+        dirty = True
 
         # Une ligne coupée en fin de lecture serait du JSON invalide : on la
         # laisse pour le prochain passage en reculant le curseur d'autant.
@@ -324,30 +396,29 @@ def scan_usage():
             usage = msg.get("usage")
             if not usage:
                 continue
-            ts = e.get("timestamp") or ""
             try:
-                when = datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone()
+                when = datetime.fromisoformat(
+                    (e.get("timestamp") or "").replace("Z", "+00:00")).astimezone()
             except ValueError:
                 continue
             if when.replace(tzinfo=None) < cutoff:
                 continue
             day = when.strftime("%Y-%m-%d")
-            # Dédup : une même réponse peut être réécrite dans un autre
-            # transcript (reprise, fork de session) et compterait deux fois.
+            # Dédup : une même réponse est réécrite dans un autre transcript à
+            # la reprise ou au fork d'une session, et compterait deux fois.
             uid = f"{msg.get('id') or e.get('uuid')}:{e.get('requestId') or ''}"
-            bucket = seen.setdefault(day, [])
+            bucket = seen.setdefault(day, set())
             if uid in bucket:
                 continue
-            bucket.append(uid)
+            bucket.add(uid)
 
-            model = msg.get("model") or "?"
             cc = usage.get("cache_creation") or {}
             w5 = cc.get("ephemeral_5m_input_tokens", 0)
             w1h = cc.get("ephemeral_1h_input_tokens", 0)
             if not (w5 or w1h):
                 w5 = usage.get("cache_creation_input_tokens", 0)
             slot = hours.setdefault(when.strftime("%Y-%m-%dT%H"), {}).setdefault(
-                model, [0, 0, 0, 0, 0])
+                msg.get("model") or "?", [0, 0, 0, 0, 0])
             slot[0] += usage.get("input_tokens", 0)
             slot[1] += usage.get("output_tokens", 0)
             slot[2] += w5
@@ -357,16 +428,20 @@ def scan_usage():
     keep = cutoff.strftime("%Y-%m-%d")
     for h in [h for h in hours if h[:10] < keep]:
         del hours[h]
+        dirty = True
     for d in [d for d in seen if d < keep]:
         del seen[d]
+        dirty = True
 
-    try:
-        CACHE.mkdir(parents=True, exist_ok=True)
-        tmp = USAGE_CACHE.with_suffix(".tmp")
-        tmp.write_text(json.dumps(cache))
-        tmp.replace(USAGE_CACHE)
-    except OSError:
-        pass
+    if dirty:                          # rien n'a bougé = rien à réécrire
+        try:
+            CACHE.mkdir(parents=True, exist_ok=True)
+            tmp = USAGE_CACHE.with_suffix(".tmp")
+            tmp.write_text(json.dumps(
+                {**cache, "seen": {k: sorted(v) for k, v in seen.items()}}))
+            tmp.replace(USAGE_CACHE)
+        except OSError:
+            pass
     return hours
 
 
@@ -376,21 +451,17 @@ def totals(hours, since_hour):
         if hkey < since_hour:
             continue
         for model, (i, o, w5, w1h, cr) in models.items():
-            n = i + o + w5 + w1h + cr
-            tok += n
-            per_model[model] = per_model.get(model, 0) + n
+            tok += i + o + w5 + w1h + cr
+            per_model[model] = per_model.get(model, 0) + i + o + w5 + w1h + cr
             p = price(model)
             if p:
                 pin, pout = p
-                cost += (i * pin + o * pout
-                         + w5 * pin * CACHE_W5M
-                         + w1h * pin * CACHE_W1H
-                         + cr * pin * CACHE_READ) / 1_000_000
+                cost += (i * pin + o * pout + w5 * pin * CACHE_W5M
+                         + w1h * pin * CACHE_W1H + cr * pin * CACHE_READ) / 1_000_000
     return tok, cost, per_model
 
 
-def render_usage(width):
-    hours = scan_usage()
+def render_usage(hours, width):
     now = datetime.now()
     today_tok, today_cost, per_model = totals(hours, now.strftime("%Y-%m-%dT00"))
     week_tok, week_cost, _ = totals(
@@ -404,37 +475,83 @@ def render_usage(width):
             f"{C_INFO}{human_tokens(t):>7} tok{RESET} "
             f"{C_DIM}~{c:.2f} ${RESET}"
         )
-    per_model = {m: n for m, n in per_model.items()
-                 if n and not m.startswith("<")}
+    # <synthetic> n'est pas un modèle facturé : Claude Code s'en sert pour les
+    # messages qu'il fabrique lui-même.
+    per_model = {m: n for m, n in per_model.items() if n and not m.startswith("<")}
     if per_model:
         top = sorted(per_model.items(), key=lambda kv: -kv[1])[:3]
         peak = top[0][1] or 1
         lines.append("")
         for model, n in top:
-            short = (model or "?").removeprefix("claude-")
             lines.append(
-                f"  {C_TEXT}{pad(trunc(short, 10), 11)}{RESET}"
+                f"  {C_TEXT}{pad(trunc(model.removeprefix('claude-'), 10), 11)}{RESET}"
                 f"{C_DIM}{human_tokens(n):>6}{RESET} "
                 f"{C_MUTED}{bar(n / peak * 100, 8)}{RESET}"
             )
     return lines
 
 
-# ── rendu ───────────────────────────────────────────────────────────────────
-def frame(width):
+# ── rendus ──────────────────────────────────────────────────────────────────
+def frame_full(width, force_cli):
+    agents, note = sorted_agents(force_cli)
     out = [f"{C_TITLE}{BOLD} CLAUDE{RESET}"
-           f"{C_DIM}{datetime.now().strftime('%H:%M'):>{max(0, width - 8)}}{RESET}",
-           ""]
-    for section in (render_agents(width), render_quota(width), render_usage(width)):
+           f"{C_DIM}{datetime.now().strftime('%H:%M'):>{max(0, width - 8)}}{RESET}", ""]
+    for section in (render_agents(agents, note, width),
+                    render_quota(width),
+                    render_usage(scan_usage(), width)):
         out.extend(section)
         out.append("")
     return out
 
 
-def draw(once):
-    width = shutil.get_terminal_size((34, 40)).columns
+def frame_compact(width, force_cli):
+    """Rendu replié : une colonne d'icônes d'état, le total, puis les quotas.
+    Ni noms ni coûts — à cinq colonnes, tout ce qui est tronqué est du bruit."""
+    agents, _ = sorted_agents(force_cli)
+    out = [""]
+    for a in agents[:8]:
+        icon, color, _ = STATE_STYLE.get(agent_state(a), ("·", C_MUTED, ""))
+        if a.get("kind") == "background" and not a.get("pid"):
+            icon = "∘"
+        out.append(f" {color}{icon}{RESET}")
+    out.append(f" {C_DIM}{len(agents)}{RESET}")
+    out.append("")
+
+    rl, stale = read_quota()
+    for key, label in (("five_hour", "5h"), ("seven_day", "7j")):
+        w = (rl or {}).get(key) or {}
+        if w.get("used_percentage") is None:
+            continue
+        pct = int(w["used_percentage"])
+        color = C_MUTED if stale else tint(pct)
+        out.append(f" {C_MUTED}{label}{RESET}")
+        out.append(f"{color}{pct:>3}%{RESET}")
+    return out
+
+
+RESIZED = False
+
+
+def on_winch(_sig, _frm):
+    global RESIZED
+    RESIZED = True
+
+
+def term_width(override):
+    if override:
+        return override
     try:
-        lines = frame(width)
+        # Directement le descripteur, et non COLUMNS : la variable d'env n'est
+        # pas remise à jour quand tmux redimensionne le pane.
+        return os.get_terminal_size(sys.stdout.fileno()).columns
+    except OSError:
+        return 34
+
+
+def draw(once, override, force_cli):
+    width = term_width(override)
+    try:
+        lines = (frame_compact if width < COMPACT_UNDER else frame_full)(width, force_cli)
     except Exception as exc:                       # le pane ne doit jamais mourir
         lines = [f"{C_ALERT}claude-panel: {exc}{RESET}"]
     body = "\n".join(line + "\033[K" for line in lines)
@@ -442,24 +559,41 @@ def draw(once):
     sys.stdout.flush()
 
 
+def wait(interval):
+    """Sommeil interruptible par un SIGWINCH : sans ça, redimensionner le pane
+    laisserait le rendu à l'ancienne largeur jusqu'au prochain tick."""
+    global RESIZED
+    end = time.time() + interval
+    while time.time() < end:
+        if RESIZED:
+            RESIZED = False
+            return
+        time.sleep(0.2)
+
+
 def main():
     argv = sys.argv[1:]
-    once = "--once" in argv
-    interval = 5
-    for flag in ("-i", "--interval"):
+    once, force_cli = "--once" in argv, "--cli" in argv
+    interval, override = 5, 0
+    for flag, cast in (("-i", int), ("--interval", int), ("--width", int)):
         if flag in argv:
             try:
-                interval = max(1, int(argv[argv.index(flag) + 1]))
+                value = cast(argv[argv.index(flag) + 1])
+                if flag == "--width":
+                    override = value
+                else:
+                    interval = max(1, value)
             except (IndexError, ValueError):
                 pass
     if once:
-        draw(True)
+        draw(True, override, force_cli)
         return
+    signal.signal(signal.SIGWINCH, on_winch)
     sys.stdout.write("\033[?25l")                  # curseur caché
     try:
         while True:
-            draw(False)
-            time.sleep(interval)
+            draw(False, override, force_cli)
+            wait(interval)
     except KeyboardInterrupt:
         pass
     finally:
