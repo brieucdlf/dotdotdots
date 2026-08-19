@@ -38,6 +38,8 @@ CLAUDE = HOME / ".claude"
 CACHE = HOME / ".cache" / "claude-panel"
 USAGE_CACHE = CACHE / "usage.json"
 RATE_CACHE = CACHE / "rate-limits.json"
+SESSION_CACHE = CACHE / "sessions"
+SESSION_TTL = 3 * 86400     # au-delà, la session n'existe plus : on purge
 
 COMPACT_UNDER = 14          # en dessous, rendu replié
 DEFAULT_WIDTH = 44          # hors tmux ou si la largeur est illisible
@@ -247,6 +249,46 @@ def read_agents(force_cli=False):
     return [], "source muette"
 
 
+_OWN_WINDOW = ""
+
+
+def own_window():
+    """Fenêtre tmux qui héberge CE panneau — sert à repérer « l'agent d'ici »
+    et à se refermer quand il n'y en a plus."""
+    global _OWN_WINDOW
+    if _OWN_WINDOW == "":
+        pane = os.environ.get("TMUX_PANE")
+        _OWN_WINDOW = (tmux("display-message", "-p", "-t", pane, "#{window_id}")
+                       if pane else None) or None
+    return _OWN_WINDOW
+
+
+def agent_window(a):
+    loc = a.get("tmux") or ""
+    if ":" in loc and "." in loc:
+        return loc.split(":", 1)[1].partition(".")[0]
+    # Pas d'emplacement enregistré (agent lancé par `claude attach`) : on le
+    # cherche par son pid. Rare, donc on ne paie l'appel tmux que là.
+    found = pane_of_pid(a.get("pid")) if a.get("pid") else None
+    return found[0] if found else None
+
+
+def session_meta(sid):
+    """Modèle, effort, coût et contexte, déposés par la statusline — ces deux
+    derniers ne sont calculés que côté client, aucun fichier de session ne les
+    porte."""
+    if not sid:
+        return {}
+    path = SESSION_CACHE / f"{sid}.json"
+    try:
+        if time.time() - path.stat().st_mtime > SESSION_TTL:
+            path.unlink(missing_ok=True)
+            return {}
+        return json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
 STATE_STYLE = {
     "blocked": ("✻", C_WARN, "bloqué"),
     "working": ("✽", C_INFO, ""),
@@ -271,7 +313,7 @@ def sorted_agents(force_cli=False):
     return agents, note
 
 
-def render_agents(agents, note, width, selected):
+def render_agents(agents, note, width, selected, current):
     """Retourne (lignes, {index de ligne: index d'agent}).
 
     La table de correspondance sert au clic : sans elle, impossible de savoir
@@ -302,11 +344,31 @@ def render_agents(agents, note, width, selected):
         if label:
             right += f"  {label}"
         sel = a.get("sessionId") and a.get("sessionId") == selected
-        left = f" {'▸' if sel else ' '} {icon} {trunc(name, width - len(right) - 8)}"
-        style = f"{BOLD}{color}" if sel else color
+        here = current and a.get("sessionId") == current
+        avail = max(8, width - len(right) - 8)
+        # L'agent d'ici porte l'accent ; l'icône garde la couleur de son état,
+        # sinon on perdrait l'information au profit de la mise en valeur.
+        name_style = f"{BOLD}{C_TITLE}" if here else (f"{BOLD}{color}" if sel else color)
+        head = (f"{color} {'▸' if sel else ' '} {icon} {RESET}"
+                f"{name_style}{trunc(name, avail)}{RESET}")
         rows[len(lines)] = i
-        lines.append(f"{style}{pad(left, width - len(right) - 2)}{RESET}"
+        lines.append(f"{pad(head, width - len(right) - 2)}"
                      f"{C_DIM}{right}{RESET} ")
+        if here:
+            meta = session_meta(a.get("sessionId"))
+            # « Opus 5 (1M context) » mange la place du coût : la précision
+            # entre parenthèses ne dit rien qu'on ne sache déjà.
+            model = (meta.get("model") or "").split(" (")[0]
+            bits = [model, meta.get("effort")]
+            if meta.get("ctx") is not None:
+                bits.append(f"{int(meta['ctx'])}% ctx")
+            if meta.get("cost"):
+                bits.append(f"~{meta['cost']:.2f} $")
+            bits = [b for b in bits if b]
+            rows[len(lines)] = i
+            lines.append(f"     {C_INFO}{trunc(' · '.join(bits), width - 6)}{RESET}"
+                         if bits else
+                         f"     {C_MUTED}en attente de la statusline{RESET}")
         # « bloqué » tout seul ne dit pas ce qu'on attend de toi. Le détail
         # n'est affiché que là, et seulement là : ailleurs il ferait du bruit.
         if st == "blocked" and a.get("detail"):
@@ -606,8 +668,10 @@ def jump(a):
 
     # `claude attach` UNIQUEMENT si l'agent ne tourne pas déjà : sinon on
     # ouvrirait une seconde instance de quelque chose de vivant.
-    if a.get("id") and not a.get("pid"):
-        tmux("new-window", "-n", (a.get("name") or "agent")[:20],
+    # L'id vient d'un nom de dossier sous ~/.claude/jobs/ et finit dans une
+    # commande shell : on n'accepte que ce à quoi un id ressemble.
+    if a.get("id") and not a.get("pid") and re.fullmatch(r"[0-9a-f]{4,64}", a["id"]):
+        tmux("new-window", "-n", re.sub(r"[^\w.-]", "_", a.get("name") or "agent")[:20],
              f"claude attach {a['id']}")
         return True
 
@@ -628,11 +692,22 @@ def dismiss_window():
 
 
 # ── rendus ──────────────────────────────────────────────────────────────────
+def current_id(agents):
+    win = own_window()
+    if not win:
+        return None
+    for a in agents:
+        if agent_window(a) == win:
+            return a.get("sessionId")
+    return None
+
+
 def frame_full(width, force_cli, selected):
     agents, note = sorted_agents(force_cli)
+    current = current_id(agents)
     out = [f"{C_TITLE}{BOLD} CLAUDE{RESET}"
            f"{C_DIM}{datetime.now().strftime('%H:%M'):>{max(0, width - 8)}}{RESET}", ""]
-    agent_lines, rows = render_agents(agents, note, width, selected)
+    agent_lines, rows = render_agents(agents, note, width, selected, current)
     rows = {k + len(out): v for k, v in rows.items()}
     out.extend(agent_lines)
     for section in ("", render_quota(width), "", render_usage(scan_usage(), width)):
@@ -640,13 +715,13 @@ def frame_full(width, force_cli, selected):
             out.append("")
         else:
             out.extend(section)
-    return out, rows, agents
+    return out, rows, agents, note
 
 
 def frame_compact(width, force_cli, _selected):
     """Rendu replié : une colonne d'icônes d'état, le total, puis les quotas.
     Ni noms ni coûts — à cinq colonnes, tout ce qui est tronqué est du bruit."""
-    agents, _ = sorted_agents(force_cli)
+    agents, note = sorted_agents(force_cli)
     out, rows = [""], {}
     for i, a in enumerate(agents[:8]):
         icon, color, _ = STATE_STYLE.get(agent_state(a), ("·", C_MUTED, ""))
@@ -666,7 +741,7 @@ def frame_compact(width, force_cli, _selected):
         color = C_MUTED if stale else tint(pct)
         out.append(f" {C_MUTED}{label}{RESET}")
         out.append(f"{color}{pct:>3}%{RESET}")
-    return out, rows, agents
+    return out, rows, agents, note
 
 
 # ── entrées ─────────────────────────────────────────────────────────────────
@@ -728,11 +803,29 @@ def parse_input(data):
     return events
 
 
+WAKE = ()
+
+
+def setup_signals():
+    """Tube de réveil : `select` ne rend pas la main sur un signal (PEP 475 le
+    relance), mais Python écrit un octet dans ce tube à chaque signal reçu. On
+    surveille donc les deux descripteurs et on peut dormir tout le temps de
+    l'intervalle au lieu de se réveiller quatre fois par seconde pour rien."""
+    global WAKE
+    read_fd, write_fd = os.pipe()
+    os.set_blocking(read_fd, False)
+    os.set_blocking(write_fd, False)
+    signal.set_wakeup_fd(write_fd)
+    signal.signal(signal.SIGWINCH, on_winch)
+    WAKE = (read_fd, write_fd)
+
+
 def wait_events(interval):
     """Rend la main dès qu'il se passe quelque chose : touche, clic, ou
     redimensionnement du pane. Sinon au bout de l'intervalle."""
     global RESIZED
     end = time.time() + interval
+    watch = ([WAKE[0]] if WAKE else []) + ([0] if os.isatty(0) else [])
     while True:
         if RESIZED:
             RESIZED = False
@@ -740,11 +833,19 @@ def wait_events(interval):
         left = end - time.time()
         if left <= 0:
             return []
-        if not os.isatty(0):
+        if not watch:
             time.sleep(left)
             return []
-        ready, _, _ = select.select([sys.stdin], [], [], min(left, 0.25))
-        if ready:
+        try:
+            ready, _, _ = select.select(watch, [], [], left)
+        except (OSError, ValueError):
+            return []
+        if WAKE and WAKE[0] in ready:
+            try:
+                os.read(WAKE[0], 256)      # vidange, le drapeau porte le sens
+            except OSError:
+                pass
+        if 0 in ready:
             try:
                 data = os.read(0, 4096)
             except OSError:
@@ -769,13 +870,16 @@ def draw(once, override, force_cli, selected):
     width = term_width(override)
     try:
         render = frame_compact if width < COMPACT_UNDER else frame_full
-        lines, rows, agents = render(width, force_cli, selected)
+        lines, rows, agents, note = render(width, force_cli, selected)
     except Exception as exc:                       # le pane ne doit jamais mourir
-        lines, rows, agents = [f"{C_ALERT}claude-panel: {exc}{RESET}"], {}, []
+        lines, rows, agents, note = [f"{C_ALERT}claude-panel: {exc}{RESET}"], {}, [], "?"
     body = "\n".join(line + "\033[K" for line in lines)
     sys.stdout.write(("" if once else "\033[H") + body + "\033[J\n")
     sys.stdout.flush()
-    return rows, agents
+    # None = indécidable (source muette ou hors tmux) : on ne se ferme pas sur
+    # un doute.
+    here = None if (note or own_window() is None) else bool(current_id(agents))
+    return rows, agents, here
 
 
 def apply_event(kind, row, rows, agents, selected):
@@ -824,24 +928,34 @@ def main():
         draw(True, override, force_cli, None)
         return
 
-    signal.signal(signal.SIGWINCH, on_winch)
-    selected, running = None, True
+    setup_signals()
+    selected, running, quit_asked, orphan = None, True, False, 0
     with RawInput():
         sys.stdout.write("\033[?25l")              # curseur caché
         try:
             while running:
-                rows, agents = draw(False, override, force_cli, selected)
+                rows, agents, here = draw(False, override, force_cli, selected)
+                # Un Claude tué brutalement (kill -9, crash, pane fermé) ne
+                # déclenche aucun SessionEnd : sans ça, le panneau resterait
+                # ouvert dans une fenêtre qui n'a plus rien à montrer. Trois
+                # tours d'affilée pour ne pas fermer sur un hoquet de lecture.
+                orphan = orphan + 1 if here is False else 0
+                if orphan >= 3:
+                    break
                 for kind, row in wait_events(interval):
                     selected, running = apply_event(
                         kind, row, rows, agents, selected)
                     if not running:
+                        quit_asked = True
                         break
         except KeyboardInterrupt:
-            running = False
+            pass
         finally:
             sys.stdout.write("\033[?25h\033[0m")
             sys.stdout.flush()
-    if not running:
+    # Fermeture automatique : surtout PAS de drapeau, sinon la fenêtre resterait
+    # marquée « fermée à la main » et le panneau ne reviendrait jamais.
+    if quit_asked:
         dismiss_window()
 
 

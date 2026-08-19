@@ -44,8 +44,13 @@ claude_panes() {
 }
 
 panel_of() {                                   # $1 = @fenêtre -> %pane ou vide
-  tmux list-panes -t "$1" -F '#{pane_id} #{pane_title}' 2>/dev/null \
-    | awk -v t="$TITLE" '$2 == t { print $1; exit }'
+  # Filtre natif, et non awk sur $2 : $2 est le PREMIER mot du titre, donc un
+  # pane innocent titré « claude-panel de test » passait pour le panneau — et
+  # prefix + a l'aurait redimensionné à 5 colonnes ou tué. Vérifié.
+  # sed et non head : `head -1` ferme le tube dès la première ligne, tmux prend
+  # un SIGPIPE, et `set -o pipefail` transforme ça en échec de tout le script.
+  tmux list-panes -t "$1" -f "#{==:#{pane_title},$TITLE}" -F '#{pane_id}' \
+    2>/dev/null | sed -n 1p
 }
 
 window_of() {                                  # $1 = %pane -> @fenêtre
@@ -86,12 +91,18 @@ sync_windows() {
   while read -r win; do
     id=$(panel_of "$win")
     if [[ -n ${want[$win]:-} ]]; then
-      [[ -z $id ]] && ! dismissed "$win" && open_in "$win"
+      if [[ -z $id ]] && ! dismissed "$win"; then
+        open_in "$win"
+      fi
     elif [[ -n $id ]]; then
       tmux kill-pane -t "$id"
       tmux set-option -wu -t "$win" "$OPTOFF" 2>/dev/null || true
     fi
   done < <(tmux list-windows -a -F '#{window_id}')
+  # Sans ce return, la fonction rend le statut de sa dernière condition : dès
+  # que la dernière fenêtre avait déjà son panneau, sync sortait en 1 et les
+  # hooks Claude voyaient un échec.
+  return 0
 }
 
 # ── commandes ───────────────────────────────────────────────────────────────

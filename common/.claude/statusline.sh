@@ -4,10 +4,14 @@
 #
 # Double rôle :
 #  1. AFFICHER une ligne compacte sous le prompt ;
-#  2. DÉPOSER les compteurs de quota dans un cache que `claude-panel` relit.
-#     C'est le seul endroit où `rate_limits` est exposé — ni la CLI ni les
-#     transcripts ne les portent. Sans ce fichier, le panneau ne peut
-#     qu'estimer la conso, jamais lire le vrai quota.
+#  2. DÉPOSER dans un cache ce que `claude-panel` ne peut obtenir nulle part
+#     ailleurs. Deux fichiers :
+#       - rate-limits.json  : les quotas, propres au compte. C'est le SEUL
+#         endroit où `rate_limits` est exposé — ni la CLI ni les transcripts
+#         ne les portent, le panneau ne pourrait qu'estimer.
+#       - sessions/<id>.json : modèle, effort, coût et contexte de CETTE
+#         session. Le coût et le pourcentage de contexte ne sont calculés que
+#         côté client, ils n'existent dans aucun fichier de session.
 #
 # Les couleurs sont les index ANSI 0-15, donc la palette du thème telle que
 # ghostty la pose : rien de codé en dur ici non plus.
@@ -19,10 +23,27 @@ cache="$HOME/.cache/claude-panel"
 # Écriture atomique : le panneau lit ce fichier en parallèle, il ne doit jamais
 # tomber sur un JSON à moitié écrit. mktemp dans le MÊME dossier, sinon `mv`
 # traverse les systèmes de fichiers et perd son atomicité.
-if mkdir -p "$cache" 2>/dev/null; then
-  tmp=$(mktemp "$cache/.rate-limits.XXXXXX" 2>/dev/null) &&
-    jq -c '{rate_limits: (.rate_limits // {}), at: now}' <<<"$in" >"$tmp" 2>/dev/null &&
-    mv -f "$tmp" "$cache/rate-limits.json" || rm -f "${tmp:-}"
+drop() {  # $1 = destination, $2 = filtre jq
+  local dir tmp
+  dir=$(dirname "$1")
+  mkdir -p "$dir" 2>/dev/null || return 0
+  tmp=$(mktemp "$dir/.drop.XXXXXX" 2>/dev/null) || return 0
+  if jq -c "$2" <<<"$in" >"$tmp" 2>/dev/null; then mv -f "$tmp" "$1"; else rm -f "$tmp"; fi
+}
+
+drop "$cache/rate-limits.json" '{rate_limits: (.rate_limits // {}), at: now}'
+
+sid=$(jq -r '.session_id // empty' <<<"$in" 2>/dev/null || true)
+# Le nom du fichier vient d'une donnée externe : on n'accepte qu'un UUID, sinon
+# un session_id fantaisiste écrirait où il veut.
+if [[ $sid =~ ^[0-9a-fA-F-]{36}$ ]]; then
+  drop "$cache/sessions/$sid.json" '{
+    model:  (.model.display_name // null),
+    effort: (.effort.level // null),
+    cost:   (.cost.total_cost_usd // 0),
+    ctx:    (.context_window.used_percentage // null),
+    at:     now
+  }'
 fi
 
 # Index ANSI 0-15. Au-delà de 7 c'est la rampe « bright » (90-97) et NON

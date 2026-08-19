@@ -281,6 +281,25 @@ fusionnées, la session vivante l'emportant tout en gardant l'id court pour
 La sélection est mémorisée par `sessionId` et non par position, sinon elle
 sauterait d'un agent à l'autre au moindre changement d'ordre.
 
+**L'agent de la fenêtre courante** porte l'accent et gagne une ligne :
+
+```
+   ✽ claude-code-dotfiles-setup         3h
+     Opus 5 · high · 37% ctx · ~27.61 $
+```
+
+L'icône garde la couleur de son état — la mise en valeur ne doit pas manger
+l'information. Modèle, effort, contexte et coût viennent du cache
+`sessions/<id>.json` écrit par la statusline : le coût et le pourcentage de
+contexte ne sont calculés que côté client, aucun fichier de session ne les
+porte. Le panneau se sait « ici » en comparant sa propre fenêtre (`TMUX_PANE`)
+à celle de chaque agent.
+
+Si Claude meurt sans passer par la sortie normale — `kill -9`, crash, pane
+fermé —, aucun `SessionEnd` ne part : le panneau le constate lui-même et se
+referme au bout de trois tours. Trois, pas un, pour ne pas disparaître sur un
+hoquet de lecture.
+
 `q` pose le même drapeau `@claude_panel_off` qu'une fermeture par `prefix + a` :
 fermer, c'est fermer, quel que soit le chemin emprunté.
 
@@ -303,10 +322,12 @@ d'octets par fichier dans `~/.cache/claude-panel/`, sans quoi 169 Mo de JSONL
 seraient relus à chaque rafraîchissement. Le coût affiché est une **estimation**
 locale, pas une facture.
 
-Le quota, lui, ne s'invente pas : `rate_limits` n'est exposé qu'au stdin de la
-statusline. `common/.claude/statusline.sh` l'affiche **et** le dépose dans un
-cache que le panneau relit. Le panneau marque le chiffre « périmé » au-delà de
-10 minutes plutôt que d'afficher une valeur morte.
+Le quota et le coût ne s'inventent pas : `rate_limits`, `cost.total_cost_usd` et
+`context_window.used_percentage` ne sont exposés qu'au stdin de la statusline.
+`common/.claude/statusline.sh` les affiche **et** les dépose dans deux caches
+que le panneau relit — `rate-limits.json` pour le compte, `sessions/<id>.json`
+par session. Le panneau marque le quota « périmé » au-delà de 10 minutes plutôt
+que d'afficher une valeur morte.
 
 Contrepartie : avec une statusline active, Claude Code masque la plupart des
 rappels de raccourcis du footer (dont `esc to interrupt`). Retirer la clé
