@@ -43,6 +43,7 @@ SESSION_TTL = 3 * 86400     # au-delà, la session n'existe plus : on purge
 
 COMPACT_UNDER = 14          # en dessous, rendu replié
 DEFAULT_WIDTH = 44          # hors tmux ou si la largeur est illisible
+BUSY_INTERVAL = 2           # rafraîchissement quand au moins un agent travaille
 RETENTION_DAYS = 8
 
 # $ par million de tokens. Multiplicateurs de cache de l'API : lecture 0.1x le
@@ -185,6 +186,7 @@ def read_agents_disk():
             "kind": "background", "id": state_file.parent.name, "cwd": d.get("cwd"),
             "name": d.get("name"), "sessionId": d.get("sessionId"),
             "state": d.get("state"), "startedAt": iso_ms(d.get("createdAt")),
+            "since": iso_ms(d.get("updatedAt")),
             "detail": (d.get("needs") or d.get("detail") or "").strip(),
         }
         if entry["sessionId"]:
@@ -209,6 +211,7 @@ def read_agents_disk():
             "kind": "interactive", "pid": pid, "cwd": d.get("cwd"),
             "name": d.get("name"), "sessionId": sid,
             "startedAt": d.get("startedAt"), "status": d.get("status"),
+            "since": d.get("statusUpdatedAt"),   # début du tour en cours
             "tmux": d.get("tmux"),          # « session:@fenêtre.%pane »
         }
         if sid and sid in by_id:
@@ -300,6 +303,15 @@ STATE_STYLE = {
 }
 STATE_ORDER = {"blocked": 0, "working": 1, "busy": 1, "idle": 2,
                "failed": 3, "done": 4, "stopped": 5}
+WORKING = ("working", "busy")
+# Scintillement plutôt que rotation : la famille de glyphes du panneau est déjà
+# ✽ ✻ ∙ ∘, une roue braille jurerait.
+SPINNER = ("✳", "✽", "✻", "✽")
+TICK = 0
+
+
+def is_working(a):
+    return agent_state(a) in WORKING
 
 
 def agent_state(a):
@@ -340,20 +352,32 @@ def render_agents(agents, note, width, selected, current):
         # distingue les deux par la forme de l'icône, on garde l'idée.
         if a.get("kind") == "background" and not a.get("pid"):
             icon = "∘"
-        right = human_age(a.get("startedAt"))
+        busy = is_working(a)
+        if busy:
+            # Le temps du TOUR en cours, pas l'âge de la session : c'est ce
+            # qu'on veut savoir d'un agent qui travaille.
+            icon = SPINNER[TICK % len(SPINNER)]
+            right = human_age(a.get("since") or a.get("startedAt"))
+            right_style = C_TITLE
+        else:
+            right = human_age(a.get("startedAt"))
+            right_style = C_DIM
         if label:
             right += f"  {label}"
         sel = a.get("sessionId") and a.get("sessionId") == selected
         here = current and a.get("sessionId") == current
         avail = max(8, width - len(right) - 8)
-        # L'agent d'ici porte l'accent ; l'icône garde la couleur de son état,
-        # sinon on perdrait l'information au profit de la mise en valeur.
-        name_style = f"{BOLD}{C_TITLE}" if here else (f"{BOLD}{color}" if sel else color)
-        head = (f"{color} {'▸' if sel else ' '} {icon} {RESET}"
+        # Deux signaux sur deux éléments distincts : l'agent d'ici porte
+        # l'accent sur son NOM, celui qui travaille anime son ICÔNE. Les cumuler
+        # sur le même élément les rendrait indistinguables.
+        icon_style = f"{BOLD}{C_TITLE}" if busy else color
+        name_style = (f"{BOLD}{C_TITLE}" if here
+                      else (f"{BOLD}{color}" if (sel or busy) else color))
+        head = (f"{color} {'▸' if sel else ' '} {icon_style}{icon}{RESET} "
                 f"{name_style}{trunc(name, avail)}{RESET}")
         rows[len(lines)] = i
         lines.append(f"{pad(head, width - len(right) - 2)}"
-                     f"{C_DIM}{right}{RESET} ")
+                     f"{right_style}{right}{RESET} ")
         if here:
             meta = session_meta(a.get("sessionId"))
             # « Opus 5 (1M context) » mange la place du coût : la précision
@@ -727,6 +751,8 @@ def frame_compact(width, force_cli, _selected):
         icon, color, _ = STATE_STYLE.get(agent_state(a), ("·", C_MUTED, ""))
         if a.get("kind") == "background" and not a.get("pid"):
             icon = "∘"
+        if is_working(a):
+            icon, color = SPINNER[TICK % len(SPINNER)], C_TITLE
         rows[len(out)] = i
         out.append(f" {color}{icon}{RESET}")
     out.append(f" {C_DIM}{len(agents)}{RESET}")
@@ -867,6 +893,8 @@ def term_width(override):
 
 
 def draw(once, override, force_cli, selected):
+    global TICK
+    TICK += 1
     width = term_width(override)
     try:
         render = frame_compact if width < COMPACT_UNDER else frame_full
@@ -942,7 +970,12 @@ def main():
                 orphan = orphan + 1 if here is False else 0
                 if orphan >= 3:
                     break
-                for kind, row in wait_events(interval):
+                # Cadence adaptative : tant qu'un agent travaille, le
+                # scintillement doit se voir et le compteur du tour avancer.
+                # Le reste du temps, rien ne bouge, autant dormir.
+                tick = min(interval, BUSY_INTERVAL) if any(
+                    is_working(a) for a in agents) else interval
+                for kind, row in wait_events(tick):
                     selected, running = apply_event(
                         kind, row, rows, agents, selected)
                     if not running:

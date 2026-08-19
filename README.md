@@ -281,6 +281,12 @@ fusionnées, la session vivante l'emportant tout en gardant l'id court pour
 La sélection est mémorisée par `sessionId` et non par position, sinon elle
 sauterait d'un agent à l'autre au moindre changement d'ordre.
 
+**Un agent qui travaille** scintille — `✳ ✽ ✻ ✽` en accent — et sa colonne de
+droite bascule sur la durée du **tour en cours** au lieu de l'âge de la session :
+d'un agent qui tourne, ce qu'on veut savoir c'est depuis combien de temps il
+mouline, pas quand il a démarré. Le panneau rafraîchit alors toutes les 2 s au
+lieu de 5 ; dès que tout le monde se tait, il retourne dormir.
+
 **L'agent de la fenêtre courante** porte l'accent et gagne une ligne :
 
 ```
@@ -288,8 +294,10 @@ sauterait d'un agent à l'autre au moindre changement d'ordre.
      Opus 5 · high · 37% ctx · ~27.61 $
 ```
 
-L'icône garde la couleur de son état — la mise en valeur ne doit pas manger
-l'information. Modèle, effort, contexte et coût viennent du cache
+Deux signaux sur deux éléments distincts : l'agent d'ici porte l'accent sur son
+**nom**, celui qui travaille anime son **icône**. Les cumuler sur le même
+élément les rendrait indistinguables, et l'icône garde sinon la couleur de son
+état — la mise en valeur ne doit pas manger l'information. Modèle, effort, contexte et coût viennent du cache
 `sessions/<id>.json` écrit par la statusline : le coût et le pourcentage de
 contexte ne sont calculés que côté client, aucun fichier de session ne les
 porte. Le panneau se sait « ici » en comparant sa propre fenêtre (`TMUX_PANE`)
