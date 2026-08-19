@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Filtre de confidentialité pour common/.claude/settings.json (dépôt PUBLIC).
+#
+# Le bloc `autoMode.environment` décrit l'environnement de travail — dépôt
+# privé, bases Notion, politique de traitement des données personnelles. Il doit
+# rester local, mais le RESTE du fichier (thème, effort, plugins, permissions)
+# doit être suivi et synchronisé entre les machines.
+#
+#   clean   copie de travail -> index  : retire autoMode, et l'ARCHIVE au passage
+#   smudge  index -> copie de travail  : réinjecte autoMode depuis l'archive
+#
+# Le smudge n'est pas un luxe. Sans lui le filtre est destructeur : `git stash`,
+# `git checkout`, `git reset --hard` font tous transiter le fichier par
+# clean puis smudge, et le bloc disparaîtrait SILENCIEUSEMENT de la config
+# vivante. Constaté en vrai pendant la mise en place, pas théorique.
+#
+# L'archive est gitignorée et vit dans le dépôt, comme common/.config/bash/local.bash.
+set -euo pipefail
+
+PRIVATE="common/.claude/settings.private.json"   # cwd = racine du dépôt (git)
+
+has_automode() { jq -e 'has("autoMode")' >/dev/null 2>&1 <<<"$1"; }
+
+case "${1:-}" in
+  clean)
+    in=$(cat)
+    if has_automode "$in"; then
+      # Écriture atomique dans le MÊME dossier : `git add` peut tourner pendant
+      # qu'un autre outil lit le fichier.
+      tmp=$(mktemp "$(dirname "$PRIVATE")/.private.XXXXXX")
+      if jq '{autoMode}' <<<"$in" >"$tmp"; then mv -f "$tmp" "$PRIVATE"; else rm -f "$tmp"; fi
+    fi
+    jq 'del(.autoMode)' <<<"$in"
+    ;;
+  smudge)
+    in=$(cat)
+    if [[ -f $PRIVATE ]] && ! has_automode "$in"; then
+      jq -s '.[0] * .[1]' <(printf '%s' "$in") "$PRIVATE"
+    else
+      printf '%s' "$in"
+    fi
+    ;;
+  *)
+    echo "usage: claude-settings-filter clean|smudge" >&2
+    exit 2
+    ;;
+esac

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Filet de sécurité : refuse un commit qui publierait le bloc autoMode de
+# Claude Code sur ce dépôt public.
+#
+# En marche normale il ne se déclenche JAMAIS — le filtre `clean` configuré par
+# install.sh a déjà retiré le bloc avant l'indexation. Il n'existe que pour le
+# cas où ce filtre manque : clone frais sur lequel install.sh n'a pas tourné,
+# `git config` nettoyé à la main, jq cassé.
+set -euo pipefail
+
+file="common/.claude/settings.json"
+
+git diff --cached --name-only --diff-filter=ACM | grep -qx "$file" || exit 0
+
+if git show ":$file" 2>/dev/null | grep -q '"autoMode"'; then
+  cat >&2 <<'MSG'
+
+  ✗ commit refusé : autoMode est présent dans la version indexée de
+    common/.claude/settings.json, et ce dépôt est public.
+
+    Le filtre qui doit le retirer n'est pas configuré. Répare-le avec :
+
+        ./install.sh --no-packages
+
+    puis re-stage le fichier :
+
+        git add common/.claude/settings.json
+
+MSG
+  exit 1
+fi

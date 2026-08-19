@@ -1,0 +1,62 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(fd:*)",
+      "Bash(rg:*)",
+      "Bash(cat:*)",
+      "Bash(bat:*)",
+      "Bash(nvim:*)",
+      "Bash(pnpm:*)",
+      "Bash(npm:*)",
+      "Bash(go:*)",
+      "Read(//home/thewindrunner/.config/nvim/**)",
+      "Read(//home/thewindrunner/.config/nvim/lua/config/**)",
+      "Read(//home/thewindrunner/.config/nvim/lua/plugins/**)",
+      "Read(//home/thewindrunner/.config/anytype/**)",
+      "Read(//home/thewindrunner/todo/**)",
+      "Bash(curl -sf --max-time 2 http://localhost:31009/v1)"
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh",
+    "refreshInterval": 30
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f CLAUDE.md ] && cat CLAUDE.md || true",
+            "statusMessage": "Loading project instructions"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "figma@claude-plugins-official": true,
+    "vercel@claude-plugins-official": true,
+    "diagram-design@diagram-design": true
+  },
+  "extraKnownMarketplaces": {
+    "diagram-design": {
+      "source": {
+        "source": "github",
+        "repo": "cathrynlavery/diagram-design"
+      }
+    }
+  },
+  "effortLevel": "high",
+  "tui": "fullscreen",
+  "theme": "dark-ansi",
+  "editorMode": "vim",
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true
+}

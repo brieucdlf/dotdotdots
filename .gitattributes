@@ -1,0 +1,13 @@
+# Ce dépôt est PUBLIC. Le settings.json de Claude Code contient un bloc
+# `autoMode.environment` qui décrit l'environnement de travail (dépôt privé,
+# bases Notion, politique de traitement des données personnelles) : il n'a rien
+# à faire sur GitHub, mais on veut quand même suivre le reste du fichier.
+#
+# Le filtre `clean` retire ce bloc au moment de l'indexation ; la copie de
+# travail, elle, le garde intact. git applique aussi le filtre lors du `diff`,
+# donc le fichier n'apparaît pas éternellement « modifié ».
+#
+# Le filtre est configuré par install.sh (filter.claude-settings.*, avec
+# `required = true` pour qu'une absence de jq échoue bruyamment au lieu de
+# committer le fichier brut). Le hook .githooks/pre-commit sert de filet.
+common/.claude/settings.json filter=claude-settings

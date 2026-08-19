@@ -7,6 +7,11 @@ common/.config/zed/.env
 # claude code session files
 .claude/settings.local.json
 
+# bloc autoMode de Claude Code : contexte de travail (dépôt privé, bases Notion,
+# données personnelles) extrait par le filtre git — ne doit jamais être committé.
+# Voir .gitattributes et .githooks/claude-settings-filter.
+common/.claude/settings.private.json
+
 # tmux plugins (installés par tpm au bootstrap)
 common/.config/tmux/plugins
 tmux-client*.log

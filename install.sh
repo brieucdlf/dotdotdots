@@ -48,7 +48,7 @@ bootstrap_popos() {
   say "paquets apt"
   sudo apt-get update -qq
   sudo apt-get install -y --no-install-recommends \
-    stow tmux git curl unzip fontconfig ca-certificates
+    stow tmux git curl unzip fontconfig ca-certificates jq python3
 
   # Erlang est compilé depuis les sources par mise (kerl) : sans ces headers,
   # le configure échoue sur "No curses library functions found" et entraîne
@@ -68,7 +68,7 @@ bootstrap_popos() {
 
 bootstrap_omarchy() {
   say "paquets pacman"
-  sudo pacman -S --needed --noconfirm stow
+  sudo pacman -S --needed --noconfirm stow jq python
   have mise || sudo pacman -S --needed --noconfirm mise
   # ghostty, tmux, la police et le reste sont déjà fournis par Omarchy.
 }
@@ -120,6 +120,25 @@ else
 fi
 
 have stow || { echo "stow est requis" >&2; exit 1; }
+
+# ── config git du dépôt (filtre de confidentialité + hooks) ──────────────────
+# Le dépôt est public et common/.claude/settings.json porte un bloc
+# autoMode.environment décrivant l'environnement de travail. Le filtre `clean`
+# le retire à l'indexation ; la copie de travail le garde. Voir .gitattributes.
+#
+# `required = true` n'est pas décoratif : sans lui, un jq absent ou en erreur
+# fait SILENCIEUSEMENT retomber git sur le contenu brut — le bloc partirait sur
+# GitHub sans un mot. Avec, git refuse d'indexer plutôt que de publier.
+setup_git_hygiene() {
+  have jq || warn "jq absent : le filtre de confidentialité bloquera les commits (voulu)"
+  git -C "$ROOT" config filter.claude-settings.clean ".githooks/claude-settings-filter clean"
+  git -C "$ROOT" config filter.claude-settings.smudge ".githooks/claude-settings-filter smudge"
+  git -C "$ROOT" config filter.claude-settings.required true
+  git -C "$ROOT" config core.hooksPath .githooks
+  say "filtre git de confidentialité configuré"
+}
+
+[[ -d "$ROOT/.git" ]] && setup_git_hygiene
 
 # ── migration depuis l'ancien layout plat ────────────────────────────────────
 # Avant e91b366 le dépôt ÉTAIT le paquet stow : tout vivait dans $ROOT/.config.
@@ -188,6 +207,7 @@ prune_dead_repo_links() {
   done < <(
     find "$HOME" -maxdepth 1 -type l -print0 2>/dev/null
     find "$HOME/.config" "$HOME/.local/bin" -maxdepth 4 -type l -print0 2>/dev/null
+    find "$HOME/.claude" -maxdepth 3 -type l -print0 2>/dev/null
   )
   [[ $n -gt 0 ]] && say "$n lien(s) mort(s) de l'ancienne config retiré(s)"
   return 0
@@ -275,6 +295,30 @@ backup_conflicts() {
   done < <(find "$pkgdir" -type f -print0)
 }
 
+# ── reprise du settings.json de Claude Code ──────────────────────────────────
+# Claude Code réécrit ~/.claude/settings.json tout seul (thème, effort, plugins
+# activés). S'il le fait en temp + rename — comme cosmic-settings, voir
+# post_popos — le lien posé par stow devient un vrai fichier et la synchro
+# s'arrête SANS RIEN DIRE : c'est le pire mode de panne, on ne s'en aperçoit
+# qu'en constatant que la config ne suit plus.
+#
+# Le témoin est indispensable : sans lui, on ne distingue pas « le lien a été
+# écrasé ici » de « première install sur une machine qui a déjà sa config » — et
+# on recopierait la config locale par-dessus celle du dépôt. Le témoin n'existe
+# que si stow est déjà passé sur cette machine.
+STAMP="$HOME/.claude/.dots-stowed"
+
+reclaim_claude_settings() {
+  local live="$HOME/.claude/settings.json" repo="$ROOT/common/.claude/settings.json"
+  [[ -f $repo && -f $STAMP ]] || return 0
+  [[ -f $live && ! -L $live ]] || return 0       # encore un lien : rien à faire
+  cmp -s "$live" "$repo" && return 0
+  cp -f "$live" "$repo"
+  warn "lien ~/.claude/settings.json remplacé par un fichier — contenu récupéré dans le dépôt"
+}
+
+reclaim_claude_settings
+
 backup_conflicts "$ROOT/common"
 backup_conflicts "$ROOT/$PROFILE"
 
@@ -294,6 +338,8 @@ if ! stow --dir="$ROOT" --target="$HOME" --restow common "$PROFILE"; then
   warn "règle le conflit puis relance ./install.sh"
   exit 1
 fi
+
+[[ -d "$ROOT/common/.claude" ]] && touch "$STAMP"
 
 # ── thème ────────────────────────────────────────────────────────────────────
 say "rendu du thème"
