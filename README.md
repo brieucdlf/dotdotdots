@@ -280,6 +280,7 @@ Quand le pane a le focus, la liste est navigable :
 | `j` / `k`, `↑` / `↓`, molette | déplacer la sélection (`▸`) |
 | `Entrée` | sauter sur l'agent |
 | clic | sélectionner ; re-cliquer la ligne déjà sélectionnée saute |
+| `Suppr` | arrêter l'agent — **deux fois**, voir plus bas |
 | `q` | fermer le panneau |
 
 Sauter essaie trois pistes, dans l'ordre :
@@ -362,6 +363,19 @@ hoquet de lecture.
 
 `q` pose le même drapeau `@claude_panel_off` qu'une fermeture par `prefix + a` :
 fermer, c'est fermer, quel que soit le chemin emprunté.
+
+**Arrêter un agent** demande deux `Suppr` : le premier arme et colore la ligne
+en rouge, le second confirme. L'armement expire au bout de 5 s, et tout
+déplacement le lève — la confirmation ne vaut que pour la ligne visée, jamais
+pour celle où l'on vient d'arriver. Un délai minimum de 0,3 s sépare les deux :
+sans lui, une touche maintenue enfoncée armerait et confirmerait dans la même
+rafale de répétition automatique.
+
+Deux chemins d'arrêt selon la nature de l'agent. Un agent background détaché
+passe par `claude stop`, qui **conserve la conversation** — elle reste
+reprenable par `claude attach`. Une session vivante reçoit un `SIGTERM` : elle
+se ferme proprement et ses hooks `SessionEnd` partent, donc le panneau de sa
+fenêtre se referme tout seul.
 
 Le repli **redimensionne** au lieu de tuer : le processus survit, donc pas de
 rescan, et le rendu bascule tout seul en compact sous 14 colonnes. Un SIGWINCH
