@@ -87,6 +87,23 @@ tw=2;38;2;$(rgb "$(get color9)"):\\
 tx=2;38;2;$(rgb "$(get color10)")"
 EOF
 
+# --- palette brute ----------------------------------------------------------
+# colors.sh n'expose que FZF_DEFAULT_OPTS et EZA_COLORS, déjà mis en forme.
+# Tout script qui veut dessiner (claude-panel) a besoin des couleurs elles-mêmes.
+# Fichier séparé et non fusionné dans colors.sh : celui-ci est sourcé par chaque
+# shell, inutile d'y injecter vingt variables pour un seul consommateur.
+{
+  echo "#!/bin/bash"
+  echo "# généré par theme/render.sh depuis $THEME/colors.toml — ne pas éditer"
+  for k in accent cursor foreground background selection_foreground \
+           selection_background border_inactive statusbar_bg; do
+    printf 'export THEME_%s="%s"\n' "$(echo "$k" | tr '[:lower:]' '[:upper:]')" "$(get "$k")"
+  done
+  for i in {0..15}; do
+    printf 'export THEME_COLOR%d="%s"\n' "$i" "$(get "color$i")"
+  done
+} >"$OUT/palette.sh"
+
 # --- tmux -------------------------------------------------------------------
 cat >"$OUT/tmux.conf" <<EOF
 # généré par theme/render.sh depuis $THEME/colors.toml — ne pas éditer
