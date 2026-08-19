@@ -417,7 +417,7 @@ un bandeau « tout va bien » permanent occupe la place de ce qui compte.
 
 | Déclencheur | Conseil |
 |---|---|
-| contexte ≥ 70 % **et** tour ≥ 0,05 $ (ou contexte ≥ 90 %) | `/compact`, avec le coût par tour évité |
+| contexte ≥ 60 % **et** tour ≥ 0,05 $ (ou contexte ≥ 90 %) | `/compact`, avec le coût par tour évité |
 | quota 5 h ≥ 75 % | passer sur un modèle plus léger, avec l'heure de reset |
 | quota 7 j ≥ 85 % | lever le pied jusqu'au reset |
 

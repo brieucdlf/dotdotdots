@@ -861,7 +861,7 @@ def dismiss_window():
 # Seuils au-delà desquels il y a quelque chose à FAIRE. En dessous, la section
 # disparaît : un bandeau « tout va bien » permanent n'apprend rien et occupe la
 # place de ce qui compte.
-CTX_ADVICE = 70             # contexte : au-delà, /compact peut devenir rentable
+CTX_ADVICE = 60             # contexte : au-delà, /compact peut devenir rentable
 TURN_COST_ADVICE = 0.05     # ...mais seulement si le tour coûte vraiment
 QUOTA_5H_ADVICE = 75
 QUOTA_7D_ADVICE = 85
