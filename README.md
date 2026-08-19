@@ -281,11 +281,21 @@ fusionnées, la session vivante l'emportant tout en gardant l'id court pour
 La sélection est mémorisée par `sessionId` et non par position, sinon elle
 sauterait d'un agent à l'autre au moindre changement d'ordre.
 
-**Un agent qui travaille** scintille — `✳ ✽ ✻ ✽` en accent — et sa colonne de
+**Un agent qui travaille** tourne — `⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏` en accent — et sa colonne de
 droite bascule sur la durée du **tour en cours** au lieu de l'âge de la session :
 d'un agent qui tourne, ce qu'on veut savoir c'est depuis combien de temps il
-mouline, pas quand il a démarré. Le panneau rafraîchit alors toutes les 2 s au
-lieu de 5 ; dès que tout le monde se tait, il retourne dormir.
+mouline, pas quand il a démarré.
+
+L'animation est **découplée** du rafraîchissement des données. Les données ne
+sont relues qu'une fois par intervalle ; entre-temps le panneau ne réécrit que
+les caractères d'icône, par positionnement du curseur, à 120 ms. Couplées, les
+deux donnaient une icône qui change toutes les deux secondes — ça se lit comme
+un battement, pas comme un mouvement. Le braille s'impose pour la même raison :
+`✳ ✽ ✻` n'ont pas la même graisse, l'icône grossissait et rétrécissait.
+
+Coût mesuré : 8 réveils par seconde et 0,2 % d'un cœur pendant qu'un agent
+travaille. Sans agent en cours il n'y a aucune image à peindre, et le panneau
+dort d'une traite.
 
 **L'agent de la fenêtre courante** porte l'accent et gagne une ligne :
 

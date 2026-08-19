@@ -43,7 +43,6 @@ SESSION_TTL = 3 * 86400     # au-delà, la session n'existe plus : on purge
 
 COMPACT_UNDER = 14          # en dessous, rendu replié
 DEFAULT_WIDTH = 44          # hors tmux ou si la largeur est illisible
-BUSY_INTERVAL = 2           # rafraîchissement quand au moins un agent travaille
 RETENTION_DAYS = 8
 
 # $ par million de tokens. Multiplicateurs de cache de l'API : lecture 0.1x le
@@ -304,9 +303,11 @@ STATE_STYLE = {
 STATE_ORDER = {"blocked": 0, "working": 1, "busy": 1, "idle": 2,
                "failed": 3, "done": 4, "stopped": 5}
 WORKING = ("working", "busy")
-# Scintillement plutôt que rotation : la famille de glyphes du panneau est déjà
-# ✽ ✻ ∙ ∘, une roue braille jurerait.
-SPINNER = ("✳", "✽", "✻", "✽")
+# Braille : tous les motifs ont le même encombrement, donc ça tourne au lieu de
+# battre. Les glyphes ✳/✽/✻ n'ont pas la même graisse — animés, ils donnaient
+# une icône qui grossit et rétrécit.
+SPINNER = ("⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏")
+SPIN_PERIOD = 0.12          # une image toutes les 120 ms
 TICK = 0
 
 
@@ -333,10 +334,10 @@ def render_agents(agents, note, width, selected, current):
     """
     count = str(len(agents))
     head = f"{C_TITLE}{BOLD} AGENTS{RESET}{C_DIM}{count:>{max(1, width - 8)}}{RESET}"
-    lines, rows = [head], {}
+    lines, rows, cells = [head], {}, []
     if not agents:
         lines.append(f"   {C_MUTED}aucune session{RESET}")
-        return lines, rows
+        return lines, rows, cells
     if note:
         lines.append(f"   {C_MUTED}{note}{RESET}")
 
@@ -376,6 +377,9 @@ def render_agents(agents, note, width, selected, current):
         head = (f"{color} {'▸' if sel else ' '} {icon_style}{icon}{RESET} "
                 f"{name_style}{trunc(name, avail)}{RESET}")
         rows[len(lines)] = i
+        if busy:
+            # Colonne visible de l'icône dans « ␣▸␣✽ » : la 4e (base 1).
+            cells.append((len(lines) + 1, 4))
         lines.append(f"{pad(head, width - len(right) - 2)}"
                      f"{right_style}{right}{RESET} ")
         if here:
@@ -398,7 +402,7 @@ def render_agents(agents, note, width, selected, current):
         if st == "blocked" and a.get("detail"):
             rows[len(lines)] = i          # cliquer le détail vise le même agent
             lines.append(f"      {C_MUTED}{trunc(a['detail'], width - 8)}{RESET}")
-    return lines, rows
+    return lines, rows, cells
 
 
 # ── quota (écrit par la statusline) ─────────────────────────────────────────
@@ -731,28 +735,30 @@ def frame_full(width, force_cli, selected):
     current = current_id(agents)
     out = [f"{C_TITLE}{BOLD} CLAUDE{RESET}"
            f"{C_DIM}{datetime.now().strftime('%H:%M'):>{max(0, width - 8)}}{RESET}", ""]
-    agent_lines, rows = render_agents(agents, note, width, selected, current)
+    agent_lines, rows, cells = render_agents(agents, note, width, selected, current)
     rows = {k + len(out): v for k, v in rows.items()}
+    cells = [(row + len(out), col) for row, col in cells]
     out.extend(agent_lines)
     for section in ("", render_quota(width), "", render_usage(scan_usage(), width)):
         if section == "":
             out.append("")
         else:
             out.extend(section)
-    return out, rows, agents, note
+    return out, rows, agents, note, cells
 
 
 def frame_compact(width, force_cli, _selected):
     """Rendu replié : une colonne d'icônes d'état, le total, puis les quotas.
     Ni noms ni coûts — à cinq colonnes, tout ce qui est tronqué est du bruit."""
     agents, note = sorted_agents(force_cli)
-    out, rows = [""], {}
+    out, rows, cells = [""], {}, []
     for i, a in enumerate(agents[:8]):
         icon, color, _ = STATE_STYLE.get(agent_state(a), ("·", C_MUTED, ""))
         if a.get("kind") == "background" and not a.get("pid"):
             icon = "∘"
         if is_working(a):
             icon, color = SPINNER[TICK % len(SPINNER)], C_TITLE
+            cells.append((len(out) + 1, 2))    # « ␣✽ » : 2e colonne
         rows[len(out)] = i
         out.append(f" {color}{icon}{RESET}")
     out.append(f" {C_DIM}{len(agents)}{RESET}")
@@ -767,7 +773,7 @@ def frame_compact(width, force_cli, _selected):
         color = C_MUTED if stale else tint(pct)
         out.append(f" {C_MUTED}{label}{RESET}")
         out.append(f"{color}{pct:>3}%{RESET}")
-    return out, rows, agents, note
+    return out, rows, agents, note, cells
 
 
 # ── entrées ─────────────────────────────────────────────────────────────────
@@ -898,16 +904,35 @@ def draw(once, override, force_cli, selected):
     width = term_width(override)
     try:
         render = frame_compact if width < COMPACT_UNDER else frame_full
-        lines, rows, agents, note = render(width, force_cli, selected)
+        lines, rows, agents, note, cells = render(width, force_cli, selected)
     except Exception as exc:                       # le pane ne doit jamais mourir
-        lines, rows, agents, note = [f"{C_ALERT}claude-panel: {exc}{RESET}"], {}, [], "?"
+        lines, rows, agents, note, cells = (
+            [f"{C_ALERT}claude-panel: {exc}{RESET}"], {}, [], "?", [])
     body = "\n".join(line + "\033[K" for line in lines)
     sys.stdout.write(("" if once else "\033[H") + body + "\033[J\n")
     sys.stdout.flush()
     # None = indécidable (source muette ou hors tmux) : on ne se ferme pas sur
     # un doute.
     here = None if (note or own_window() is None) else bool(current_id(agents))
-    return rows, agents, here
+    return rows, agents, here, cells
+
+
+def spin(cells):
+    """Avance l'animation en ne réécrivant QUE les caractères d'icône.
+
+    Découplé du rafraîchissement des données : une image toutes les 120 ms
+    coûte une poignée d'octets, là où un rendu complet coûte ~27 ms de lecture
+    de fichiers. C'est ce couplage qui donnait une icône battant lentement au
+    lieu de tourner.
+    """
+    global TICK
+    TICK += 1
+    frame = SPINNER[TICK % len(SPINNER)]
+    out = "".join(f"\033[{row};{col}H{BOLD}{C_TITLE}{frame}{RESET}"
+                  for row, col in cells)
+    if out:
+        sys.stdout.write(out)
+        sys.stdout.flush()
 
 
 def apply_event(kind, row, rows, agents, selected):
@@ -962,7 +987,7 @@ def main():
         sys.stdout.write("\033[?25l")              # curseur caché
         try:
             while running:
-                rows, agents, here = draw(False, override, force_cli, selected)
+                rows, agents, here, cells = draw(False, override, force_cli, selected)
                 # Un Claude tué brutalement (kill -9, crash, pane fermé) ne
                 # déclenche aucun SessionEnd : sans ça, le panneau resterait
                 # ouvert dans une fenêtre qui n'a plus rien à montrer. Trois
@@ -970,17 +995,24 @@ def main():
                 orphan = orphan + 1 if here is False else 0
                 if orphan >= 3:
                     break
-                # Cadence adaptative : tant qu'un agent travaille, le
-                # scintillement doit se voir et le compteur du tour avancer.
-                # Le reste du temps, rien ne bouge, autant dormir.
-                tick = min(interval, BUSY_INTERVAL) if any(
-                    is_working(a) for a in agents) else interval
-                for kind, row in wait_events(tick):
-                    selected, running = apply_event(
-                        kind, row, rows, agents, selected)
-                    if not running:
-                        quit_asked = True
+                # Les données ne sont relues qu'une fois par intervalle ;
+                # entre-temps on ne fait qu'avancer l'animation. Sans agent en
+                # cours, aucune image à peindre : on dort d'une traite.
+                end = time.time() + interval
+                while running:
+                    left = end - time.time()
+                    if left <= 0:
                         break
+                    events = wait_events(min(left, SPIN_PERIOD) if cells else left)
+                    if events:
+                        for kind, row in events:
+                            selected, running = apply_event(
+                                kind, row, rows, agents, selected)
+                            if not running:
+                                quit_asked = True
+                        break
+                    if cells:
+                        spin(cells)
         except KeyboardInterrupt:
             pass
         finally:
