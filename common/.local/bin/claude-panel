@@ -275,20 +275,55 @@ def agent_window(a):
     return found[0] if found else None
 
 
+META_STALE = 900            # au-delà, les chiffres décrivent un passé lointain
+
+
 def session_meta(sid):
-    """Modèle, effort, coût et contexte, déposés par la statusline — ces deux
-    derniers ne sont calculés que côté client, aucun fichier de session ne les
-    porte."""
+    """(méta, périmée) — déposées par la statusline. Le coût, le contexte et le
+    numéro de PR ne sont connus que du client, aucun fichier de session ne les
+    porte.
+
+    La statusline n'écrit que lorsqu'une session rafraîchit sa ligne : une
+    session endormie depuis une heure a des chiffres figés. On les rend, mais
+    marqués, plutôt que de les afficher comme frais.
+    """
     if not sid:
-        return {}
+        return {}, False
     path = SESSION_CACHE / f"{sid}.json"
     try:
-        if time.time() - path.stat().st_mtime > SESSION_TTL:
+        age = time.time() - path.stat().st_mtime
+        if age > SESSION_TTL:
             path.unlink(missing_ok=True)
-            return {}
-        return json.loads(path.read_text())
+            return {}, False
+        return json.loads(path.read_text()), age > META_STALE
     except (OSError, ValueError):
-        return {}
+        return {}, False
+
+
+_BRANCHES = {}
+
+
+def branch_of(cwd):
+    """Branche git du dossier d'un agent, mémorisée 30 s.
+
+    Appelée seulement pour les agents détaillés (courant, sélectionné), donc
+    un ou deux `git` par rafraîchissement au pire.
+    """
+    if not cwd:
+        return ""
+    hit = _BRANCHES.get(cwd)
+    if hit and hit[0] > time.time():
+        return hit[1]
+    name = ""
+    try:
+        r = subprocess.run(["git", "-C", cwd, "branch", "--show-current"],
+                           capture_output=True, text=True, timeout=2)
+        if r.returncode == 0:
+            name = r.stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        pass
+    _BRANCHES[cwd] = (time.time() + 30, name)
+    return name
 
 
 STATE_STYLE = {
@@ -354,20 +389,27 @@ def render_agents(agents, note, width, selected, current):
         if a.get("kind") == "background" and not a.get("pid"):
             icon = "∘"
         busy = is_working(a)
+        meta, stale = session_meta(a.get("sessionId"))
         if busy:
-            # Le temps du TOUR en cours, pas l'âge de la session : c'est ce
-            # qu'on veut savoir d'un agent qui travaille.
             icon = SPINNER[TICK % len(SPINNER)]
-            right = human_age(a.get("since") or a.get("startedAt"))
-            right_style = C_TITLE
-        else:
-            right = human_age(a.get("startedAt"))
-            right_style = C_DIM
+        # Toujours le temps écoulé depuis le dernier CHANGEMENT D'ÉTAT, jamais
+        # l'âge de la session : « travaille depuis 2m » et « inactif depuis 3h »
+        # se décident, « démarré il y a 4h » n'apprend rien.
+        dur = human_age(a.get("since") or a.get("startedAt"))
+        segments = []
+        ctx = meta.get("ctx")
+        if ctx is not None and not label:
+            # Une session à 85 % va compacter et perdre son historique sans
+            # prévenir : c'est le chiffre qui mérite d'être scannable.
+            segments.append((f"{int(ctx)}%", C_MUTED if stale else tint(int(ctx))))
+        segments.append((dur, C_TITLE if busy else C_DIM))
         if label:
-            right += f"  {label}"
+            segments.append((label, C_WARN))
+        right_raw = "  ".join(t for t, _ in segments)
+        right = "  ".join(f"{c}{t}{RESET}" for t, c in segments)
         sel = a.get("sessionId") and a.get("sessionId") == selected
         here = current and a.get("sessionId") == current
-        avail = max(8, width - len(right) - 8)
+        avail = max(8, width - len(right_raw) - 8)
         # Deux signaux sur deux éléments distincts : l'agent d'ici porte
         # l'accent sur son NOM, celui qui travaille anime son ICÔNE. Les cumuler
         # sur le même élément les rendrait indistinguables.
@@ -380,23 +422,31 @@ def render_agents(agents, note, width, selected, current):
         if busy:
             # Colonne visible de l'icône dans « ␣▸␣✽ » : la 4e (base 1).
             cells.append((len(lines) + 1, 4))
-        lines.append(f"{pad(head, width - len(right) - 2)}"
-                     f"{right_style}{right}{RESET} ")
-        if here:
-            meta = session_meta(a.get("sessionId"))
-            # « Opus 5 (1M context) » mange la place du coût : la précision
-            # entre parenthèses ne dit rien qu'on ne sache déjà.
-            model = (meta.get("model") or "").split(" (")[0]
-            bits = [model, meta.get("effort")]
-            if meta.get("ctx") is not None:
-                bits.append(f"{int(meta['ctx'])}% ctx")
+        lines.append(f"{pad(head, width - len(right_raw) - 2)}{right} ")
+        # Détail pour l'agent d'ici ET pour celui qu'on pointe : deux lignes
+        # courtes plutôt qu'une longue tronquée — une branche tronquée devient
+        # trompeuse.
+        if here or sel:
+            tone = C_MUTED if stale else C_INFO
+            # « Opus 5 (1M context) » : la parenthèse ne dit rien qu'on ne sache.
+            bits = [(meta.get("model") or "").split(" (")[0], meta.get("effort")]
             if meta.get("cost"):
                 bits.append(f"~{meta['cost']:.2f} $")
+            if stale:
+                bits.append("périmé")
             bits = [b for b in bits if b]
-            rows[len(lines)] = i
-            lines.append(f"     {C_INFO}{trunc(' · '.join(bits), width - 6)}{RESET}"
-                         if bits else
-                         f"     {C_MUTED}en attente de la statusline{RESET}")
+            if bits:
+                rows[len(lines)] = i
+                lines.append(f"     {tone}{trunc(' · '.join(bits), width - 6)}{RESET}")
+            elif here:
+                rows[len(lines)] = i
+                lines.append(f"     {C_MUTED}en attente de la statusline{RESET}")
+
+            loc = [b for b in (branch_of(a.get("cwd")),
+                               f"#{meta['pr']}" if meta.get("pr") else "") if b]
+            if loc:
+                rows[len(lines)] = i
+                lines.append(f"     {C_MUTED}{trunc(' · '.join(loc), width - 6)}{RESET}")
         # « bloqué » tout seul ne dit pas ce qu'on attend de toi. Le détail
         # n'est affiché que là, et seulement là : ailleurs il ferait du bruit.
         if st == "blocked" and a.get("detail"):

@@ -302,12 +302,32 @@ Coût mesuré : 8 réveils par seconde et 0,2 % d'un cœur pendant qu'un agent
 travaille. Sans agent en cours il n'y a aucune image à peindre, et le panneau
 dort d'une traite.
 
-**L'agent de la fenêtre courante** porte l'accent et gagne une ligne :
+**Le contexte de chaque agent** est en colonne de droite, à côté de la durée.
+C'est le chiffre qui mérite d'être scannable : une session à 85 % va compacter
+et perdre son historique sans prévenir. Il vire au jaune puis au rouge.
+
+La durée n'est jamais l'âge de la session mais le temps écoulé depuis le
+**dernier changement d'état** : « travaille depuis 2m » et « inactif depuis 3h »
+se décident, « démarré il y a 4h » n'apprend rien.
+
+**L'agent de la fenêtre courante** — et celui que tu pointes — portent l'accent
+et gagnent deux lignes de détail :
 
 ```
-   ⠹ dotfiles-setup                     3h
-     Opus 5 · high · 37% ctx · ~4.20 $
+   ⠹ dotfiles-setup                48%  2m
+     Opus 5 · high · ~46.89 $
+     feat/claude-code · #115
 ```
+
+Deux lignes courtes plutôt qu'une longue tronquée : une branche coupée en
+plein milieu devient trompeuse. La branche vient d'un `git` par dossier,
+mémorisé 30 s et appelé seulement pour les agents détaillés — un ou deux par
+rafraîchissement au pire. Le numéro de PR vient de `pr.number`, que seule la
+statusline reçoit.
+
+La statusline n'écrit que lorsqu'une session rafraîchit sa ligne : une session
+endormie depuis une heure a des chiffres figés. Ils sont alors marqués
+`périmé` et grisés, jamais présentés comme frais.
 
 Deux signaux sur deux éléments distincts : l'agent d'ici porte l'accent sur son
 **nom**, celui qui travaille anime son **icône**. Les cumuler sur le même
