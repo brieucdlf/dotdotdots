@@ -203,11 +203,33 @@ pas cette protection** : le hook `pre-commit` est là pour ce cas.
 
 ### Le panneau
 
-`prefix + a` cycle sur trois états :
+Le panneau n'existe que dans les fenêtres tmux qui font tourner Claude Code. Il
+s'ouvre et se ferme tout seul : les hooks `SessionStart` et `SessionEnd`
+appellent `tmux-claude-panel`, qui réconcilie **toutes** les fenêtres avec les
+sessions vivantes. Une fenêtre `docker` ou `npm` n'en verra jamais.
+
+La détection ne devine rien : chaque session Claude écrit son emplacement dans
+`~/.claude/sessions/<pid>.json`, au format `session:@fenêtre.%pane`. Le script
+lit ce champ et vérifie que le pid vit encore.
+
+`prefix + a` reste la commande manuelle, et cycle sur trois états :
 
 ```
 fermé  ──▶  large (34 col)  ──▶  replié (5 col)  ──▶  fermé
 ```
+
+Dans une fenêtre sans session Claude, il refuse et le dit. Fermer à la main pose
+une option de fenêtre `@claude_panel_off` : sans elle, le premier hook venu
+rouvrirait le panneau et « fermer » ne voudrait rien dire. Le drapeau vit le
+temps de la fenêtre ; `prefix + a` le lève.
+
+Deux détails qui évitent des faux positifs : à `SessionStart` le fichier de
+session n'est pas forcément encore écrit, donc le hook fait compter d'office son
+propre pane ; à `SessionEnd` le processus est encore vivant, donc le hook exclut
+la session qui se termine — sinon elle se compterait elle-même et le panneau
+resterait. Comme `SessionEnd` part aussi pour les sous-agents, l'exclusion porte
+sur le `session_id` et non sur le pane : exclure un sous-agent ne retire rien, la
+session parente tient le panneau ouvert.
 
 ```
  AGENTS                    4          ∘

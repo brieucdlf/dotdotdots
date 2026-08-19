@@ -1,37 +1,127 @@
 #!/usr/bin/env bash
-# Cycle le panneau Claude à gauche de la fenêtre tmux courante.
-# Lié à prefix + a (voir ~/.config/tmux/tmux.conf).
+# Panneau Claude à gauche — présent UNIQUEMENT dans les fenêtres tmux qui font
+# tourner une session Claude Code.
 #
-#   fermé  ──▶  large (34 col)  ──▶  replié (5 col)  ──▶  fermé
+#   toggle       cycle manuel (prefix + a) : large ──▶ replié ──▶ fermé
+#   sync         réconcilie toutes les fenêtres avec les sessions vivantes
+#   hook-start   appelé par le hook SessionStart de Claude Code
+#   hook-end     appelé par le hook SessionEnd
+#
+# La détection ne devine rien : chaque session Claude écrit son emplacement
+# tmux dans ~/.claude/sessions/<pid>.json, au format « session:@fenêtre.%pane ».
+# On lit ce champ, on vérifie que le pid vit encore, et on en déduit les
+# fenêtres qui méritent un panneau.
 #
 # Le repli REDIMENSIONNE au lieu de tuer : le processus survit, donc pas de
-# redémarrage ni de rescan, et claude-panel bascule tout seul en rendu compact
-# (icônes d'état + quota) sous 14 colonnes. Un SIGWINCH le réveille aussitôt,
-# sans attendre le tick suivant.
+# rescan, et claude-panel bascule seul en rendu compact sous 14 colonnes.
 set -euo pipefail
 
 WIDE=34
 FOLD=5
+PANEL="$HOME/.local/bin/claude-panel"
+TITLE=claude-panel
+# Option de fenêtre posée quand tu fermes le panneau à la main : sans elle, le
+# premier hook venu le rouvrirait aussitôt et « fermer » ne voudrait rien dire.
+OPTOFF=@claude_panel_off
 
-[[ -n ${TMUX:-} ]] || { echo "tmux-claude-panel: hors tmux" >&2; exit 1; }
+[[ -n ${TMUX:-} ]] || exit 0        # hors tmux (VS Code, web, -p) : rien à faire
 
-# Le pane est repéré par son TITRE et non par un index : le titre survit aux
-# redimensionnements, aux déplacements et à l'ouverture d'autres splits.
-id=$(tmux list-panes -F '#{pane_id} #{pane_title}' \
-  | awk '$2 == "claude-panel" { print $1; exit }')
+# ── inventaire ──────────────────────────────────────────────────────────────
 
-if [[ -z $id ]]; then
-  # Chemin absolu : `tmux run-shell` n'hérite pas forcément d'un PATH contenant
-  # ~/.local/bin, et un « command not found » fermerait le pane aussitôt ouvert.
-  id=$(tmux split-window -hb -l "$WIDE" -d -P -F '#{pane_id}' \
-    "$HOME/.local/bin/claude-panel")
-  tmux select-pane -t "$id" -T claude-panel
-  exit 0
-fi
+# Émet « @fenêtre %pane sessionId » pour chaque session Claude vivante.
+claude_panes() {
+  local f pid loc sid
+  for f in "$HOME"/.claude/sessions/*.json; do
+    [[ -f $f ]] || continue
+    pid=$(jq -r '.pid // empty' "$f" 2>/dev/null) || continue
+    [[ -n $pid ]] && kill -0 "$pid" 2>/dev/null || continue
+    loc=$(jq -r '.tmux // empty' "$f" 2>/dev/null)
+    [[ $loc == *:@*.%* ]] || continue          # pas dans tmux, ou format inconnu
+    sid=$(jq -r '.sessionId // empty' "$f" 2>/dev/null)
+    loc=${loc#*:}                              # « @2.%5 »
+    printf '%s %s %s\n' "${loc%%.*}" "${loc#*.}" "$sid"
+  done
+}
 
-width=$(tmux display-message -p -t "$id" '#{pane_width}')
-if (( width > FOLD + 2 )); then
-  tmux resize-pane -t "$id" -x "$FOLD"
-else
-  tmux kill-pane -t "$id"
-fi
+panel_of() {                                   # $1 = @fenêtre -> %pane ou vide
+  tmux list-panes -t "$1" -F '#{pane_id} #{pane_title}' 2>/dev/null \
+    | awk -v t="$TITLE" '$2 == t { print $1; exit }'
+}
+
+window_of() {                                  # $1 = %pane -> @fenêtre
+  tmux display-message -p -t "$1" '#{window_id}' 2>/dev/null || true
+}
+
+dismissed() { [[ $(tmux show-options -wqv -t "$1" "$OPTOFF" 2>/dev/null) == 1 ]]; }
+
+open_in() {
+  local id
+  # Chemin absolu : `tmux run-shell` et les hooks n'héritent pas forcément d'un
+  # PATH contenant ~/.local/bin, et un « command not found » fermerait le pane
+  # aussitôt ouvert.
+  id=$(tmux split-window -hb -l "$WIDE" -d -P -F '#{pane_id}' -t "$1" "$PANEL")
+  tmux select-pane -t "$id" -T "$TITLE"
+}
+
+# ── réconciliation ──────────────────────────────────────────────────────────
+# $1 : %pane à compter d'office (SessionStart — le fichier de session peut ne
+#      pas encore être écrit quand le hook part)
+# $2 : sessionId à ignorer (SessionEnd — la session s'arrête mais son fichier
+#      est encore là et son processus encore vivant)
+sync_windows() {
+  local force_pane="${1:-}" skip_session="${2:-}"
+  local -A want=()
+  local win pane sid id
+
+  while read -r win pane sid; do
+    [[ -n $skip_session && $sid == "$skip_session" ]] && continue
+    want["$win"]=1
+  done < <(claude_panes)
+
+  if [[ -n $force_pane ]]; then
+    win=$(window_of "$force_pane")
+    [[ -n $win ]] && want["$win"]=1
+  fi
+
+  while read -r win; do
+    id=$(panel_of "$win")
+    if [[ -n ${want[$win]:-} ]]; then
+      [[ -z $id ]] && ! dismissed "$win" && open_in "$win"
+    elif [[ -n $id ]]; then
+      tmux kill-pane -t "$id"
+      tmux set-option -wu -t "$win" "$OPTOFF" 2>/dev/null || true
+    fi
+  done < <(tmux list-windows -a -F '#{window_id}')
+}
+
+# ── commandes ───────────────────────────────────────────────────────────────
+case "${1:-toggle}" in
+  toggle)
+    win=$(tmux display-message -p '#{window_id}')
+    id=$(panel_of "$win")
+    if [[ -z $id ]]; then
+      # Refus hors fenêtre Claude : c'est tout l'intérêt d'un panneau qui ne
+      # s'affiche que là où il a quelque chose à dire.
+      if ! claude_panes | grep -q "^$win "; then
+        tmux display-message "pas de session Claude dans cette fenêtre"
+        exit 0
+      fi
+      tmux set-option -wu -t "$win" "$OPTOFF" 2>/dev/null || true
+      open_in "$win"
+    elif (( $(tmux display-message -p -t "$id" '#{pane_width}') > FOLD + 2 )); then
+      tmux resize-pane -t "$id" -x "$FOLD"
+    else
+      tmux kill-pane -t "$id"
+      tmux set-option -w -t "$win" "$OPTOFF" 1
+    fi
+    ;;
+  sync)       sync_windows ;;
+  hook-start) cat >/dev/null; sync_windows "${TMUX_PANE:-}" ;;
+  hook-end)
+    # Le sessionId arrive sur stdin ; sans l'exclure, la session qui se termine
+    # se compte elle-même (son processus vit encore) et le panneau resterait.
+    sid=$(jq -r '.session_id // empty' 2>/dev/null || true)
+    sync_windows "" "$sid"
+    ;;
+  *) echo "usage: tmux-claude-panel [toggle|sync|hook-start|hook-end]" >&2; exit 2 ;;
+esac

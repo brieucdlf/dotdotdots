@@ -37,6 +37,26 @@
             "statusMessage": "Loading project instructions"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.local/bin/tmux-claude-panel hook-start",
+            "statusMessage": "Panneau tmux"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.local/bin/tmux-claude-panel hook-end",
+            "timeout": 5
+          }
+        ]
       }
     ]
   },
