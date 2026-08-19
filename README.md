@@ -253,10 +253,17 @@ session parente tient le panneau ouvert.
 
  CONSO ────────────────────────────────────
 
-   aujourd'hui     8.1M tok     ~6.40 $
-   7 jours        42.3M tok    ~33.80 $
+   aujourd'hui   ~15.40 $   84k sortie
+   7 jours      ~112.90 $  1.1M sortie
 
-   opus-5          8.1M  ██████████████
+   63% lecture · 22% cache 1h · 13% sortie
+
+   api-platform    45%  █████░░░░░░░
+   mon-projet      23%  ███░░░░░░░░░
+   autre-projet    21%  ███░░░░░░░░░
+
+   opus-5          96%  ████████████
+   fable-5          2%  █░░░░░░░░░░░
 ```
 
 Les titres de section sont prolongés par un filet jusqu'au bord, dans le gris
@@ -369,10 +376,28 @@ affiché sous son nom : « bloqué » tout seul ne dit pas ce qu'on attend de to
 Si l'arborescence n'est pas celle attendue, le panneau repasse par la CLI
 plutôt que d'afficher un vide mensonger (`--cli` force ce chemin).
 
-Les tokens sont agrégés depuis les transcripts, en incrémental — un curseur
+Les usages sont agrégés depuis les transcripts, en incrémental — un curseur
 d'octets par fichier dans `~/.cache/claude-panel/`, sans quoi 169 Mo de JSONL
-seraient relus à chaque rafraîchissement. Le coût affiché est une **estimation**
-locale, pas une facture.
+seraient relus à chaque rafraîchissement. Les seaux sont **heure × projet ×
+modèle**, et le modèle vient de *chaque message*, pas de la session : changer de
+modèle en cours de route est attribué correctement, à la réponse près.
+
+Le chiffre mis en avant est le **coût**, pas le volume, et le volume affiché est
+celui des tokens de **sortie**. La raison tient dans une mesure : 98 % des
+tokens sont de la lecture de cache, qui ne pèse que 63 % de la note. Un compteur
+de tokens brut suit les relectures de contexte, pas le travail produit — et
+classer les projets par volume désignerait le mauvais coupable. Les trois
+ventilations (poste de coût, projet, modèle) sont donc **en coût**, sur 7 jours,
+une seule journée étant trop bruitée pour qu'un classement veuille dire
+quelque chose.
+
+Le nom lisible d'un projet vient du `cwd` des entrées : le dossier de transcript
+est un chemin encodé dont on ne peut pas redéduire le nom, les tirets du chemin
+et ceux des dossiers s'y confondent.
+
+Le coût reste une **estimation** locale, pas une facture : la table de tarifs
+est codée en dur, un modèle inconnu compte ses tokens sans être chiffré. Sur
+abonnement, c'est le bloc QUOTA qui contraint réellement.
 
 Le quota et le coût ne s'inventent pas : `rate_limits`, `cost.total_cost_usd` et
 `context_window.used_percentage` ne sont exposés qu'au stdin de la statusline.

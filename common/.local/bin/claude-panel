@@ -144,8 +144,12 @@ def human_age(started_ms):
 
 
 def bar(pct, width=10):
-    filled = max(0, min(width, round(pct / 100 * width)))
-    return "█" * filled + "░" * (width - filled)
+    filled = min(width, round(pct / 100 * width))
+    # Une part non nulle mérite au moins un bloc : sans ça 2 % et 0 % donnent
+    # la même barre vide, et le classement ne veut plus rien dire.
+    if pct > 0:
+        filled = max(1, filled)
+    return "█" * max(0, filled) + "░" * (width - max(0, filled))
 
 
 def visible_len(s):
@@ -531,27 +535,35 @@ def price(model):
 def load_cache():
     try:
         d = json.loads(USAGE_CACHE.read_text())
-        if d.get("version") == 1:
+        if d.get("version") == 2:
             # Les clés de dédup sont sérialisées en liste mais interrogées des
             # milliers de fois par passage : en set, la recherche est en O(1).
             d["seen"] = {k: set(v) for k, v in d["seen"].items()}
             return d
     except (OSError, ValueError, AttributeError):
         pass
-    return {"version": 1, "cursors": {}, "hours": {}, "seen": {}}
+    # Schéma inconnu ou périmé : on repart de zéro plutôt que de mélanger deux
+    # formes. Le cache se reconstruit en une passe sur les 8 derniers jours.
+    return {"version": 2, "cursors": {}, "hours": {}, "seen": {}, "names": {}}
 
 
 def scan_usage():
     """Agrège les usages des transcripts. Incrémental : un curseur d'octets par
     fichier, seuls les fichiers qui ont grandi sont relus. Sans ça, 169 Mo de
-    JSONL seraient reparcourus à chaque rafraîchissement."""
+    JSONL seraient reparcourus à chaque rafraîchissement.
+
+    Les seaux sont heure × projet × modèle. Le modèle vient de CHAQUE message,
+    pas de la session : changer de modèle en cours de route est donc attribué
+    correctement, à la réponse près.
+    """
     cache = load_cache()
     cursors, hours, seen = cache["cursors"], cache["hours"], cache["seen"]
+    names = cache.setdefault("names", {})
     cutoff = datetime.now() - timedelta(days=RETENTION_DAYS)
     dirty = False
 
     for path in (CLAUDE / "projects").glob("*/*.jsonl"):
-        key = str(path)
+        key, project = str(path), path.parent.name
         try:
             stat = path.stat()
         except OSError:
@@ -590,6 +602,11 @@ def scan_usage():
                 e = json.loads(raw)
             except ValueError:
                 continue
+            # Le dossier de projet est un chemin encodé dont on ne peut pas
+            # redéduire le nom (les tirets du chemin et ceux des dossiers se
+            # confondent) : on prend le cwd, que chaque entrée porte.
+            if e.get("cwd") and project not in names:
+                names[project] = Path(e["cwd"]).name or project
             msg = e.get("message") or {}
             usage = msg.get("usage")
             if not usage:
@@ -615,8 +632,9 @@ def scan_usage():
             w1h = cc.get("ephemeral_1h_input_tokens", 0)
             if not (w5 or w1h):
                 w5 = usage.get("cache_creation_input_tokens", 0)
-            slot = hours.setdefault(when.strftime("%Y-%m-%dT%H"), {}).setdefault(
-                msg.get("model") or "?", [0, 0, 0, 0, 0])
+            slot = (hours.setdefault(when.strftime("%Y-%m-%dT%H"), {})
+                         .setdefault(project, {})
+                         .setdefault(msg.get("model") or "?", [0, 0, 0, 0, 0]))
             slot[0] += usage.get("input_tokens", 0)
             slot[1] += usage.get("output_tokens", 0)
             slot[2] += w5
@@ -640,52 +658,96 @@ def scan_usage():
             tmp.replace(USAGE_CACHE)
         except OSError:
             pass
-    return hours
+    return hours, names
+
+
+# Libellés des postes de coût, du plus cher au moins cher dans l'usage courant.
+KINDS = ("lecture", "cache 1h", "sortie", "cache 5m", "entrée")
 
 
 def totals(hours, since_hour):
-    per_model, cost, tok = {}, 0.0, 0
-    for hkey, models in hours.items():
+    """Coût et ventilations sur la fenêtre demandée.
+
+    Les ventilations sont en COÛT et non en tokens : 98 % des tokens sont de la
+    lecture de cache, qui ne pèse que 64 % de la note. Classer par volume
+    désignerait le mauvais coupable.
+    """
+    cost, out_tokens = 0.0, 0
+    by_project, by_model = {}, {}
+    by_kind = dict.fromkeys(KINDS, 0.0)
+
+    for hkey, projects in hours.items():
         if hkey < since_hour:
             continue
-        for model, (i, o, w5, w1h, cr) in models.items():
-            tok += i + o + w5 + w1h + cr
-            per_model[model] = per_model.get(model, 0) + i + o + w5 + w1h + cr
-            p = price(model)
-            if p:
+        for project, models in projects.items():
+            for model, (i, o, w5, w1h, cr) in models.items():
+                out_tokens += o
+                p = price(model)
+                if not p:            # modèle inconnu : compté, mais pas chiffré
+                    continue
                 pin, pout = p
-                cost += (i * pin + o * pout + w5 * pin * CACHE_W5M
-                         + w1h * pin * CACHE_W1H + cr * pin * CACHE_READ) / 1_000_000
-    return tok, cost, per_model
+                parts = {
+                    "entrée": i * pin,
+                    "sortie": o * pout,
+                    "cache 5m": w5 * pin * CACHE_W5M,
+                    "cache 1h": w1h * pin * CACHE_W1H,
+                    "lecture": cr * pin * CACHE_READ,
+                }
+                total = sum(parts.values()) / 1_000_000
+                cost += total
+                for k, v in parts.items():
+                    by_kind[k] += v / 1_000_000
+                by_project[project] = by_project.get(project, 0.0) + total
+                by_model[model] = by_model.get(model, 0.0) + total
+    return cost, out_tokens, by_project, by_model, by_kind
 
 
-def render_usage(hours, width):
+def ranked(share, names=None, top=3):
+    """Les `top` postes les plus chers, en (libellé, part en %)."""
+    total = sum(share.values())
+    if total <= 0:
+        return []
+    items = sorted(share.items(), key=lambda kv: -kv[1])[:top]
+    return [((names or {}).get(k, k), v / total * 100) for k, v in items if v > 0]
+
+
+def render_usage(scan, width):
+    hours, names = scan
     now = datetime.now()
-    today_tok, today_cost, per_model = totals(hours, now.strftime("%Y-%m-%dT00"))
-    week_tok, week_cost, _ = totals(
-        hours, (now - timedelta(days=7)).strftime("%Y-%m-%dT%H"))
+    today_cost, today_out, *_ = totals(hours, now.strftime("%Y-%m-%dT00"))
+    week = (now - timedelta(days=7)).strftime("%Y-%m-%dT%H")
+    week_cost, week_out, by_project, by_model, by_kind = totals(hours, week)
 
     lines = section("CONSO", width)
-    for label, t, c in (("aujourd'hui", today_tok, today_cost),
-                        ("7 jours", week_tok, week_cost)):
-        lines.append(
-            f"   {C_TEXT}{pad(label, 13)}{RESET}"
-            f"{C_INFO}{human_tokens(t):>7} tok{RESET}"
-            f"{C_DIM}{'~%.2f $' % c:>12}{RESET}"
-        )
-    # <synthetic> n'est pas un modèle facturé : Claude Code s'en sert pour les
-    # messages qu'il fabrique lui-même.
-    per_model = {m: n for m, n in per_model.items() if n and not m.startswith("<")}
-    if per_model:
-        top = sorted(per_model.items(), key=lambda kv: -kv[1])[:3]
-        peak = top[0][1] or 1
+    for label, c, o in (("aujourd'hui", today_cost, today_out),
+                        ("7 jours", week_cost, week_out)):
+        lines.append(f"   {C_TEXT}{pad(label, 12)}{RESET}"
+                     f"{C_INFO}{'~%.2f $' % c:>10}{RESET}"
+                     f"{C_DIM}{human_tokens(o):>6} sortie{RESET}")
+
+    # D'où vient la note, en une ligne : le détail par poste tient en trois
+    # parts, le reste est du bruit.
+    kinds = ranked(by_kind, top=3)
+    if kinds:
         lines.append("")
-        for model, n in top:
+        lines.append(f"   {C_MUTED}"
+                     + " · ".join(f"{int(v)}% {k}" for k, v in kinds)
+                     + f"{RESET}")
+
+    # Par projet puis par modèle, sur 7 jours : une journée seule est trop
+    # bruitée pour qu'un classement veuille dire quelque chose.
+    for share, labels in ((by_project, names), (by_model, None)):
+        rows = ranked(share, labels)
+        if not rows:
+            continue
+        lines.append("")
+        for name, pct in rows:
+            if labels is None:
+                name = name.removeprefix("claude-")
             lines.append(
-                f"   {C_TEXT}{pad(trunc(model.removeprefix('claude-'), 12), 13)}{RESET}"
-                f"{C_DIM}{human_tokens(n):>7}{RESET}  "
-                f"{C_MUTED}{bar(n / peak * 100, 14)}{RESET}"
-            )
+                f"   {C_TEXT}{pad(trunc(name, 14), 15)}{RESET}"
+                f"{C_DIM}{int(pct):>3}%{RESET}  "
+                f"{C_MUTED}{bar(pct, 12)}{RESET}")
     return lines
 
 
@@ -951,27 +1013,30 @@ def wait_events(interval):
                 return events
 
 
-def term_width(override):
-    if override:
-        return override
+def term_size(override):
+    """(colonnes, lignes). Directement le descripteur, et non COLUMNS : la
+    variable d'env n'est pas remise à jour quand tmux redimensionne le pane."""
     try:
-        # Directement le descripteur, et non COLUMNS : la variable d'env n'est
-        # pas remise à jour quand tmux redimensionne le pane.
-        return os.get_terminal_size(sys.stdout.fileno()).columns
+        size = os.get_terminal_size(sys.stdout.fileno())
+        return (override or size.columns), size.lines
     except OSError:
-        return DEFAULT_WIDTH
+        return (override or DEFAULT_WIDTH), 0
 
 
 def draw(once, override, force_cli, selected):
     global TICK
     TICK += 1
-    width = term_width(override)
+    width, height = term_size(override)
     try:
         render = frame_compact if width < COMPACT_UNDER else frame_full
         lines, rows, agents, note, cells = render(width, force_cli, selected)
     except Exception as exc:                       # le pane ne doit jamais mourir
         lines, rows, agents, note, cells = (
             [f"{C_ALERT}claude-panel: {exc}{RESET}"], {}, [], "?", [])
+    # Le panneau ne doit jamais dépasser la hauteur du pane : au-delà, tmux
+    # fait défiler et l'en-tête disparaît en haut.
+    if height:
+        lines = lines[:height]
     body = "\n".join(line + "\033[K" for line in lines)
     sys.stdout.write(("" if once else "\033[H") + body + "\033[J\n")
     sys.stdout.flush()
