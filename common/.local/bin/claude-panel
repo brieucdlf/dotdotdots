@@ -157,13 +157,39 @@ def read_agents_disk():
     fichiers donnent en prime le `detail`/`needs` de chaque agent background,
     que la sortie JSON de la CLI ne porte pas.
 
-    Retourne None si l'arborescence n'est pas celle attendue : appelant repasse
-    alors par la CLI plutôt que d'afficher un panneau vide et mensonger.
+    Les deux dossiers SE RECOUVRENT : dès qu'on attache un agent background, il
+    gagne un fichier de session tout en gardant son état de job. Sans
+    déduplication par sessionId il apparaît deux fois, et la ligne background —
+    qui n'a pas d'emplacement tmux — relance un `claude attach` à chaque
+    Entrée. D'où l'impression que sélectionner un agent le duplique.
+
+    Retourne None si l'arborescence n'est pas celle attendue : l'appelant
+    repasse alors par la CLI plutôt que d'afficher un panneau vide et mensonger.
     """
     if not (CLAUDE / "sessions").is_dir():
         return None
 
-    out = []
+    by_id, loose = {}, []
+
+    # Les jobs d'abord : la session vivante, plus récente, complètera.
+    for state_file in (CLAUDE / "jobs").glob("*/state.json"):
+        try:
+            d = json.loads(state_file.read_text())
+        except (OSError, ValueError):
+            continue
+        if d.get("state") in FINISHED:
+            continue
+        entry = {
+            "kind": "background", "id": state_file.parent.name, "cwd": d.get("cwd"),
+            "name": d.get("name"), "sessionId": d.get("sessionId"),
+            "state": d.get("state"), "startedAt": iso_ms(d.get("createdAt")),
+            "detail": (d.get("needs") or d.get("detail") or "").strip(),
+        }
+        if entry["sessionId"]:
+            by_id[entry["sessionId"]] = entry
+        else:
+            loose.append(entry)
+
     for f in (CLAUDE / "sessions").glob("*.json"):
         try:
             d = json.loads(f.read_text())
@@ -176,27 +202,27 @@ def read_agents_disk():
             os.kill(int(pid), 0)          # session morte = fichier resté là
         except (OSError, ValueError):
             continue
-        out.append({
+        sid = d.get("sessionId")
+        live = {
             "kind": "interactive", "pid": pid, "cwd": d.get("cwd"),
-            "name": d.get("name"), "sessionId": d.get("sessionId"),
+            "name": d.get("name"), "sessionId": sid,
             "startedAt": d.get("startedAt"), "status": d.get("status"),
             "tmux": d.get("tmux"),          # « session:@fenêtre.%pane »
-        })
+        }
+        if sid and sid in by_id:
+            # Agent background attaché : il redevient une session interactive
+            # (c'est son état vivant qui fait foi), mais on garde son id court
+            # pour `claude attach/stop` et son detail s'il reste bloqué.
+            merged = by_id[sid]
+            merged.pop("state", None)
+            merged.update({k: v for k, v in live.items() if v is not None})
+            merged["kind"] = "interactive"
+        elif sid:
+            by_id[sid] = live
+        else:
+            loose.append(live)
 
-    for state_file in (CLAUDE / "jobs").glob("*/state.json"):
-        try:
-            d = json.loads(state_file.read_text())
-        except (OSError, ValueError):
-            continue
-        if d.get("state") in FINISHED:
-            continue
-        out.append({
-            "kind": "background", "id": state_file.parent.name, "cwd": d.get("cwd"),
-            "name": d.get("name"), "sessionId": d.get("sessionId"),
-            "state": d.get("state"), "startedAt": iso_ms(d.get("createdAt")),
-            "detail": (d.get("needs") or d.get("detail") or "").strip(),
-        })
-    return out
+    return list(by_id.values()) + loose
 
 
 def read_agents_cli():
@@ -518,6 +544,43 @@ def tmux(*args):
         return ""
 
 
+def ppid_of(pid):
+    try:
+        with open(f"/proc/{pid}/status") as fh:
+            for line in fh:
+                if line.startswith("PPid:"):
+                    return int(line.split()[1])
+    except (OSError, ValueError):
+        pass
+    return None
+
+
+def pane_of_pid(pid):
+    """Remonte l'arbre des processus jusqu'à tomber sur le pid d'un pane.
+
+    Le champ `tmux` du fichier de session n'est pas toujours renseigné — un
+    agent lancé par `claude attach` dans une fenêtre neuve n'en a pas. Et le
+    pid du pane est celui du shell, pas de claude : d'où la remontée.
+    """
+    panes = {}
+    for line in tmux("list-panes", "-a", "-F",
+                     "#{pane_pid} #{window_id} #{pane_id}").splitlines():
+        parts = line.split()
+        if len(parts) == 3 and parts[0].isdigit():
+            panes[int(parts[0])] = (parts[1], parts[2])
+    try:
+        pid = int(pid)
+    except (TypeError, ValueError):
+        return None
+    for _ in range(20):                    # garde-fou contre un cycle de /proc
+        if pid in panes:
+            return panes[pid]
+        pid = ppid_of(pid)
+        if not pid or pid <= 1:
+            return None
+    return None
+
+
 def jump(a):
     """Amène l'agent sélectionné sous les yeux.
 
@@ -533,10 +596,23 @@ def jump(a):
         if pane:
             tmux("select-pane", "-t", pane)
         return True
-    if a.get("kind") == "background" and a.get("id"):
+
+    if a.get("pid"):
+        found = pane_of_pid(a["pid"])
+        if found:
+            tmux("select-window", "-t", found[0])
+            tmux("select-pane", "-t", found[1])
+            return True
+
+    # `claude attach` UNIQUEMENT si l'agent ne tourne pas déjà : sinon on
+    # ouvrirait une seconde instance de quelque chose de vivant.
+    if a.get("id") and not a.get("pid"):
         tmux("new-window", "-n", (a.get("name") or "agent")[:20],
              f"claude attach {a['id']}")
         return True
+
+    tmux("display-message", "-d", "2000",
+         f"« {a.get('name') or 'agent'} » tourne mais n'est dans aucun pane tmux")
     return False
 
 

@@ -260,12 +260,26 @@ Quand le pane a le focus, la liste est navigable :
 | clic | sélectionner ; re-cliquer la ligne déjà sélectionnée saute |
 | `q` | fermer le panneau |
 
-Sauter suit l'emplacement que la session a elle-même enregistré :
-`select-window` puis `select-pane`. Un agent **background** ne vit dans aucune
-fenêtre — Entrée lui en ouvre une avec `claude attach <id>`, comme le fait la
-vue agents native. La sélection est mémorisée par `sessionId` et non par
-position, sinon elle sauterait d'un agent à l'autre au moindre changement
-d'ordre.
+Sauter essaie trois pistes, dans l'ordre :
+
+1. l'emplacement que la session a enregistré (`select-window` + `select-pane`) ;
+2. à défaut, le pid remonté dans l'arbre des processus jusqu'à celui d'un pane —
+   le champ `tmux` manque pour un agent lancé par `claude attach`, et le pid du
+   pane est celui du shell, pas de claude ;
+3. `claude attach <id>` dans une fenêtre neuve, **uniquement** si l'agent ne
+   tourne pas déjà.
+
+Sinon il le dit et ne fait rien. Cette dernière garde n'est pas théorique :
+`sessions/` et `jobs/` **se recouvrent** dès qu'on attache un agent background —
+il gagne un fichier de session tout en gardant son état de job. Sans
+déduplication par `sessionId` il apparaît deux fois, et la ligne background,
+dépourvue d'emplacement tmux, relance un `claude attach` à chaque Entrée : d'où
+l'impression que sélectionner un agent le duplique. Les deux entrées sont donc
+fusionnées, la session vivante l'emportant tout en gardant l'id court pour
+`claude attach`/`stop`.
+
+La sélection est mémorisée par `sessionId` et non par position, sinon elle
+sauterait d'un agent à l'autre au moindre changement d'ordre.
 
 `q` pose le même drapeau `@claude_panel_off` qu'une fermeture par `prefix + a` :
 fermer, c'est fermer, quel que soit le chemin emprunté.
