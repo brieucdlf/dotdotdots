@@ -38,7 +38,7 @@ machine pro — c'est la dernière approximation qui reste dans le repo.
 # sur la machine pro
 dots-shell-dump > ~/shell-pro.txt
 # puis comparer avec la référence Pop déjà générée
-diff ~/shell-pro.txt ~/shell-Heartbeat.txt
+diff ~/shell-pro.txt ~/shell-perso.txt
 ```
 
 - [ ] recopier dans `common/.config/bash/init.bash` tout ce qui apparaît côté

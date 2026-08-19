@@ -1,0 +1,6 @@
+# Identité git — copier en identity.gitconfig (gitignored).
+# Inclus sans condition par ~/.gitconfig.
+
+[user]
+  name = <ton pseudo>
+  email = <ton email>

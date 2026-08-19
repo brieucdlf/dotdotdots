@@ -1,6 +1,7 @@
-[user]
-  name = brieucdlf
-  email = github.e24q4@simplelogin.fr
+# Identité : jamais committée. Copier identity.gitconfig.sample en
+# ~/.config/git/identity.gitconfig (gitignored) et y mettre nom et email.
+[include]
+  path = ~/.config/git/identity.gitconfig
 
 [core]
   pager = delta

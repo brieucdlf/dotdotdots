@@ -60,7 +60,7 @@ common/            # les 2 machines, identique au byte près
 │   ├── mise/config.toml        # ← versions des outils, la clé de l'iso
 │   └── zed/
 ├── .claude/                    # config Claude Code (settings, skills, statusline)
-└── .local/bin/                 # claude-panel, tmux-claude-status, dev-tmux…
+└── .local/bin/                 # claude-panel, tmux-claude-status, dots-shell-dump
 
 theme/
 ├── nurburgreen/    # colors.toml = SOURCE UNIQUE des couleurs (+ ui.toml)
@@ -142,13 +142,18 @@ Rien de tout ça n'est committé :
 | Fichier | Usage |
 |---|---|
 | `~/.config/bash/local.bash` | secrets, clés API, overrides — sourcé en dernier |
+| `~/.config/bash/work.bash` | aliases pro : noms de projets internes |
+| `~/.config/git/identity.gitconfig` | nom et email git |
+| `~/.config/zed/mcp.json` | serveurs MCP de Zed (endpoints internes) |
+| `~/.local/bin/dev-tmux` | lanceur de session tmux propre au boulot |
 | `~/.config/ghostty/local.conf` | `font-size` selon le DPI ; posé par le profil popos pour l'opacité |
 | `~/.config/git/work.gitconfig` | identité pro, appliquée d'office sous `~/Work/` |
 | `omarchy/.config/hypr/monitors.conf` | résolutions et scaling (committé, mais par profil) |
 | `common/.claude/settings.private.json` | bloc `autoMode` de Claude Code, extrait par le filtre git |
 
-`work.bash` se charge seulement si `~/Work/bloomflow` existe — une machine
-fraîche ne casse pas.
+Chacun a son `.sample` committé à côté, qui montre la structure sans nommer
+l'employeur, les projets internes ni l'identité. `work.bash` n'est chargé que
+s'il existe — une machine fraîche ne casse pas.
 
 ---
 

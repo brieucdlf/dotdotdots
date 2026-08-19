@@ -2,7 +2,7 @@
 # Chargé automatiquement par ~/.gitconfig pour tout repo sous ~/Work/.
 
 [user]
-  # email = prenom.nom@bloomflow.example
+  # email = prenom.nom@employeur.example
   # signingkey = ...
 
 # [commit]

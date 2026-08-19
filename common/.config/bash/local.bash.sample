@@ -3,7 +3,7 @@
 # local.bash est sourcé en dernier, il peut overrider n'importe quelle config.
 
 # Secrets et clés API
-# export BLOOMFLOW_API_KEY="..."
+# export MON_SERVICE_API_KEY="..."
 # export ANTHROPIC_API_KEY="..."
 
 # Email git (si différent du global)

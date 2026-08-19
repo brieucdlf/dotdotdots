@@ -1,0 +1,9 @@
+#!/bin/bash
+# Aliases pro — copier en work.bash (gitignored). Chargé par aliases.bash s'il
+# existe. Les noms de projets internes n'ont rien à faire dans un dépôt public.
+
+# alias front="cd $HOME/Work/<projet>/<repo-front>"
+# alias api="cd $HOME/Work/<projet>/<repo-api>"
+
+# Namespaces Kubernetes
+# alias loki="kubectl -n loki get pods"

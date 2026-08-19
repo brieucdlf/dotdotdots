@@ -55,5 +55,6 @@ alias gloga="git log --oneline --decorate --graph --all"
 alias k="kubectl"
 alias kctx="kubectl config use-context"
 
-# work (bloomflow) — chargé uniquement si le dossier existe
-[[ -d "$HOME/Work/bloomflow" ]] && source "$HOME/.config/bash/work.bash"
+# aliases pro — fichier gitignored, présent seulement sur la machine concernée
+# (voir work.bash.sample). Absent = no-op, une machine fraîche ne casse pas.
+[[ -f "$HOME/.config/bash/work.bash" ]] && source "$HOME/.config/bash/work.bash"
