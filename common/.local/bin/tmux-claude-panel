@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Ouvre/ferme le panneau Claude à gauche de la fenêtre tmux courante.
+# Lié à prefix + a (voir ~/.config/tmux/tmux.conf).
+set -euo pipefail
+
+[[ -n ${TMUX:-} ]] || { echo "tmux-claude-panel: hors tmux" >&2; exit 1; }
+
+# Le pane est repéré par son TITRE et non par un index : le titre survit aux
+# redimensionnements, aux déplacements et à l'ouverture d'autres splits.
+existing=$(tmux list-panes -F '#{pane_id} #{pane_title}' \
+  | awk '$2 == "claude-panel" { print $1; exit }')
+
+if [[ -n $existing ]]; then
+  tmux kill-pane -t "$existing"
+  exit 0
+fi
+
+# Chemin absolu : `tmux run-shell` n'hérite pas forcément d'un PATH contenant
+# ~/.local/bin, et un « command not found » fermerait le pane aussitôt ouvert.
+id=$(tmux split-window -hb -l 34 -d -P -F '#{pane_id}' "$HOME/.local/bin/claude-panel")
+tmux select-pane -t "$id" -T claude-panel
