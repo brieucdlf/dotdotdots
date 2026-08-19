@@ -97,6 +97,22 @@ C_OK = fg("THEME_COLOR10")
 C_WARN = fg("THEME_COLOR11")
 C_ALERT = fg("THEME_COLOR9")
 C_INFO = fg("THEME_COLOR14")
+C_RULE = fg("THEME_BORDER_INACTIVE")
+
+
+def section(title, width, right=""):
+    """Titre de section prolongé par un filet jusqu'au bord.
+
+    Sépare franchement sans coûter une ligne de hauteur, et laisse le compteur
+    calé à droite. Le filet prend le gris de bordure du thème, pas une couleur
+    inventée.
+    """
+    tail = f"  {right}" if right else ""
+    # -1 : écrire jusqu'à la dernière colonne provoque un retour à la ligne
+    # différé sur certains terminaux, et une ligne vide parasite au rendu.
+    rule = max(0, width - (2 + len(title)) - len(tail) - 1)
+    return (f" {C_TITLE}{BOLD}{title}{RESET} {C_RULE}{'─' * rule}{RESET}"
+            + (f"  {C_DIM}{right}{RESET}" if right else ""))
 
 
 def tint(pct):
@@ -367,9 +383,7 @@ def render_agents(agents, note, width, selected, current):
     La table de correspondance sert au clic : sans elle, impossible de savoir
     quel agent occupe la ligne cliquée.
     """
-    count = str(len(agents))
-    head = f"{C_TITLE}{BOLD} AGENTS{RESET}{C_DIM}{count:>{max(1, width - 8)}}{RESET}"
-    lines, rows, cells = [head], {}, []
+    lines, rows, cells = [section("AGENTS", width, str(len(agents)))], {}, []
     if not agents:
         lines.append(f"   {C_MUTED}aucune session{RESET}")
         return lines, rows, cells
@@ -467,15 +481,12 @@ def read_quota():
 def render_quota(width):
     rl, stale = read_quota()
     if rl is None:
-        return [f"{C_TITLE}{BOLD} QUOTA{RESET}",
+        return [section("QUOTA", width),
                 f"   {C_MUTED}en attente d'une session Claude{RESET}"]
 
-    header = f"{C_TITLE}{BOLD} QUOTA{RESET}"
-    if stale:
-        # Un quota figé affiché comme s'il était frais est pire que pas de
-        # quota du tout : la statusline n'a plus tourné depuis 10 min.
-        header += f"  {C_MUTED}périmé{RESET}"
-    lines = [header]
+    # Un quota figé affiché comme s'il était frais est pire que pas de quota
+    # du tout : la statusline n'a plus tourné depuis 10 min.
+    lines = [section("QUOTA", width, "périmé" if stale else "")]
 
     for key, label in (("five_hour", "5 h"), ("seven_day", "7 j")):
         w = rl.get(key) or {}
@@ -651,7 +662,7 @@ def render_usage(hours, width):
     week_tok, week_cost, _ = totals(
         hours, (now - timedelta(days=7)).strftime("%Y-%m-%dT%H"))
 
-    lines = [f"{C_TITLE}{BOLD} CONSO{RESET}"]
+    lines = [section("CONSO", width)]
     for label, t, c in (("aujourd'hui", today_tok, today_cost),
                         ("7 jours", week_tok, week_cost)):
         lines.append(
