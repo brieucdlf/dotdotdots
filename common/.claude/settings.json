@@ -18,6 +18,9 @@
       "Read(~/todo/**)"
     ]
   },
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true"
+  },
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh",
