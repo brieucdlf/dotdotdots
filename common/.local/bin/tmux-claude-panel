@@ -16,7 +16,7 @@
 # rescan, et claude-panel bascule seul en rendu compact sous 14 colonnes.
 set -euo pipefail
 
-WIDE=34
+WIDE=44
 FOLD=5
 PANEL="$HOME/.local/bin/claude-panel"
 TITLE=claude-panel

@@ -215,7 +215,7 @@ lit ce champ et vérifie que le pid vit encore.
 `prefix + a` reste la commande manuelle, et cycle sur trois états :
 
 ```
-fermé  ──▶  large (34 col)  ──▶  replié (5 col)  ──▶  fermé
+fermé  ──▶  large (44 col)  ──▶  replié (5 col)  ──▶  fermé
 ```
 
 Dans une fenêtre sans session Claude, il refuse et le dit. Fermer à la main pose
@@ -232,17 +232,43 @@ sur le `session_id` et non sur le pane : exclure un sous-agent ne retire rien, l
 session parente tient le panneau ouvert.
 
 ```
- AGENTS                    4          ∘
- ∘ retheme-charte-gra… 36j bloqué     ✽
-   say « go » to commit + push t…     ∙
- ✽ sflow-flamingo-d4          32m     ∙
-                                      4
- QUOTA
-  5 h  ██░░░░░░░░  15%  ↻ 4h07       5h
-  7 j  ██░░░░░░░░  16%  ↻ 3j06h     19%
-                                     7j
-                                    16%
+ CLAUDE                               13:49      ∘
+                                                 ✽
+ AGENTS                                   4      ∙
+ ▸ ∘ retheme-charte-graphique… 36j  bloqué       ∙
+      say « go » to commit + push the acc…       4
+   ✽ claude-code-dotfiles-setup         3h
+   ∙ sflow-flamingo-d4                  3h      5h
+                                               27%
+ QUOTA                                          7j
+   5 h   ████░░░░░░░░░░░░    27%   ↻ 1h20      17%
+   7 j   ███░░░░░░░░░░░░░    17%   ↻ 3j04h
+
+ CONSO
+   aujourd'hui    50.8M tok    ~42.15 $
+   7 jours       202.9M tok   ~174.14 $
+
+   opus-5         50.8M  ██████████████
 ```
+
+Quand le pane a le focus, la liste est navigable :
+
+| | |
+|---|---|
+| `j` / `k`, `↑` / `↓`, molette | déplacer la sélection (`▸`) |
+| `Entrée` | sauter sur l'agent |
+| clic | sélectionner ; re-cliquer la ligne déjà sélectionnée saute |
+| `q` | fermer le panneau |
+
+Sauter suit l'emplacement que la session a elle-même enregistré :
+`select-window` puis `select-pane`. Un agent **background** ne vit dans aucune
+fenêtre — Entrée lui en ouvre une avec `claude attach <id>`, comme le fait la
+vue agents native. La sélection est mémorisée par `sessionId` et non par
+position, sinon elle sauterait d'un agent à l'autre au moindre changement
+d'ordre.
+
+`q` pose le même drapeau `@claude_panel_off` qu'une fermeture par `prefix + a` :
+fermer, c'est fermer, quel que soit le chemin emprunté.
 
 Le repli **redimensionne** au lieu de tuer : le processus survit, donc pas de
 rescan, et le rendu bascule tout seul en compact sous 14 colonnes. Un SIGWINCH

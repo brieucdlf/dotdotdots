@@ -10,6 +10,9 @@ Deux rendus selon la largeur du pane : complet à partir de 14 colonnes, replié
 en dessous (icônes d'état empilées + quota). C'est tmux-claude-panel qui
 redimensionne, le script ne fait que s'adapter.
 
+Le pane est interactif quand il a le focus : j/k ou ↑/↓ pour parcourir les
+agents, Entrée ou clic pour sauter sur sa fenêtre tmux, q pour fermer.
+
     claude-panel             boucle, rafraîchit toutes les 5 s (usage tmux)
     claude-panel --once      un seul rendu puis sortie
     claude-panel -i 10       autre intervalle
@@ -20,10 +23,13 @@ redimensionne, le script ne fait que s'adapter.
 import json
 import os
 import re
+import select
 import signal
 import subprocess
 import sys
+import termios
 import time
+import tty
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -34,6 +40,7 @@ USAGE_CACHE = CACHE / "usage.json"
 RATE_CACHE = CACHE / "rate-limits.json"
 
 COMPACT_UNDER = 14          # en dessous, rendu replié
+DEFAULT_WIDTH = 44          # hors tmux ou si la largeur est illisible
 RETENTION_DAYS = 8
 
 # $ par million de tokens. Multiplicateurs de cache de l'API : lecture 0.1x le
@@ -173,6 +180,7 @@ def read_agents_disk():
             "kind": "interactive", "pid": pid, "cwd": d.get("cwd"),
             "name": d.get("name"), "sessionId": d.get("sessionId"),
             "startedAt": d.get("startedAt"), "status": d.get("status"),
+            "tmux": d.get("tmux"),          # « session:@fenêtre.%pane »
         })
 
     for state_file in (CLAUDE / "jobs").glob("*/state.json"):
@@ -237,16 +245,22 @@ def sorted_agents(force_cli=False):
     return agents, note
 
 
-def render_agents(agents, note, width):
-    head = f"{C_TITLE}{BOLD}AGENTS{RESET}  {C_DIM}{len(agents)}{RESET}"
-    if note:
-        head += f"  {C_MUTED}{note}{RESET}"
-    lines = [head]
-    if not agents:
-        lines.append(f"  {C_MUTED}aucune session{RESET}")
-        return lines
+def render_agents(agents, note, width, selected):
+    """Retourne (lignes, {index de ligne: index d'agent}).
 
-    for a in agents:
+    La table de correspondance sert au clic : sans elle, impossible de savoir
+    quel agent occupe la ligne cliquée.
+    """
+    count = str(len(agents))
+    head = f"{C_TITLE}{BOLD} AGENTS{RESET}{C_DIM}{count:>{max(1, width - 8)}}{RESET}"
+    lines, rows = [head], {}
+    if not agents:
+        lines.append(f"   {C_MUTED}aucune session{RESET}")
+        return lines, rows
+    if note:
+        lines.append(f"   {C_MUTED}{note}{RESET}")
+
+    for i, a in enumerate(agents):
         st = agent_state(a)
         icon, color, label = STATE_STYLE.get(st, ("·", C_MUTED, st))
         # Pas de colonne projet : Claude dérive le nom de session du dossier
@@ -254,21 +268,25 @@ def render_agents(agents, note, width):
         # que voler la place au nom.
         name = a.get("name") or Path(a.get("cwd") or "").name \
             or (a.get("sessionId") or "?")[:8]
-        right = f"{human_age(a.get('startedAt'))} {label}".strip()
         # Processus mort mais session encore attachable : la vue agents native
         # distingue les deux par la forme de l'icône, on garde l'idée.
         if a.get("kind") == "background" and not a.get("pid"):
             icon = "∘"
-        left = f" {icon} {trunc(name, max(8, width - len(right) - 5))}"
-        lines.append(
-            f"{color}{pad(left, width - len(right) - 1)}{RESET}"
-            f"{C_DIM}{right}{RESET}"
-        )
+        right = human_age(a.get("startedAt"))
+        if label:
+            right += f"  {label}"
+        sel = a.get("sessionId") and a.get("sessionId") == selected
+        left = f" {'▸' if sel else ' '} {icon} {trunc(name, width - len(right) - 8)}"
+        style = f"{BOLD}{color}" if sel else color
+        rows[len(lines)] = i
+        lines.append(f"{style}{pad(left, width - len(right) - 2)}{RESET}"
+                     f"{C_DIM}{right}{RESET} ")
         # « bloqué » tout seul ne dit pas ce qu'on attend de toi. Le détail
         # n'est affiché que là, et seulement là : ailleurs il ferait du bruit.
         if st == "blocked" and a.get("detail"):
-            lines.append(f"   {C_MUTED}{trunc(a['detail'], width - 4)}{RESET}")
-    return lines
+            rows[len(lines)] = i          # cliquer le détail vise le même agent
+            lines.append(f"      {C_MUTED}{trunc(a['detail'], width - 8)}{RESET}")
+    return lines, rows
 
 
 # ── quota (écrit par la statusline) ─────────────────────────────────────────
@@ -283,10 +301,10 @@ def read_quota():
 def render_quota(width):
     rl, stale = read_quota()
     if rl is None:
-        return [f"{C_TITLE}{BOLD}QUOTA{RESET}",
-                f"  {C_MUTED}en attente d'une session Claude{RESET}"]
+        return [f"{C_TITLE}{BOLD} QUOTA{RESET}",
+                f"   {C_MUTED}en attente d'une session Claude{RESET}"]
 
-    header = f"{C_TITLE}{BOLD}QUOTA{RESET}"
+    header = f"{C_TITLE}{BOLD} QUOTA{RESET}"
     if stale:
         # Un quota figé affiché comme s'il était frais est pire que pas de
         # quota du tout : la statusline n'a plus tourné depuis 10 min.
@@ -311,11 +329,11 @@ def render_quota(width):
                 else:
                     resets = f"↻ {m}m"
         lines.append(
-            f"  {C_TEXT}{label}{RESET}  {color}{bar(pct)}{RESET} "
-            f"{color}{pct:>3}%{RESET}  {C_DIM}{resets}{RESET}"
+            f"   {C_TEXT}{label}{RESET}   {color}{bar(pct, 16)}{RESET}"
+            f"   {color}{pct:>3}%{RESET}   {C_DIM}{resets}{RESET}"
         )
     if len(lines) == 1:
-        lines.append(f"  {C_MUTED}aucun quota rapporté{RESET}")
+        lines.append(f"   {C_MUTED}aucun quota rapporté{RESET}")
     return lines
 
 
@@ -467,13 +485,13 @@ def render_usage(hours, width):
     week_tok, week_cost, _ = totals(
         hours, (now - timedelta(days=7)).strftime("%Y-%m-%dT%H"))
 
-    lines = [f"{C_TITLE}{BOLD}CONSO{RESET}"]
+    lines = [f"{C_TITLE}{BOLD} CONSO{RESET}"]
     for label, t, c in (("aujourd'hui", today_tok, today_cost),
                         ("7 jours", week_tok, week_cost)):
         lines.append(
-            f"  {C_TEXT}{pad(label, 11)}{RESET}"
-            f"{C_INFO}{human_tokens(t):>7} tok{RESET} "
-            f"{C_DIM}~{c:.2f} ${RESET}"
+            f"   {C_TEXT}{pad(label, 13)}{RESET}"
+            f"{C_INFO}{human_tokens(t):>7} tok{RESET}"
+            f"{C_DIM}{'~%.2f $' % c:>12}{RESET}"
         )
     # <synthetic> n'est pas un modèle facturé : Claude Code s'en sert pour les
     # messages qu'il fabrique lui-même.
@@ -484,35 +502,81 @@ def render_usage(hours, width):
         lines.append("")
         for model, n in top:
             lines.append(
-                f"  {C_TEXT}{pad(trunc(model.removeprefix('claude-'), 10), 11)}{RESET}"
-                f"{C_DIM}{human_tokens(n):>6}{RESET} "
-                f"{C_MUTED}{bar(n / peak * 100, 8)}{RESET}"
+                f"   {C_TEXT}{pad(trunc(model.removeprefix('claude-'), 12), 13)}{RESET}"
+                f"{C_DIM}{human_tokens(n):>7}{RESET}  "
+                f"{C_MUTED}{bar(n / peak * 100, 14)}{RESET}"
             )
     return lines
 
 
+# ── saut vers l'agent ───────────────────────────────────────────────────────
+def tmux(*args):
+    try:
+        return subprocess.run(["tmux", *args], capture_output=True,
+                              text=True, timeout=3).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def jump(a):
+    """Amène l'agent sélectionné sous les yeux.
+
+    Une session interactive a enregistré son emplacement (« session:@fen.%pane »)
+    dans son fichier de session : il suffit de l'y suivre. Un agent background
+    ne vit dans aucune fenêtre — on lui en ouvre une avec `claude attach`, ce
+    que fait aussi la vue agents native sur Entrée.
+    """
+    loc = a.get("tmux") or ""
+    if ":" in loc and "." in loc:
+        win, _, pane = loc.split(":", 1)[1].partition(".")
+        tmux("select-window", "-t", win)
+        if pane:
+            tmux("select-pane", "-t", pane)
+        return True
+    if a.get("kind") == "background" and a.get("id"):
+        tmux("new-window", "-n", (a.get("name") or "agent")[:20],
+             f"claude attach {a['id']}")
+        return True
+    return False
+
+
+def dismiss_window():
+    """q ferme le pane : on pose le même drapeau que la fermeture manuelle,
+    sinon le premier hook venu le rouvrirait."""
+    pane = os.environ.get("TMUX_PANE")
+    if not pane:
+        return
+    win = tmux("display-message", "-p", "-t", pane, "#{window_id}")
+    if win:
+        tmux("set-option", "-w", "-t", win, "@claude_panel_off", "1")
+
+
 # ── rendus ──────────────────────────────────────────────────────────────────
-def frame_full(width, force_cli):
+def frame_full(width, force_cli, selected):
     agents, note = sorted_agents(force_cli)
     out = [f"{C_TITLE}{BOLD} CLAUDE{RESET}"
            f"{C_DIM}{datetime.now().strftime('%H:%M'):>{max(0, width - 8)}}{RESET}", ""]
-    for section in (render_agents(agents, note, width),
-                    render_quota(width),
-                    render_usage(scan_usage(), width)):
-        out.extend(section)
-        out.append("")
-    return out
+    agent_lines, rows = render_agents(agents, note, width, selected)
+    rows = {k + len(out): v for k, v in rows.items()}
+    out.extend(agent_lines)
+    for section in ("", render_quota(width), "", render_usage(scan_usage(), width)):
+        if section == "":
+            out.append("")
+        else:
+            out.extend(section)
+    return out, rows, agents
 
 
-def frame_compact(width, force_cli):
+def frame_compact(width, force_cli, _selected):
     """Rendu replié : une colonne d'icônes d'état, le total, puis les quotas.
     Ni noms ni coûts — à cinq colonnes, tout ce qui est tronqué est du bruit."""
     agents, _ = sorted_agents(force_cli)
-    out = [""]
-    for a in agents[:8]:
+    out, rows = [""], {}
+    for i, a in enumerate(agents[:8]):
         icon, color, _ = STATE_STYLE.get(agent_state(a), ("·", C_MUTED, ""))
         if a.get("kind") == "background" and not a.get("pid"):
             icon = "∘"
+        rows[len(out)] = i
         out.append(f" {color}{icon}{RESET}")
     out.append(f" {C_DIM}{len(agents)}{RESET}")
     out.append("")
@@ -526,15 +590,92 @@ def frame_compact(width, force_cli):
         color = C_MUTED if stale else tint(pct)
         out.append(f" {C_MUTED}{label}{RESET}")
         out.append(f"{color}{pct:>3}%{RESET}")
-    return out
+    return out, rows, agents
 
 
+# ── entrées ─────────────────────────────────────────────────────────────────
 RESIZED = False
+MOUSE = re.compile(rb"\x1b\[<(\d+);(\d+);(\d+)([Mm])")
 
 
 def on_winch(_sig, _frm):
     global RESIZED
     RESIZED = True
+
+
+class RawInput:
+    """cbreak et non raw : ISIG reste actif, donc Ctrl-C continue de tuer le
+    pane normalement. 1006 = coordonnées SGR, sans quoi les colonnes au-delà
+    de 223 sont illisibles."""
+
+    def __init__(self):
+        self.fd = sys.stdin.fileno()
+        self.saved = None
+
+    def __enter__(self):
+        if os.isatty(self.fd):
+            self.saved = termios.tcgetattr(self.fd)
+            tty.setcbreak(self.fd)
+            sys.stdout.write("\033[?1000h\033[?1006h")
+        return self
+
+    def __exit__(self, *_):
+        if self.saved:
+            sys.stdout.write("\033[?1000l\033[?1006l")
+            termios.tcsetattr(self.fd, termios.TCSADRAIN, self.saved)
+
+
+def parse_input(data):
+    events = []
+    for m in MOUSE.finditer(data):
+        button, row, kind = int(m.group(1)), int(m.group(3)), m.group(4)
+        if button == 64:
+            events.append(("up", 0))
+        elif button == 65:
+            events.append(("down", 0))
+        elif button == 0 and kind == b"M":
+            events.append(("click", row - 1))      # lignes tmux en base 1
+    for chunk in MOUSE.sub(b"", data).split(b"\x1b"):
+        if chunk[:1] == b"[" and chunk[1:2] in (b"A", b"B"):
+            events.append(("up" if chunk[1:2] == b"A" else "down", 0))
+            chunk = chunk[2:]
+        for byte in chunk:
+            c = chr(byte)
+            if c == "k":
+                events.append(("up", 0))
+            elif c == "j":
+                events.append(("down", 0))
+            elif c in "\r\n":
+                events.append(("enter", 0))
+            elif c == "q":
+                events.append(("quit", 0))
+    return events
+
+
+def wait_events(interval):
+    """Rend la main dès qu'il se passe quelque chose : touche, clic, ou
+    redimensionnement du pane. Sinon au bout de l'intervalle."""
+    global RESIZED
+    end = time.time() + interval
+    while True:
+        if RESIZED:
+            RESIZED = False
+            return []
+        left = end - time.time()
+        if left <= 0:
+            return []
+        if not os.isatty(0):
+            time.sleep(left)
+            return []
+        ready, _, _ = select.select([sys.stdin], [], [], min(left, 0.25))
+        if ready:
+            try:
+                data = os.read(0, 4096)
+            except OSError:
+                return []
+            events = parse_input(data)
+            if events:
+                return events
 
 
 def term_width(override):
@@ -545,40 +686,58 @@ def term_width(override):
         # pas remise à jour quand tmux redimensionne le pane.
         return os.get_terminal_size(sys.stdout.fileno()).columns
     except OSError:
-        return 34
+        return DEFAULT_WIDTH
 
 
-def draw(once, override, force_cli):
+def draw(once, override, force_cli, selected):
     width = term_width(override)
     try:
-        lines = (frame_compact if width < COMPACT_UNDER else frame_full)(width, force_cli)
+        render = frame_compact if width < COMPACT_UNDER else frame_full
+        lines, rows, agents = render(width, force_cli, selected)
     except Exception as exc:                       # le pane ne doit jamais mourir
-        lines = [f"{C_ALERT}claude-panel: {exc}{RESET}"]
+        lines, rows, agents = [f"{C_ALERT}claude-panel: {exc}{RESET}"], {}, []
     body = "\n".join(line + "\033[K" for line in lines)
     sys.stdout.write(("" if once else "\033[H") + body + "\033[J\n")
     sys.stdout.flush()
+    return rows, agents
 
 
-def wait(interval):
-    """Sommeil interruptible par un SIGWINCH : sans ça, redimensionner le pane
-    laisserait le rendu à l'ancienne largeur jusqu'au prochain tick."""
-    global RESIZED
-    end = time.time() + interval
-    while time.time() < end:
-        if RESIZED:
-            RESIZED = False
-            return
-        time.sleep(0.2)
+def apply_event(kind, row, rows, agents, selected):
+    """Retourne (sélection, continuer)."""
+    if kind == "quit":
+        return selected, False
+    if not agents:
+        return selected, True
+
+    ids = [a.get("sessionId") for a in agents]
+    idx = ids.index(selected) if selected in ids else -1
+
+    if kind == "click":
+        if row in rows:
+            hit = rows[row]
+            # Un clic sur la ligne déjà sélectionnée vaut validation : c'est le
+            # double-clic sans avoir à mesurer un délai.
+            if ids[hit] == selected:
+                jump(agents[hit])
+            return ids[hit], True
+        return selected, True
+    if kind == "up":
+        return ids[max(0, idx - 1)] if idx > 0 else ids[0], True
+    if kind == "down":
+        return ids[min(len(ids) - 1, idx + 1)] if idx >= 0 else ids[0], True
+    if kind == "enter" and idx >= 0:
+        jump(agents[idx])
+    return selected, True
 
 
 def main():
     argv = sys.argv[1:]
     once, force_cli = "--once" in argv, "--cli" in argv
     interval, override = 5, 0
-    for flag, cast in (("-i", int), ("--interval", int), ("--width", int)):
+    for flag in ("-i", "--interval", "--width"):
         if flag in argv:
             try:
-                value = cast(argv[argv.index(flag) + 1])
+                value = int(argv[argv.index(flag) + 1])
                 if flag == "--width":
                     override = value
                 else:
@@ -586,19 +745,28 @@ def main():
             except (IndexError, ValueError):
                 pass
     if once:
-        draw(True, override, force_cli)
+        draw(True, override, force_cli, None)
         return
+
     signal.signal(signal.SIGWINCH, on_winch)
-    sys.stdout.write("\033[?25l")                  # curseur caché
-    try:
-        while True:
-            draw(False, override, force_cli)
-            wait(interval)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        sys.stdout.write("\033[?25h\033[0m")
-        sys.stdout.flush()
+    selected, running = None, True
+    with RawInput():
+        sys.stdout.write("\033[?25l")              # curseur caché
+        try:
+            while running:
+                rows, agents = draw(False, override, force_cli, selected)
+                for kind, row in wait_events(interval):
+                    selected, running = apply_event(
+                        kind, row, rows, agents, selected)
+                    if not running:
+                        break
+        except KeyboardInterrupt:
+            running = False
+        finally:
+            sys.stdout.write("\033[?25h\033[0m")
+            sys.stdout.flush()
+    if not running:
+        dismiss_window()
 
 
 if __name__ == "__main__":
