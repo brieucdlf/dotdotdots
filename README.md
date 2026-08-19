@@ -240,16 +240,19 @@ session parente tient le panneau ouvert.
  CLAUDE                               13:49      ∘
                                                  ⠹
  AGENTS ────────────────────────────────  4      ∙
- ▸ ∘ migration-schema-v2       12j  bloqué       ∙
-      attend un go avant de committer…           4
+                                                 ∙
+ ▸ ∘ migration-schema-v2       12j  bloqué       4
+      attend un go avant de committer…
    ⠹ dotfiles-setup                48%  2m
    ∙ mon-autre-projet-b2           31%  3h      5h
                                                27%
  QUOTA ────────────────────────────────────     7j
-   5 h   ████░░░░░░░░░░░░    27%   ↻ 1h20      17%
+                                               17%
+   5 h   ████░░░░░░░░░░░░    27%   ↻ 1h20
    7 j   ███░░░░░░░░░░░░░    17%   ↻ 3j04h
 
  CONSO ────────────────────────────────────
+
    aujourd'hui     8.1M tok     ~6.40 $
    7 jours        42.3M tok    ~33.80 $
 
@@ -257,8 +260,8 @@ session parente tient le panneau ouvert.
 ```
 
 Les titres de section sont prolongés par un filet jusqu'au bord, dans le gris
-de bordure du thème : ça sépare franchement sans coûter une ligne de hauteur,
-et le compteur reste calé à droite. Le filet s'arrête une colonne avant le bord
+de bordure du thème : ça sépare franchement, et le compteur reste calé à droite. Une ligne vide suit
+chaque titre — elle fait partie de l'en-tête, aucun appelant ne peut l'oublier. Le filet s'arrête une colonne avant le bord
 — écrire jusqu'à la dernière provoque un retour à la ligne différé sur certains
 terminaux, et une ligne vide parasite.
 
