@@ -233,22 +233,22 @@ session parente tient le panneau ouvert.
 
 ```
  CLAUDE                               13:49      ∘
-                                                 ✽
+                                                 ⠹
  AGENTS                                   4      ∙
- ▸ ∘ retheme-charte-graphique… 36j  bloqué       ∙
-      say « go » to commit + push the acc…       4
-   ✽ claude-code-dotfiles-setup         3h
-   ∙ sflow-flamingo-d4                  3h      5h
+ ▸ ∘ migration-schema-v2       12j  bloqué       ∙
+      attend un go avant de committer…           4
+   ⠹ dotfiles-setup                     3h
+   ∙ mon-autre-projet-b2                3h      5h
                                                27%
  QUOTA                                          7j
    5 h   ████░░░░░░░░░░░░    27%   ↻ 1h20      17%
    7 j   ███░░░░░░░░░░░░░    17%   ↻ 3j04h
 
  CONSO
-   aujourd'hui    50.8M tok    ~42.15 $
-   7 jours       202.9M tok   ~174.14 $
+   aujourd'hui     8.1M tok     ~6.40 $
+   7 jours        42.3M tok    ~33.80 $
 
-   opus-5         50.8M  ██████████████
+   opus-5          8.1M  ██████████████
 ```
 
 Quand le pane a le focus, la liste est navigable :
@@ -300,8 +300,8 @@ dort d'une traite.
 **L'agent de la fenêtre courante** porte l'accent et gagne une ligne :
 
 ```
-   ✽ claude-code-dotfiles-setup         3h
-     Opus 5 · high · 37% ctx · ~27.61 $
+   ⠹ dotfiles-setup                     3h
+     Opus 5 · high · 37% ctx · ~4.20 $
 ```
 
 Deux signaux sur deux éléments distincts : l'agent d'ici porte l'accent sur son

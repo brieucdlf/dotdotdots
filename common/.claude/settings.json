@@ -14,11 +14,9 @@
       "Bash(pnpm:*)",
       "Bash(npm:*)",
       "Bash(go:*)",
-      "Read(//home/thewindrunner/.config/nvim/**)",
-      "Read(//home/thewindrunner/.config/nvim/lua/config/**)",
-      "Read(//home/thewindrunner/.config/nvim/lua/plugins/**)",
-      "Read(//home/thewindrunner/.config/anytype/**)",
-      "Read(//home/thewindrunner/todo/**)",
+      "Read(~/.config/nvim/**)",
+      "Read(~/.config/anytype/**)",
+      "Read(~/todo/**)",
       "Bash(curl -sf --max-time 2 http://localhost:31009/v1)"
     ]
   },

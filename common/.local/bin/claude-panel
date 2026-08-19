@@ -345,7 +345,7 @@ def render_agents(agents, note, width, selected, current):
         st = agent_state(a)
         icon, color, label = STATE_STYLE.get(st, ("·", C_MUTED, st))
         # Pas de colonne projet : Claude dérive le nom de session du dossier
-        # (api-platform-c1, sflow-flamingo-d4…), l'afficher en plus ne ferait
+        # (mon-projet-a1, autre-projet-b2…), l'afficher en plus ne ferait
         # que voler la place au nom.
         name = a.get("name") or Path(a.get("cwd") or "").name \
             or (a.get("sessionId") or "?")[:8]
