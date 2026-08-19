@@ -67,7 +67,7 @@ theme/
 ├── cosmic/         # palette sémantique stock de COSMIC, reprise telle quelle
 └── render.sh       # → ~/.config/theme/current/{ghostty,tmux,colors.sh,*.ron}
 
-omarchy/            # hypr/, waybar/, todo-popup, waybar-claude-todo
+omarchy/            # hypr/, waybar/
 popos/              # thème COSMIC + override ghostty (voir son README)
 ```
 

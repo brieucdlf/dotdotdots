@@ -15,9 +15,7 @@
       "Bash(npm:*)",
       "Bash(go:*)",
       "Read(~/.config/nvim/**)",
-      "Read(~/.config/anytype/**)",
-      "Read(~/todo/**)",
-      "Bash(curl -sf --max-time 2 http://localhost:31009/v1)"
+      "Read(~/todo/**)"
     ]
   },
   "statusLine": {

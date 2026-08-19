@@ -117,20 +117,6 @@ tooltip label {
   margin-right: 7.5px;
 }
 
-#custom-claude-todo {
-  min-width: 12px;
-  margin-left: 10px;
-  margin-right: 7.5px;
-}
-
-#custom-claude-todo.done {
-  opacity: 0.4;
-}
-
-#custom-claude-todo.pending {
-  color: @foreground;
-}
-
 #custom-weather.unavailable {
   min-width: 0;
   margin: 0;

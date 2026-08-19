@@ -5,7 +5,7 @@
   "spacing": 0,
   "height": 26,
   "modules-left": ["custom/omarchy", "hyprland/workspaces"],
-  "modules-center": ["clock", "custom/weather", "custom/claude-todo", "custom/update", "custom/voxtype", "custom/screenrecording-indicator", "custom/idle-indicator", "custom/notification-silencing-indicator"],
+  "modules-center": ["clock", "custom/weather", "custom/update", "custom/voxtype", "custom/screenrecording-indicator", "custom/idle-indicator", "custom/notification-silencing-indicator"],
   "modules-right": [
     "group/tray-expander",
     "bluetooth",
@@ -173,14 +173,5 @@
   "tray": {
     "icon-size": 12,
     "spacing": 12
-  },
-  "custom/claude-todo": {
-    "exec": "~/.local/bin/waybar-claude-todo",
-    "interval": 15,
-    "signal": 8,
-    "format": "{}",
-    "return-type": "json",
-    "on-click": "~/.local/bin/todo-popup",
-    "tooltip": true
   }
 }
