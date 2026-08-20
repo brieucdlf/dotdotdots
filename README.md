@@ -161,10 +161,22 @@ même sinon. Détail du modèle, ajout d'un secret, perte d'une clé :
 
 ## SSH
 
-`~/.ssh/config` est versionné ; les clés ne le sont jamais. **github.com est
-épinglé sur la YubiKey** : pousser exige une présence physique, la clé privée ne
-sortant jamais de l'applet FIDO du token. Une machine volée ne peut plus rien
-publier sous cette identité.
+`~/.ssh/config` est versionné ; les clés ne le sont jamais. **github.com
+n'accepte plus que les YubiKeys** — une par token, `-usbc` au quotidien,
+`-usba` au coffre. Pousser exige une présence physique, la clé privée ne
+sortant jamais de l'applet FIDO.
+
+L'épinglage dans `config` ne suffisait pas : c'est une préférence locale, et
+GitHub continuait d'accepter la clé logicielle. Quiconque volait le fichier
+écrivait sa propre config et poussait. La clé logicielle a donc été **retirée
+du compte** — c'est ce retrait, pas le fichier de config, qui rend la règle
+réelle. Elle reste en service pour tous les autres hôtes.
+
+Les clés sont **résidentes** : le token est sa propre sauvegarde. Sur une
+machine neuve, `ssh-keygen -K` les régénère depuis la YubiKey — rien à mettre
+dans `secrets/`, et pas d'amorce circulaire (pas de clé SSH enfermée dans le
+dépôt qu'il faudrait SSH pour cloner). Leurs noms de fichier sont laids exprès :
+ce sont ceux que `-K` recrée seul à partir de la chaîne `application`.
 
 ```
 $ git push          # sans le token
