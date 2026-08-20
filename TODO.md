@@ -80,12 +80,17 @@ automatique par `install.sh`. Voir `secrets/README.md`.
 `~/.ssh/config` versionné, github.com épinglé sur la YubiKey. Voir README.
 
 - [x] config SSH dans le paquet stow, `~/.ssh` protégé du pliage
-- [ ] vérifier que la clé `sk` est **résidente** sur le token (`ykman fido
-      credentials list`). Si oui, `ssh-keygen -K` la régénère sur une machine
-      neuve et il n'y a rien à sauvegarder. Sinon, `id_ed25519_sk_heartbeat`
-      doit rejoindre `secrets/` — sans lui, plus d'accès GitHub après un reset
-- [ ] les deux clés portent encore `contact@brieucdlf.fr` en commentaire,
-      l'adresse purgée de l'historique : `ssh-keygen -c -C <alias> -f <clé>`
+- [x] seconde clé `sk` sur la YubiKey USB-C, enregistrée chez GitHub —
+      `id_ed25519_sk_heartbeat_usbc` (quotidien) et `..._usba` (coffre)
+- [ ] vérifier que les deux `sk` sont **résidentes** sur leur token. Test sans
+      risque, dans un dossier vide : `ssh-keygen -K` y dépose ce que le token
+      contient. Résidente = `ssh-keygen -K` la régénère sur une machine neuve,
+      rien à sauvegarder. Sinon les fichiers doivent rejoindre `secrets/`, et
+      le premier clone d'une machine neuve devra passer en HTTPS
+- [ ] les trois clés portent `contact@brieucdlf.fr` en commentaire. GitHub ne
+      publie pas les commentaires (vérifié sur /brieucdlf.keys), donc pas de
+      fuite — mais le commentaire ne distingue pas les deux tokens, ce qui est
+      son seul travail ici : `ssh-keygen -c -C heartbeat-usbc -f <clé>`
 - [ ] signature des commits par SSH (point 3) : la clé est déjà chez GitHub en
       `authentication`, il faut l'y ajouter aussi en `signing`
 
