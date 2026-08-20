@@ -32,10 +32,20 @@ common/.config/nvim/.ignore
 
 # fonts
 getnf
-
 # vie privée : rien qui nomme l'employeur, les projets internes ou l'identité
 # n'est committé. Les .sample committés à côté montrent la structure.
 common/.config/bash/work.bash
 common/.config/git/identity.gitconfig
 common/.config/zed/mcp.json
 common/.local/bin/dev-tmux
+
+# secrets/ — refus par défaut. Seuls le manifeste, les clés PUBLIQUES et les
+# fichiers CHIFFRÉS sont suivis ; tout le reste est ignoré, y compris un clair
+# déposé là par mégarde ou un .partial laissé par un déchiffrement interrompu.
+# L'inverse (ignorer au cas par cas) laisse la faute possible ; ici elle ne
+# l'est pas.
+secrets/*
+!secrets/manifest
+!secrets/recipients.txt
+!secrets/*.age
+!secrets/README.md

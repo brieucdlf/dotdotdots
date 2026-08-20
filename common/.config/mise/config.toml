@@ -31,6 +31,16 @@ ripgrep = "latest"
 starship = "latest"
 zoxide = "latest"
 
+# Chaîne de secrets. Épinglés au patch près, contrairement au reste : ce sont
+# les seuls outils dont une régression casserait l'accès aux secrets plutôt
+# qu'un simple confort de shell. La montée de version est un geste délibéré.
+#
+# age-plugin-yubikey reste en 0.5.0 SCIEMMENT : la 0.5.1 ne publie plus de
+# binaire Linux (macOS et Windows seulement), et `latest` ferait donc échouer
+# `mise install` sur les deux machines. À revoir quand Linux revient côté amont.
+age = "1.3.1"
+age-plugin-yubikey = "0.5.0"
+
 [settings]
 idiomatic_version_file_enable_tools = ["node", "ruby"]
 

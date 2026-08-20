@@ -50,6 +50,11 @@ bootstrap_popos() {
   sudo apt-get install -y --no-install-recommends \
     stow tmux git curl unzip fontconfig ca-certificates jq python3
 
+  # pcscd : l'accès CCID à l'applet PIV de la YubiKey, d'où age tire la clé de
+  # déchiffrement des secrets. Sans lui, `dots-secrets` ne voit aucun token.
+  sudo apt-get install -y --no-install-recommends pcscd
+  enable_pcscd
+
   # Erlang est compilé depuis les sources par mise (kerl) : sans ces headers,
   # le configure échoue sur "No curses library functions found" et entraîne
   # Elixir avec lui. Omarchy fournit déjà l'équivalent côté Arch.
@@ -70,7 +75,19 @@ bootstrap_omarchy() {
   say "paquets pacman"
   sudo pacman -S --needed --noconfirm stow jq python
   have mise || sudo pacman -S --needed --noconfirm mise
+  # Voir bootstrap_popos : même rôle, noms de paquets Arch. ccid est le pilote
+  # que pcsclite charge pour la YubiKey ; pcsclite seul ne suffit pas.
+  sudo pacman -S --needed --noconfirm pcsclite ccid
+  enable_pcscd
   # ghostty, tmux, la police et le reste sont déjà fournis par Omarchy.
+}
+
+# Le socket plutôt que le service : pcscd est activé à la demande, il ne tourne
+# que le temps d'une opération sur le token au lieu de rester résident.
+enable_pcscd() {
+  systemctl is-enabled pcscd.socket &>/dev/null && return 0
+  sudo systemctl enable --now pcscd.socket 2>/dev/null \
+    || warn "pcscd non activé — 'dots-secrets' ne verra pas la YubiKey"
 }
 
 install_nerd_font() {
@@ -349,6 +366,25 @@ say "rendu du thème"
 if [[ $DO_PACKAGES -eq 1 ]] && have mise; then
   say "mise install (peut être long au premier passage)"
   mise install -y || warn "certains outils mise ont échoué — relance 'mise install'"
+fi
+
+# ── secrets ──────────────────────────────────────────────────────────────────
+# Les secrets sont chiffrés dans le repo et ne s'ouvrent qu'avec la YubiKey.
+# Non bloquant DÉLIBÉRÉMENT : une machine sans token doit quand même finir son
+# install avec un shell fonctionnel — il lui manquera seulement les clés API.
+say "secrets"
+if [[ -x "$ROOT/common/.local/bin/dots-secrets" ]]; then
+  export PATH="$HOME/.local/share/mise/shims:$PATH"
+  if "$ROOT/common/.local/bin/dots-secrets" unseal; then
+    # Les cibles actuelles vivent sous des dossiers pliés, où un fichier neuf
+    # apparaît sans rien faire. Ce restow est là pour le jour où un secret
+    # atterrira dans un dossier déplié fichier par fichier (~/.config/zed, par
+    # exemple, que Zed remplit de thèmes) : là, stow ne le lie qu'au passage
+    # suivant.
+    stow --dir="$ROOT" --target="$HOME" --restow common "$PROFILE" || true
+  else
+    warn "secrets non déchiffrés — branche la YubiKey puis 'dots-secrets unseal'"
+  fi
 fi
 
 # ── tpm ──────────────────────────────────────────────────────────────────────
