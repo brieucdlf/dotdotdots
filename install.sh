@@ -55,6 +55,13 @@ bootstrap_popos() {
   sudo apt-get install -y --no-install-recommends pcscd
   enable_pcscd
 
+  # Mises à jour de sécurité automatiques. apt-daily.timer et
+  # apt-daily-upgrade.timer tournent DÉJÀ — le paquet apt les arme d'office —
+  # mais sans unattended-upgrades ils n'ont rien à exécuter. Le mécanisme était
+  # donc en place et ne faisait rien.
+  sudo apt-get install -y --no-install-recommends unattended-upgrades
+  setup_auto_updates
+
   # Erlang est compilé depuis les sources par mise (kerl) : sans ces headers,
   # le configure échoue sur "No curses library functions found" et entraîne
   # Elixir avec lui. Omarchy fournit déjà l'équivalent côté Arch.
@@ -79,7 +86,32 @@ bootstrap_omarchy() {
   # que pcsclite charge pour la YubiKey ; pcsclite seul ne suffit pas.
   sudo pacman -S --needed --noconfirm pcsclite ccid
   enable_pcscd
+
+  # Volontairement PAS d'équivalent d'unattended-upgrades ici. Arch n'a pas de
+  # dépôt de sécurité séparé : automatiser, ce serait lancer un `pacman -Syu`
+  # complet sans surveillance, avec son risque de mise à jour partielle et ses
+  # interventions manuelles annoncées sur la page d'accueil. Sur Arch, la mise
+  # à jour reste un geste conscient — c'est le contrat de la distribution.
   # ghostty, tmux, la police et le reste sont déjà fournis par Omarchy.
+}
+
+# Ce que l'installation du paquet ne fait pas : APT::Periodic reste à zéro tant
+# que ce fichier n'existe pas, et unattended-upgrades ne s'exécute jamais.
+# 1 = tous les jours. Les origines autorisées restent celles de la distribution
+# (50unattended-upgrades), soit les dépôts de SÉCURITÉ uniquement : on ne veut
+# pas qu'un poste de travail bascule de version majeure pendant la nuit.
+#
+# Pas de redémarrage automatique non plus : une machine de bureau qui redémarre
+# seule fait perdre du travail. Les correctifs de noyau attendent donc le
+# prochain reboot manuel, ce qui est le compromis habituel sur un poste.
+setup_auto_updates() {
+  local f=/etc/apt/apt.conf.d/20auto-upgrades
+  local want='APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";'
+  [[ -f $f ]] && [[ "$(cat "$f")" == "$want" ]] && return 0
+  printf '%s\n' "$want" | sudo tee "$f" >/dev/null \
+    && say "mises à jour de sécurité automatiques activées" \
+    || warn "APT::Periodic non configuré — pas de mise à jour automatique"
 }
 
 # Le socket plutôt que le service : pcscd est activé à la demande, il ne tourne

@@ -98,6 +98,16 @@ automatique par `install.sh`. Voir `secrets/README.md`.
 - [ ] la clé GPG expirée `3B98056CF6BD3B32` ne sert plus à rien et porte
       l'adresse purgée : à révoquer ou supprimer du trousseau
 
+## Sécurité — reste à faire
+
+- [ ] `gitleaks` (point 5) : les filets actuels (.gitignore, filtre autoMode,
+      hook pre-commit) ne couvrent que les fuites anticipées
+- [ ] « The Framework » garde une clé logicielle d'authentification sur le
+      compte GitHub — cette machine peut encore pousser sans matériel
+- [ ] clé de signature « Yubikey ssh » (id 357231) sur le compte : ne
+      correspond à aucune clé de ce poste. Identifier ou retirer
+- [ ] clé GPG `3B98056CF6BD3B32` expirée depuis un an, porte l'adresse purgée
+
 ## Divers
 
 - [x] ~~pousser la branche et merger dans `master`~~ — fait, la machine Pop est validée

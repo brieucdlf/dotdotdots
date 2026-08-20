@@ -237,6 +237,44 @@ rebase. Pour une opération en lot :
 git -c commit.gpgsign=false rebase ...
 ```
 
+### Si la clé du quotidien est perdue
+
+Git ne prend **qu'une** clé de signature, sans repli — contrairement à
+l'authentification SSH qui essaie une liste. La YubiKey de secours est déjà
+enregistrée chez GitHub en type `signing`, donc la bascule tient en une ligne :
+
+```bash
+# dans ~/.config/git/identity.gitconfig
+signingkey = ~/.ssh/id_ed25519_sk_rk_github-usba.pub
+
+dots-secrets seal identity.gitconfig   # aucun token requis
+```
+
+Rien à faire côté GitHub, aucun commit à re-signer. C'est tout l'intérêt
+d'avoir enregistré les deux clés pendant que tout allait bien : le jour de la
+panne, il ne reste qu'un fichier à éditer, pas un compte à manipuler.
+
+---
+
+## Mises à jour
+
+Sur Pop!_OS, les correctifs de **sécurité** s'installent seuls. Les timers
+`apt-daily` et `apt-daily-upgrade` tournaient déjà — le paquet `apt` les arme
+d'office — mais sans `unattended-upgrades` ils n'avaient rien à exécuter, et
+sans `APT::Periodic` dans `20auto-upgrades` le paquet lui-même ne fait rien.
+`install.sh` pose les deux.
+
+Restent volontairement désactivés : le **redémarrage automatique**, qui ferait
+perdre du travail sur un poste de bureau (les correctifs de noyau attendent
+donc un reboot manuel), et tout ce qui dépasse les dépôts de sécurité — un
+poste ne doit pas changer de version majeure pendant la nuit.
+
+Côté Omarchy, **rien n'est automatisé, et c'est délibéré**. Arch n'a pas de
+dépôt de sécurité séparé : automatiser reviendrait à lancer un `pacman -Syu`
+complet sans surveillance, avec son risque de mise à jour partielle et ses
+interventions manuelles annoncées sur la page d'accueil. Sur Arch, mettre à
+jour reste un geste conscient.
+
 ---
 
 ## Machine-specific
