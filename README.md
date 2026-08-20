@@ -135,21 +135,47 @@ Ce qui manque côté Pop est à recopier dans `common/.config/bash/init.bash`.
 
 ---
 
+## Secrets
+
+Les clés API et l'identité pro sont **chiffrées dans le repo**, et ne s'ouvrent
+qu'avec une YubiKey. La clé privée `age` est générée dans l'applet PIV du token
+et n'en sort jamais : il n'y a rien à sauvegarder ailleurs, et un vol de machine
+ne donne accès à rien.
+
+C'est ce qui ferme la boucle du reset — avant, un poste neuf retrouvait un shell
+parfait mais aucune clé, et il fallait les recopier à la main depuis on ne sait où.
+
+```bash
+dots-secrets status            # état de la chaîne
+dots-secrets verify            # prouver que la clé branchée ouvre tout
+dots-secrets edit local.bash   # éditer un secret (le clair reste en tmpfs)
+dots-secrets unseal            # (re)déposer les secrets sur la machine
+dots-secrets enroll            # enrôler une YubiKey de plus
+```
+
+`./install.sh` déchiffre tout seul si la clé est branchée, et se termine quand
+même sinon. Détail du modèle, ajout d'un secret, perte d'une clé :
+[`secrets/README.md`](secrets/README.md).
+
+---
+
 ## Machine-specific
 
-Rien de tout ça n'est committé :
+Le clair de ces fichiers n'est jamais committé. Certains sont restaurables
+depuis leur version chiffrée, les autres sont propres à la machine et doivent
+être réécrits à la main :
 
-| Fichier | Usage |
-|---|---|
-| `~/.config/bash/local.bash` | secrets, clés API, overrides — sourcé en dernier |
-| `~/.config/bash/work.bash` | aliases pro : noms de projets internes |
-| `~/.config/git/identity.gitconfig` | nom et email git |
-| `~/.config/zed/mcp.json` | serveurs MCP de Zed (endpoints internes) |
-| `~/.local/bin/dev-tmux` | lanceur de session tmux propre au boulot |
-| `~/.config/ghostty/local.conf` | `font-size` selon le DPI ; posé par le profil popos pour l'opacité |
-| `~/.config/git/work.gitconfig` | identité pro, appliquée d'office sous `~/Work/` |
-| `omarchy/.config/hypr/monitors.conf` | résolutions et scaling (committé, mais par profil) |
-| `common/.claude/settings.private.json` | bloc `autoMode` de Claude Code, extrait par le filtre git |
+| Fichier | Usage | Après un reset |
+|---|---|---|
+| `~/.config/bash/local.bash` | secrets, clés API, overrides — sourcé en dernier | déchiffré |
+| `~/.config/bash/work.bash` | aliases pro : noms de projets internes | `.sample` à recopier |
+| `~/.config/git/identity.gitconfig` | nom et email git | déchiffré |
+| `~/.config/zed/mcp.json` | serveurs MCP de Zed (endpoints internes) | `.sample` à recopier |
+| `~/.local/bin/dev-tmux` | lanceur de session tmux propre au boulot | à réécrire |
+| `~/.config/ghostty/local.conf` | `font-size` selon le DPI ; posé par le profil popos pour l'opacité | à refaire (dépend de l'écran) |
+| `~/.config/git/work.gitconfig` | identité pro, appliquée d'office sous `~/Work/` | déchiffré |
+| `omarchy/.config/hypr/monitors.conf` | résolutions et scaling (committé, mais par profil) | committé |
+| `common/.claude/settings.private.json` | bloc `autoMode` de Claude Code, extrait par le filtre git | régénéré par le filtre |
 
 Chacun a son `.sample` committé à côté, qui montre la structure sans nommer
 l'employeur, les projets internes ni l'identité. `work.bash` n'est chargé que

@@ -62,6 +62,19 @@ La config vit maintenant dans `common/.claude/` (voir README). Reste à faire :
       suivie — elle vit sous les 169 Mo de `projects/`. À remonter dans un
       paquet à part si on veut qu'elle suive
 
+## Secrets (chaîne age + YubiKey)
+
+En place : `secrets/` chiffré dans le repo, `dots-secrets`, déchiffrement
+automatique par `install.sh`. Voir `secrets/README.md`.
+
+- [x] `pcscd` installé et activé par socket
+- [x] `dots-secrets enroll` sur les deux YubiKeys — 2 destinataires distincts
+- [x] `dots-secrets verify` avec chaque clé — les deux ouvrent
+- [x] `dots-secrets label` sur chaque clé — USB-C quotidien, USB-A coffre
+- [ ] recréer les deux secrets, absents de cette machine : `dots-secrets edit
+      local.bash`, `edit work.gitconfig`
+- [ ] rejouer la chaîne sur la machine Omarchy (`pcsclite` + `ccid` côté Arch)
+
 ## Divers
 
 - [x] ~~pousser la branche et merger dans `master`~~ — fait, la machine Pop est validée
