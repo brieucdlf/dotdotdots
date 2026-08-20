@@ -204,6 +204,41 @@ privée dans un dépôt public. `.gitignore` couvre le cas en second rideau :
 
 ---
 
+## Signature des commits
+
+Chaque commit est signé **par SSH**, avec la même YubiKey qui authentifie.
+Un commit à ton nom exige donc une présence physique : une machine compromise
+ne peut pas en fabriquer.
+
+Par SSH et non par GPG, pour deux raisons. Aucune clé à faire expirer — la GPG
+de ce dépôt l'a fait, sans prévenir. Et la clé matérielle est déjà là : une
+seule chose à protéger plutôt que deux.
+
+`user.signingkey` vit dans `identity.gitconfig`, chiffré, et pas dans le
+`.gitconfig` committé : c'est un choix de **poste**, chaque machine nommant le
+token qu'elle a sous la main.
+
+`allowed_signers` est ce qui permet de *vérifier* et pas seulement de signer —
+sans lui git n'a aucun moyen de relier une adresse à une clé publique :
+
+```bash
+git log --show-signature -1
+git verify-commit HEAD
+```
+
+Le `namespaces="git"` y cantonne la confiance à la signature de commits. La
+même clé sert à s'authentifier auprès de GitHub, et une clé valable partout est
+une clé qu'on ne peut pas révoquer pour un seul usage.
+
+**Le coût est un touch par commit**, y compris à chaque commit rejoué par un
+rebase. Pour une opération en lot :
+
+```bash
+git -c commit.gpgsign=false rebase ...
+```
+
+---
+
 ## Machine-specific
 
 Le clair de ces fichiers n'est jamais committé. Certains sont restaurables

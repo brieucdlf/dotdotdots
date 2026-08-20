@@ -1,0 +1,12 @@
+# Clés autorisées à signer, pour `git log --show-signature` et
+# `git verify-commit`. Sans ce fichier git sait signer mais pas vérifier :
+# il n'a aucun moyen de savoir quelle clé publique appartient à qui.
+#
+# namespaces="git" cantonne la confiance à la signature de commits — la
+# même clé sert à s'authentifier auprès de GitHub, et une clé valable
+# partout est une clé qu'on ne peut pas révoquer pour un seul usage.
+#
+# Public par nature : ce sont des clés publiques, et l'adresse est déjà
+# l'auteur de chaque commit du dépôt.
+github.e24q4@simplelogin.fr namespaces="git" sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIBEgkYvl0aV1zDdVchj5XcRToxMxJNVHV9UjWqcpnh/ZAAAAD3NzaDpnaXRodWItdXNiYw==
+github.e24q4@simplelogin.fr namespaces="git" sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIHYDtVffE50mc/s/g+5hHee5ovr0a82EXLXhhUA3+OoeAAAAD3NzaDpnaXRodWItdXNiYQ==

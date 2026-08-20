@@ -90,8 +90,13 @@ automatique par `install.sh`. Voir `secrets/README.md`.
       maillon faible restant. Même bascule à faire sur cette machine
 - [ ] `id_ed25519_heartbeat` (clé des autres hôtes) porte encore
       `contact@brieucdlf.fr` en commentaire : `ssh-keygen -c -C heartbeat -f`
-- [ ] signature des commits par SSH (point 3) : ajouter une des `sk` au compte
-      en type `signing`, elles n'y sont qu'en `authentication`
+- [x] signature des commits par SSH : `gpg.format = ssh`, `commit.gpgsign`,
+      `allowed_signers` committé, `signingkey` dans identity.gitconfig chiffré
+- [ ] enregistrer les deux `sk` chez GitHub en type **signing** (elles n'y sont
+      qu'en `authentication`) — demande `gh auth refresh -s admin:ssh_signing_key`.
+      Sans ça les commits sont signés mais affichés « Unverified »
+- [ ] la clé GPG expirée `3B98056CF6BD3B32` ne sert plus à rien et porte
+      l'adresse purgée : à révoquer ou supprimer du trousseau
 
 ## Divers
 

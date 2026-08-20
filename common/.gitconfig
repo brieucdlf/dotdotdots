@@ -6,6 +6,28 @@
 [include]
   path = ~/.config/git/identity.gitconfig
 
+# ── signature des commits ────────────────────────────────────────────────────
+# Par SSH, pas par GPG. La clé matérielle sert déjà à s'authentifier ; signer
+# avec elle veut dire qu'un commit à ton nom exige une présence physique, et
+# qu'une machine compromise ne peut pas en fabriquer. Aucune clé à faire
+# expirer, contrairement à GPG.
+#
+# `user.signingkey` n'est pas ici mais dans identity.gitconfig : c'est un choix
+# de POSTE — chaque machine nomme le token qu'elle a sous la main.
+[gpg]
+  format = ssh
+
+[gpg "ssh"]
+  # Sans ce fichier git signe mais ne sait pas vérifier : il lui manque la
+  # correspondance entre une adresse et une clé publique.
+  allowedSignersFile = ~/.config/git/allowed_signers
+
+[commit]
+  gpgsign = true
+
+[tag]
+  gpgsign = true
+
 [core]
   pager = delta
   editor = nvim
