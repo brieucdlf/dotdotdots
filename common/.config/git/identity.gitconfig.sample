@@ -1,6 +1,12 @@
-# Identité git — copier en identity.gitconfig (gitignored).
+# Identité git — jamais committée. Deux façons de la mettre en place :
+#   dots-secrets edit identity.gitconfig   (part de ce modèle, puis chiffre)
+#   cp identity.gitconfig.sample identity.gitconfig   (sans YubiKey)
 # Inclus sans condition par ~/.gitconfig.
 
 [user]
   name = <ton pseudo>
   email = <ton email>
+  # signingkey = ~/.ssh/id_ed25519_sk.pub
+
+# [commit]
+#   gpgsign = true

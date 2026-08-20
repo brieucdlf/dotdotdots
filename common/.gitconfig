@@ -1,5 +1,8 @@
-# Identité : jamais committée. Copier identity.gitconfig.sample en
-# ~/.config/git/identity.gitconfig (gitignored) et y mettre nom et email.
+# Identité : jamais committée. Deux façons de la retrouver après un reset —
+# `dots-secrets unseal` la déchiffre avec la YubiKey, ou bien on recopie
+# identity.gitconfig.sample à la main. Tout en haut pour que l'includeIf ~/Work/
+# plus bas puisse l'écraser. Fichier absent : git ignore l'include en silence
+# puis refuse de committer faute d'email — échec bruyant, donc réparable.
 [include]
   path = ~/.config/git/identity.gitconfig
 

@@ -32,6 +32,7 @@ common/.config/nvim/.ignore
 
 # fonts
 getnf
+
 # vie privée : rien qui nomme l'employeur, les projets internes ou l'identité
 # n'est committé. Les .sample committés à côté montrent la structure.
 common/.config/bash/work.bash
