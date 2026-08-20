@@ -159,6 +159,39 @@ même sinon. Détail du modèle, ajout d'un secret, perte d'une clé :
 
 ---
 
+## SSH
+
+`~/.ssh/config` est versionné ; les clés ne le sont jamais. **github.com est
+épinglé sur la YubiKey** : pousser exige une présence physique, la clé privée ne
+sortant jamais de l'applet FIDO du token. Une machine volée ne peut plus rien
+publier sous cette identité.
+
+```
+$ git push          # sans le token
+sign_and_send_pubkey: signing failed for ED25519-SK — agent refused operation
+git@github.com: Permission denied (publickey).
+```
+
+C'est le comportement voulu, pas une panne. Le multiplexage garde la connexion
+10 min : un seul touch pour une rafale de commandes.
+
+Le fichier a un piège documenté sur place — `IdentityFile` est la seule option
+d'un `ssh_config` qui soit **cumulative** au lieu de premier-gagnant. Mise dans
+`Host *`, la clé logicielle s'ajouterait à celle de github.com et ssh
+retomberait dessus dès le token absent, ce qui annulerait l'épinglage. D'où le
+bloc négatif `Host * !github.com`. Le contrôle tient en une commande :
+
+```bash
+ssh -G github.com | grep -c '^identityfile'   # doit valoir 1
+```
+
+`install.sh` crée `~/.ssh` en **vrai dossier** avant de stower. Sans ça, stow le
+plierait en un lien vers le dépôt et le premier `ssh-keygen` écrirait une clé
+privée dans un dépôt public. `.gitignore` couvre le cas en second rideau :
+`common/.ssh/*` est refusé par défaut, seul `config` est suivi.
+
+---
+
 ## Machine-specific
 
 Le clair de ces fichiers n'est jamais committé. Certains sont restaurables

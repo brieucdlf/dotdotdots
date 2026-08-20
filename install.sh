@@ -345,6 +345,14 @@ backup_conflicts "$ROOT/$PROFILE"
 # l'autre passage : « existing target is not owned by stow: .config/ghostty ».
 # C'est ce qui bloque dès qu'un profil ajoute un fichier dans un dossier que
 # common a déjà plié en un seul lien.
+# ~/.ssh doit exister AVANT stow, et en vrai dossier. Sinon stow le plie en un
+# lien vers common/.ssh — et le premier ssh-keygen écrit ses clés privées dans
+# le dépôt, public. Le créer d'abord force stow à ne lier que `config` dedans.
+# Même piège que ~/.config/git, qui est bien un lien : là c'est voulu, ici non.
+mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+# ssh ne crée pas le dossier de sockets du multiplexage et échoue sans bruit.
+mkdir -p "$HOME/.ssh/sockets" && chmod 700 "$HOME/.ssh/sockets"
+
 say "stow common + $PROFILE"
 if ! stow --dir="$ROOT" --target="$HOME" --restow common "$PROFILE"; then
   # stow avorte tout ou rien : aucun lien n'a été posé ni retiré. Mais

@@ -75,6 +75,20 @@ automatique par `install.sh`. Voir `secrets/README.md`.
       local.bash`, `edit work.gitconfig`
 - [ ] rejouer la chaîne sur la machine Omarchy (`pcsclite` + `ccid` côté Arch)
 
+## SSH
+
+`~/.ssh/config` versionné, github.com épinglé sur la YubiKey. Voir README.
+
+- [x] config SSH dans le paquet stow, `~/.ssh` protégé du pliage
+- [ ] vérifier que la clé `sk` est **résidente** sur le token (`ykman fido
+      credentials list`). Si oui, `ssh-keygen -K` la régénère sur une machine
+      neuve et il n'y a rien à sauvegarder. Sinon, `id_ed25519_sk_heartbeat`
+      doit rejoindre `secrets/` — sans lui, plus d'accès GitHub après un reset
+- [ ] les deux clés portent encore `contact@brieucdlf.fr` en commentaire,
+      l'adresse purgée de l'historique : `ssh-keygen -c -C <alias> -f <clé>`
+- [ ] signature des commits par SSH (point 3) : la clé est déjà chez GitHub en
+      `authentication`, il faut l'y ajouter aussi en `signing`
+
 ## Divers
 
 - [x] ~~pousser la branche et merger dans `master`~~ — fait, la machine Pop est validée

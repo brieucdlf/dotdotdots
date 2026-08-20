@@ -40,6 +40,12 @@ common/.config/git/identity.gitconfig
 common/.config/zed/mcp.json
 common/.local/bin/dev-tmux
 
+# ~/.ssh — seul `config` est suivi. Refus par défaut : si un jour stow plie le
+# dossier en lien vers le dépôt, une clé privée déposée là est ignorée d'office
+# plutôt que committée sur un dépôt public.
+common/.ssh/*
+!common/.ssh/config
+
 # secrets/ — refus par défaut. Seuls le manifeste, les clés PUBLIQUES et les
 # fichiers CHIFFRÉS sont suivis ; tout le reste est ignoré, y compris un clair
 # déposé là par mégarde ou un .partial laissé par un déchiffrement interrompu.
