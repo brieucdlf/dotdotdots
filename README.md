@@ -15,9 +15,25 @@ desktop ne l'est pas, et n'essaie pas de l'être.
 ## Installation
 
 ```bash
-git clone git@github.com:brieucdlf/dotdotdots ~/.dotfiles
+git clone https://github.com/brieucdlf/dotdotdots ~/.dotfiles
 cd ~/.dotfiles && ./install.sh
 ```
+
+**En HTTPS, et pas en SSH — l'ordre est contraint.** Cloner en SSH exigerait la
+clé `sk`, que `ssh-keygen -K` régénère depuis la YubiKey, ce qui exige
+`libfido2`, qu'installe `install.sh`, qui est dans le dépôt qu'on cherche à
+cloner. La boucle ne s'ouvre que par HTTPS : le dépôt est public, la lecture
+anonyme ne demande rien. Une fois les clés régénérées (voir *Sur une seconde
+machine*), on bascule le remote :
+
+```bash
+git remote set-url origin git@github.com:brieucdlf/dotdotdots
+```
+
+C'est le sens de la bascule qui compte : lire n'a jamais besoin d'identité,
+écrire en exige une. Rien d'autre dans ce dépôt ne doit dépendre d'un secret
+pour être installé — sans quoi il cesse d'être ce qui suffit à refaire une
+machine.
 
 Le script détecte le profil, installe les paquets manquants, stow les paquets,
 rend le thème et lance `mise install`. Il est idempotent — relançable à volonté.
@@ -216,8 +232,11 @@ retomberait dessus dès le token absent, ce qui annulerait l'épinglage. D'où l
 bloc négatif `Host * !github.com`. Le contrôle tient en une commande :
 
 ```bash
-ssh -G github.com | grep -c '^identityfile'   # doit valoir 1
+ssh -G github.com | grep '^identityfile' | grep -c heartbeat   # doit valoir 0
 ```
+
+Le contrôle porte sur la nature des clés, pas sur leur nombre : github.com en
+liste deux, une par YubiKey. Ce qui doit être absent, c'est la clé logicielle.
 
 `install.sh` crée `~/.ssh` en **vrai dossier** avant de stower. Sans ça, stow le
 plierait en un lien vers le dépôt et le premier `ssh-keygen` écrirait une clé
@@ -320,6 +339,35 @@ depuis leur version chiffrée, les autres sont propres à la machine et doivent
 Chacun a son `.sample` committé à côté, qui montre la structure sans nommer
 l'employeur, les projets internes ni l'identité. `work.bash` n'est chargé que
 s'il existe — une machine fraîche ne casse pas.
+
+### Sur une seconde machine
+
+Aucune clé ne se copie d'une machine à l'autre — ni par clé USB, ni par le
+dépôt. Les `sk` sont des *handles* : la clé privée ne quitte jamais l'applet
+FIDO, et le token la redonne à la demande. Après le clone :
+
+```bash
+./install.sh                 # ~/.ssh en vrai dossier + sockets, pcscd, askpass
+dots-secrets unseal          # YubiKey PIV : identity.gitconfig, local.bash…
+cd ~/.ssh && ssh-keygen -K   # YubiKey FIDO : régénère la sk du token branché
+chmod 600 ~/.ssh/id_ed25519_sk_rk_github-*
+```
+
+Sur Arch, `ssh-keygen -K` échoue tant que **`libfido2`** manque : Debian en
+fait une dépendance dure d'`openssh-client`, Arch une simple `optdepend`. Le
+message ne parle ni de FIDO ni de YubiKey (`libfido2.so.1: cannot open shared
+object file`, puis `unexpected internal error`) et arrive *après* le PIN, ce
+qui laisse croire à un problème de token. `install.sh` l'installe.
+
+`ssh-keygen -K` écrit dans le **répertoire courant** — d'où le `cd`, sans quoi
+les fichiers atterrissent dans le dépôt. Il ne rend que les identifiants du
+token branché : une seule YubiKey suffit, l'autre se régénère le jour où on la
+branche. Les noms recréés sont ceux qu'attend déjà `~/.ssh/config`, il n'y a
+donc rien à renommer ni à éditer.
+
+Ce qui reste propre à la machine : `~/.ssh/id_ed25519_heartbeat` (clé
+logicielle pour les autres hôtes) et les fichiers marqués « à réécrire » ou
+« `.sample` à recopier » ci-dessus.
 
 ---
 

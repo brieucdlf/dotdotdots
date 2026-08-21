@@ -97,6 +97,13 @@ bootstrap_omarchy() {
   # son nom propre, c'est SSH_ASKPASS qui fait le pont.
   sudo pacman -S --needed --noconfirm ksshaskpass
 
+  # libfido2 : tout l'accès FIDO d'OpenSSH — clés sk, `ssh-keygen -K`. Debian
+  # en fait une dépendance dure d'openssh-client, Arch une simple optdepend :
+  # sans elle ssh-sk-helper ne se charge même pas, et l'échec ne parle ni de
+  # FIDO ni de YubiKey ("libfido2.so.1: cannot open shared object file", puis
+  # "unexpected internal error"). La YubiKey n'y est pour rien.
+  sudo pacman -S --needed --noconfirm libfido2
+
   # Volontairement PAS d'équivalent d'unattended-upgrades ici. Arch n'a pas de
   # dépôt de sécurité séparé : automatiser, ce serait lancer un `pacman -Syu`
   # complet sans surveillance, avec son risque de mise à jour partielle et ses

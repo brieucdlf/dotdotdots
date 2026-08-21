@@ -92,16 +92,41 @@ automatique par `install.sh`. Voir `secrets/README.md`.
       `contact@brieucdlf.fr` en commentaire : `ssh-keygen -c -C heartbeat -f`
 - [x] signature des commits par SSH : `gpg.format = ssh`, `commit.gpgsign`,
       `allowed_signers` committé, `signingkey` dans identity.gitconfig chiffré
-- [ ] enregistrer les deux `sk` chez GitHub en type **signing** (elles n'y sont
-      qu'en `authentication`) — demande `gh auth refresh -s admin:ssh_signing_key`.
-      Sans ça les commits sont signés mais affichés « Unverified »
+- [x] les deux `sk` déclarées chez GitHub en type **signing** (1125645 USB-C,
+      1125646 USB-A) en plus d'`authentication` — GitHub sépare les deux usages.
+      Vérifié : `.commit.verification` renvoie `{"reason":"valid"}`
 - [ ] la clé GPG expirée `3B98056CF6BD3B32` ne sert plus à rien et porte
       l'adresse purgée : à révoquer ou supprimer du trousseau
+- [x] `libfido2` installé côté Arch — dépendance dure sur Debian, simple
+      `optdepend` sur Arch : sans elle `ssh-keygen -K` échoue **après** le PIN,
+      sur un message qui ne nomme ni FIDO ni la YubiKey
+- [x] askpass installé (`ssh-askpass-gnome` / `ksshaskpass`) et `SSH_ASKPASS`
+      posé dans `init.bash` — sans lui, ssh sans tty abandonne sans rien dire
+- [x] amorçage décirculé : le clone se fait en **HTTPS**, le remote bascule en
+      SSH une fois les clés régénérées. Cloner en SSH exigeait la clé sk, donc
+      `ssh-keygen -K`, donc `libfido2`, donc `install.sh` — dans le dépôt visé
+- [x] contrôle d'épinglage corrigé : ce n'est pas le NOMBRE de lignes
+      `identityfile` qui compte (il y en a deux, une par token) mais leur
+      nature — aucune clé logicielle ne doit y figurer
+
+## Mises à jour automatiques (point 4)
+
+- [x] `unattended-upgrades` installé et `APT::Periodic` posé par `install.sh` —
+      les timers `apt-daily` tournaient déjà à vide, les deux moitiés manquaient
+- [x] appliqué et vérifié sur la machine Pop : service `enabled`, premier
+      passage effectif
+- [x] rien d'équivalent sur Arch, délibérément (pas de dépôt de sécurité séparé)
+- [ ] redémarrage automatique laissé désactivé : les correctifs de **noyau**
+      attendent donc un reboot manuel. À faire de temps en temps, sciemment
 
 ## Sécurité — reste à faire
 
 - [ ] `gitleaks` (point 5) : les filets actuels (.gitignore, filtre autoMode,
       hook pre-commit) ne couvrent que les fuites anticipées
+- [ ] dérouler la procédure d'installation **complète** sur une machine vierge.
+      Les deux trous trouvés le 21/08 (libfido2, clone SSH circulaire)
+      n'existaient que sur le chemin jamais parcouru : Arch, machine neuve. Les
+      relire ne les trouve pas, seul un vrai passage les trouve
 - [ ] « The Framework » garde une clé logicielle d'authentification sur le
       compte GitHub — cette machine peut encore pousser sans matériel
 - [ ] clé de signature « Yubikey ssh » (id 357231) sur le compte : ne
