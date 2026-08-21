@@ -55,6 +55,12 @@ bootstrap_popos() {
   sudo apt-get install -y --no-install-recommends pcscd
   enable_pcscd
 
+  # Sans terminal, ssh ne demande PAS la passphrase : il appelle un programme
+  # externe, et s'il n'en trouve aucun il abandonne sans rien afficher. Le
+  # paquet enregistre /usr/bin/ssh-askpass via update-alternatives, chemin que
+  # ssh cherche par défaut. Voir SSH_ASKPASS dans .config/bash/init.bash.
+  sudo apt-get install -y --no-install-recommends ssh-askpass-gnome
+
   # Mises à jour de sécurité automatiques. apt-daily.timer et
   # apt-daily-upgrade.timer tournent DÉJÀ — le paquet apt les arme d'office —
   # mais sans unattended-upgrades ils n'ont rien à exécuter. Le mécanisme était
@@ -86,6 +92,10 @@ bootstrap_omarchy() {
   # que pcsclite charge pour la YubiKey ; pcsclite seul ne suffit pas.
   sudo pacman -S --needed --noconfirm pcsclite ccid
   enable_pcscd
+
+  # Voir bootstrap_popos. Arch n'a pas d'update-alternatives : le binaire garde
+  # son nom propre, c'est SSH_ASKPASS qui fait le pont.
+  sudo pacman -S --needed --noconfirm ksshaskpass
 
   # Volontairement PAS d'équivalent d'unattended-upgrades ici. Arch n'a pas de
   # dépôt de sécurité séparé : automatiser, ce serait lancer un `pacman -Syu`

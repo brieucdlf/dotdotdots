@@ -21,6 +21,20 @@ export VISUAL="${VISUAL:-$EDITOR}"
 export MANPAGER="${MANPAGER:-less -R}"
 # SUDO_EDITOR est posé plus bas : il lui faut le PATH de mise.
 
+# Quand ssh n'a pas de terminal — agent lancé au login, git appelé depuis un
+# éditeur, script sans tty — il ne demande pas la passphrase lui-même : il
+# délègue à un programme externe. S'il n'en trouve aucun, il n'échoue pas en
+# disant qu'il lui manque la passphrase, il échoue tout court. Debian pose
+# /usr/bin/ssh-askpass via update-alternatives, Arch garde le nom du paquet :
+# on prend le premier qui existe. Sans SSH_ASKPASS_REQUIRE=force, un terminal
+# disponible reste prioritaire — on ne fait qu'ajouter un recours.
+if [[ -z ${SSH_ASKPASS:-} ]]; then
+  for _askpass in /usr/bin/ssh-askpass /usr/bin/ksshaskpass; do
+    if [[ -x $_askpass ]]; then export SSH_ASKPASS="$_askpass"; break; fi
+  done
+  unset _askpass
+fi
+
 # ── init des outils (chacun no-op si déjà fait par Omarchy) ──────────────────
 if command -v mise &>/dev/null && [[ -z ${MISE_SHELL:-} ]]; then
   eval "$(mise activate bash)"

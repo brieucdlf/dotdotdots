@@ -187,6 +187,28 @@ git@github.com: Permission denied (publickey).
 C'est le comportement voulu, pas une panne. Le multiplexage garde la connexion
 10 min : un seul touch pour une rafale de commandes.
 
+**Le même message veut dire deux choses.** `agent refused operation` sort aussi
+bien quand aucun token n'est branché que quand le bon token est branché mais
+n'a pas été touché dans la fenêtre. Le seul moyen de les distinguer est la
+durée : un refus immédiat, c'est l'absence de token ; un refus après ~20 s par
+clé, c'est un touch manqué. Avec deux `IdentityFile`, ssh les essaie l'une
+après l'autre — d'où ~40 s avant le `Permission denied` final.
+
+```bash
+time git push    # ~0 s : pas de token. ~40 s : personne n'a touché.
+```
+
+Corollaire pratique : ce n'est pas automatisable. Une commande lancée par un
+agent, un cron ou un script attend un doigt qui n'arrive jamais et échoue au
+bout de 40 s. Le push est un geste manuel, par construction.
+
+Enfin, hors terminal, ssh ne demande pas la passphrase lui-même : il délègue à
+un askpass externe, et sans askpass il abandonne **sans rien afficher**.
+`install.sh` installe donc `ssh-askpass-gnome` (Pop!_OS) ou `ksshaskpass`
+(Arch), et `init.bash` pose `SSH_ASKPASS` sur le premier des deux qui existe.
+Tant que gnome-keyring détient les passphrases le manque ne se voit pas — il
+se voit le jour où un agent propre doit charger une clé sans tty.
+
 Le fichier a un piège documenté sur place — `IdentityFile` est la seule option
 d'un `ssh_config` qui soit **cumulative** au lieu de premier-gagnant. Mise dans
 `Host *`, la clé logicielle s'ajouterait à celle de github.com et ssh
