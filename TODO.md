@@ -141,6 +141,45 @@ automatique par `install.sh`. Voir `secrets/README.md`.
       correspond à aucune clé de ce poste. Identifier ou retirer
 - [ ] clé GPG `3B98056CF6BD3B32` expirée depuis un an, porte l'adresse purgée
 
+## Accès distant (téléphone → machines)
+
+Tailscale + son SSH intégré, pas d'`openssh-server`. Voir README.
+
+- [x] `install.sh` installe Tailscale et active `tailscaled` (sans `up`)
+- [ ] `sudo tailscale up --ssh` sur chaque machine — décision manuelle
+- [ ] application Tailscale sur le téléphone, puis un client SSH (Termux)
+- [ ] ACL du réseau : `action: check` + `checkPeriod`, `dst: autogroup:self`,
+      `users: autogroup:nonroot`. Sans `check`, un téléphone volé et
+      déverrouillé donne un shell permanent
+- [ ] protéger le compte du fournisseur d'identité par la YubiKey en passkey —
+      c'est ce qui rétablit la chaîne matérielle, le téléphone n'ayant aucune
+      clé SSH
+- [x] réveil : pas de relais disponible (ni Pi ni NAS), donc pas de WoL. Choix
+      assumé : `install.sh` désactive la suspension automatique du poste fixe
+      (`CosmicIdle/v1/suspend_on_ac_time` = `None`), l'écran s'éteignant
+      toujours. Seul coût de l'accès distant dans tout le dépôt
+- [ ] vérifier après une semaine que ça tient :
+      `journalctl --since "7 days ago" | grep -c "PM: suspend entry"` -> 0
+      (référence avant changement : 14 par mois)
+- [ ] si un appareil toujours allumé arrive un jour sur le LAN, rebasculer sur
+      WoL + annonce de sous-réseau et laisser le fixe se rendormir
+- [ ] vérifier que rien n'écoute hors du réseau maillé : `ss -tlnp` ne doit
+      montrer aucun `:22` sur une interface publique
+
+## Caméra
+
+`dots-cam`, webcam pilotable depuis le téléphone. Voir README.
+
+- [x] script écrit, refus de démarrer hors réseau maillé vérifié, unité
+      transitoire avec extinction automatique
+- [x] `install.sh` installe ustreamer/v4l-utils/fswebcam et ajoute au groupe
+      `video` (popos seulement)
+- [ ] lancer `./install.sh`, puis **se reconnecter** pour que le groupe `video`
+      prenne effet — sans ça la caméra ne marche que session graphique ouverte
+- [ ] essai bout en bout depuis le téléphone une fois Tailscale rattaché :
+      `dots-cam start` puis `http://<adresse-tailscale>:8080/`
+- [ ] vérifier que l'extinction automatique coupe bien au délai annoncé
+
 ## Divers
 
 - [x] ~~pousser la branche et merger dans `master`~~ — fait, la machine Pop est validée

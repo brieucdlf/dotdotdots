@@ -81,6 +81,8 @@ bootstrap_popos() {
   fi
 
   install_gitleaks
+  setup_tailscale
+  setup_webcam
 
   install_nerd_font
   install_ghostty_deb
@@ -108,6 +110,10 @@ bootstrap_omarchy() {
 
   # Voir install_gitleaks : ici le dépôt suit l'amont, le paquet suffit.
   sudo pacman -S --needed --noconfirm gitleaks
+
+  # Voir setup_tailscale : même rôle, et ici encore aucun `tailscale up`.
+  sudo pacman -S --needed --noconfirm tailscale
+  enable_tailscaled
 
   # Volontairement PAS d'équivalent d'unattended-upgrades ici. Arch n'a pas de
   # dépôt de sécurité séparé : automatiser, ce serait lancer un `pacman -Syu`
@@ -160,6 +166,73 @@ install_nerd_font() {
     warn "téléchargement de la police échoué — à installer à la main"
   fi
   rm -rf "$tmp"
+}
+
+# Tailscale : le seul moyen d'ENTRER sur ces machines. Tout le reste du dépôt
+# organise des flux sortants ; ici on ouvre une porte, et le choix de sa forme
+# compte plus que sa configuration.
+#
+# Ce que la fonction ne fait PAS, délibérément : `tailscale up`. Rattacher la
+# machine à un réseau est une décision, pas une étape d'installation — elle
+# demande une authentification interactive et lie le poste à un compte. Le
+# script installe la serrure ; c'est toi qui décides à quelle porte elle va.
+#
+# Aucun openssh-server n'est installé : voir README, « Accès distant ». Le SSH
+# de Tailscale authentifie par l'identité du PAIR dans le réseau maillé, pas
+# par une clé posée sur le téléphone — ce qui évite d'y déposer la clé
+# logicielle qu'on vient de retirer partout ailleurs.
+setup_tailscale() {
+  have tailscale && { say "tailscale déjà présent"; enable_tailscaled; return 0; }
+  say "installation de tailscale"
+
+  local cn keyring list
+  cn="$(. /etc/os-release && echo "${UBUNTU_CODENAME:-${VERSION_CODENAME:-noble}}")"
+  keyring=/usr/share/keyrings/tailscale-archive-keyring.gpg
+  list=/etc/apt/sources.list.d/tailscale.list
+
+  if ! curl -fsSL "https://pkgs.tailscale.com/stable/ubuntu/$cn.noarmor.gpg" \
+       | sudo tee "$keyring" >/dev/null; then
+    warn "clé du dépôt tailscale non récupérée — rien installé"; return 0
+  fi
+  if ! curl -fsSL "https://pkgs.tailscale.com/stable/ubuntu/$cn.tailscale-keyring.list" \
+       | sudo tee "$list" >/dev/null; then
+    warn "liste du dépôt tailscale non récupérée — rien installé"; return 0
+  fi
+
+  sudo apt-get update -qq
+  sudo apt-get install -y --no-install-recommends tailscale || {
+    warn "installation de tailscale échouée"; return 0; }
+  enable_tailscaled
+}
+
+# Le démon tourne mais n'est rattaché à rien tant que `tailscale up` n'a pas été
+# lancé : il écoute, il ne rejoint aucun réseau, il n'expose rien.
+enable_tailscaled() {
+  systemctl is-enabled --quiet tailscaled 2>/dev/null && return 0
+  sudo systemctl enable --now tailscaled \
+    && say "tailscaled activé (aucun réseau rejoint — voir README, Accès distant)" \
+    || warn "tailscaled non activé"
+}
+
+# ── webcam pilotable à distance ──────────────────────────────────────────────
+# Voir README, « Caméra », et common/.local/bin/dots-cam. Volontairement côté
+# popos seulement : la caméra est sur le poste fixe, et `ustreamer` n'est pas
+# dans les dépôts officiels d'Arch.
+#
+# L'ajout au groupe `video` n'est pas du confort. Sans lui, l'accès à
+# /dev/video0 ne tient qu'à l'ACL que logind pose pour la session graphique
+# ACTIVE : la caméra marcherait tant qu'on est assis devant, et échouerait
+# précisément quand on est loin — le seul moment où elle sert. Une reconnexion
+# est nécessaire pour que le groupe prenne effet.
+setup_webcam() {
+  sudo apt-get install -y --no-install-recommends ustreamer v4l-utils fswebcam
+
+  if id -nG "$USER" | tr ' ' '\n' | grep -qx video; then
+    return 0
+  fi
+  sudo usermod -aG video "$USER" \
+    && say "ajouté au groupe video — RECONNEXION nécessaire pour que ça prenne" \
+    || warn "ajout au groupe video échoué : la caméra ne marchera que session ouverte"
 }
 
 # gitleaks : le dernier filet avant publication. .gitignore et le filtre autoMode
@@ -228,6 +301,10 @@ install_ghostty_deb() {
   rm -rf "$tmp"
 }
 
+# ATTENTION : toute fonction appelée depuis bootstrap_popos ou bootstrap_omarchy
+# doit être définie AU-DESSUS de cette ligne. Bash lit le fichier de haut en bas
+# et n'a pas connaissance d'une fonction déclarée plus bas : l'appel échoue sur
+# un « command not found » qui ne dit pas que c'est un problème d'ordre.
 if [[ $DO_PACKAGES -eq 1 ]]; then
   "bootstrap_$PROFILE"
 else
@@ -254,6 +331,37 @@ setup_git_hygiene() {
 }
 
 [[ -d "$ROOT/.git" ]] && setup_git_hygiene
+
+# ── le poste fixe reste joignable ────────────────────────────────────────────
+# Voir README, « Accès distant ». Une machine endormie n'a pas de tailscaled
+# éveillé : elle est injoignable, et sans appareil allumé sur le LAN rien ne
+# peut lui envoyer un Wake-on-LAN. Faute de relais, on renonce à la suspension
+# automatique plutôt qu'à l'accès distant.
+#
+# L'écran, lui, continue de s'éteindre : ça économise l'essentiel sans couper
+# le réseau. Seule la SUSPENSION est désactivée.
+#
+# Uniquement sur un châssis de bureau (3/4/6/7 au sens DMI) : sur un portable
+# la suspension est un service rendu, pas une gêne, et le profil popos pourrait
+# un jour tourner sur autre chose que cette tour.
+setup_stay_awake() {
+  local chassis f
+  chassis="$(cat /sys/class/dmi/id/chassis_type 2>/dev/null || echo 0)"
+  case "$chassis" in 3|4|6|7) ;; *) return 0 ;; esac
+
+  f="$HOME/.config/cosmic/com.system76.CosmicIdle/v1/suspend_on_ac_time"
+  [[ -d "${f%/*}" ]] || return 0                    # pas de COSMIC ici
+  [[ -f $f && "$(cat "$f")" == "None" ]] && return 0
+
+  # Format COSMIC : un Option<u64> sérialisé, sans retour à la ligne.
+  if printf 'None' > "$f"; then
+    say "suspension automatique désactivée (le poste doit rester joignable)"
+  else
+    warn "suspension auto NON désactivée — la machine sera injoignable endormie"
+  fi
+}
+
+[[ $PROFILE == popos ]] && setup_stay_awake
 
 # ── migration depuis l'ancien layout plat ────────────────────────────────────
 # Avant e91b366 le dépôt ÉTAIT le paquet stow : tout vivait dans $ROOT/.config.

@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+# Pilotage à distance de la webcam. Voir README, « Caméra ».
+#
+# Trois principes, dans cet ordre — ce sont eux qui décident du code :
+#
+#   1. ÉTEINTE PAR DÉFAUT. Rien n'est `enable`, rien ne démarre au boot. Le flux
+#      est une unité systemd TRANSITOIRE : elle n'existe pas tant qu'on ne l'a
+#      pas demandée, et elle disparaît en s'arrêtant. Il n'y a pas d'état à
+#      oublier quelque part.
+#
+#   2. JAMAIS HORS DU RÉSEAU MAILLÉ. Le flux se lie à l'adresse Tailscale, et le
+#      script REFUSE de démarrer si elle n'existe pas. Se lier à 0.0.0.0 « en
+#      attendant » offrirait la caméra au réseau local entier — c'est le genre
+#      de repli commode qu'on a passé la journée à retirer.
+#
+#   3. EXTINCTION AUTOMATIQUE. Le risque n'est pas d'allumer la caméra, c'est de
+#      la laisser allumée. RuntimeMaxSec coupe, que la connexion ait tenu ou non.
+#
+# Le témoin matériel reste le dernier mot : la LED blanche de la StreamCam
+# s'allume dès que le capteur diffuse. Aucune commande d'ici ne l'éteint.
+set -euo pipefail
+
+DEVICE="${DOTS_CAM_DEVICE:-/dev/video0}"
+PORT="${DOTS_CAM_PORT:-8080}"
+UNIT="dots-cam"
+DEFAULT_MAX="${DOTS_CAM_MAX:-1800}"   # 30 min
+
+say()  { printf "  %s\n" "$*"; }
+warn() { printf "  ! %s\n" "$*" >&2; }
+die()  { printf "  ✗ %s\n" "$*" >&2; exit 1; }
+
+need() { command -v "$1" >/dev/null 2>&1 || die "$1 absent — lance ./install.sh"; }
+
+tailnet_ip() {
+  local ip
+  ip="$(tailscale ip -4 2>/dev/null | head -1 || true)"
+  [[ -n $ip ]] && printf '%s' "$ip"
+}
+
+running() { systemctl --user is-active --quiet "$UNIT"; }
+
+cmd_start() {
+  local max="${1:-$DEFAULT_MAX}" ip
+  need ustreamer
+  need tailscale
+
+  ip="$(tailnet_ip)" || true
+  [[ -n ${ip:-} ]] || die "aucune adresse Tailscale : la machine n'est rattachée à
+    aucun réseau. Rien ne sera exposé — lance d'abord 'sudo tailscale up --ssh'."
+
+  [[ -e $DEVICE ]] || die "$DEVICE absent — la caméra est-elle branchée ?"
+  [[ -r $DEVICE && -w $DEVICE ]] || die "pas d'accès à $DEVICE. Le groupe 'video'
+    est-il actif pour cette session ? (une reconnexion est nécessaire après
+    l'ajout au groupe par install.sh)"
+
+  if running; then
+    say "déjà allumée — http://$ip:$PORT/"
+    return 0
+  fi
+
+  systemd-run --user --unit="$UNIT" --collect \
+    --property=RuntimeMaxSec="$max" \
+    --description="webcam, flux temporaire sur le réseau maillé" \
+    ustreamer --host "$ip" --port "$PORT" --device "$DEVICE" \
+              --format=MJPEG --resolution=1280x720 --desired-fps=15 \
+              --drop-same-frames=30 >/dev/null
+
+  say "allumée pour $((max / 60)) min — http://$ip:$PORT/"
+  say "la LED de la caméra est allumée tant que le capteur diffuse."
+}
+
+cmd_stop() {
+  if ! running; then say "déjà éteinte"; return 0; fi
+  systemctl --user stop "$UNIT"
+  say "éteinte"
+}
+
+cmd_status() {
+  local ip; ip="$(tailnet_ip)" || true
+  if running; then
+    say "ALLUMÉE — http://${ip:-?}:$PORT/"
+    systemctl --user show "$UNIT" -p ActiveEnterTimestamp -p RuntimeMaxUSec \
+      2>/dev/null | sed 's/^/    /'
+  else
+    say "éteinte"
+  fi
+  [[ -n ${ip:-} ]] || warn "machine non rattachée à Tailscale : rien ne peut la joindre"
+}
+
+# Une image, pas un flux. C'est le mode le moins exposé : la caméra s'ouvre le
+# temps d'une capture et se referme, rien n'écoute sur le réseau.
+cmd_snap() {
+  local out="${1:-$HOME/cam-$(date +%Y%m%d-%H%M%S).jpg}"
+  if running; then
+    # Le périphérique est pris par le flux : on demande l'image au flux lui-même
+    # plutôt que d'échouer sur un « device busy » incompréhensible.
+    local ip; ip="$(tailnet_ip)"
+    need curl
+    curl -fsS -o "$out" "http://$ip:$PORT/snapshot" \
+      || die "capture impossible via le flux en cours"
+  else
+    need fswebcam
+    [[ -e $DEVICE ]] || die "$DEVICE absent — la caméra est-elle branchée ?"
+    fswebcam -d "$DEVICE" -r 1280x720 --no-banner --quiet "$out" \
+      || die "capture impossible"
+  fi
+  say "image: $out"
+}
+
+usage() {
+  cat <<'USAGE'
+  dots-cam — webcam à distance, éteinte par défaut
+
+    dots-cam snap [fichier]   une image, la caméra se referme aussitôt
+    dots-cam start [secondes] flux sur le réseau maillé (défaut 1800 = 30 min)
+    dots-cam stop             éteint tout de suite
+    dots-cam status           allumée ou non, et depuis quand
+
+  Le flux n'est joignable QUE depuis le réseau maillé. Sans adresse Tailscale,
+  démarrer est refusé plutôt que replié sur une écoute générale.
+USAGE
+}
+
+case "${1:-}" in
+  snap)   shift; cmd_snap "$@" ;;
+  start)  shift; cmd_start "$@" ;;
+  stop)   cmd_stop ;;
+  status) cmd_status ;;
+  ""|-h|--help|help) usage ;;
+  *) usage; exit 1 ;;
+esac

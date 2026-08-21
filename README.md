@@ -355,6 +355,149 @@ gitleaks dir --redact -c .gitleaks.toml .    # l'arbre courant
 
 ---
 
+## Accès distant
+
+Tout le reste de ce dépôt organise des flux **sortants**. Ici on ouvre une
+porte, et la forme de la porte compte plus que ses réglages.
+
+Il n'y a **pas d'`openssh-server`** sur ces machines, et rien n'écoute sur le
+LAN ni sur Internet. L'accès passe par le SSH intégré à Tailscale, qui
+authentifie par l'**identité du pair dans le réseau maillé** — pas par une clé
+posée sur le client. C'est la seule raison de ce choix : depuis Android, une
+YubiKey est inutilisable en SSH (l'OpenSSH de Termux est compilé sans FIDO, et
+l'accès USB-HID ou NFC au token n'est pas ouvert aux applis non root). Un
+`authorized_keys` classique aurait donc signifié déposer sur le téléphone
+exactement la clé logicielle qu'on vient de retirer de GitHub. Avec Tailscale
+SSH, **il n'y a pas de clé sur le téléphone du tout** : l'identité est celle de
+l'appareil dans le réseau, adossée à ton fournisseur d'identité — que tu peux
+protéger par la YubiKey en passkey. La chaîne matérielle est rétablie par un
+autre chemin.
+
+`install.sh` installe Tailscale et active le démon, mais ne lance **jamais**
+`tailscale up` : rattacher une machine à un réseau est une décision, pas une
+étape d'installation. À faire à la main, une fois par machine :
+
+```bash
+sudo tailscale up --ssh          # rattache la machine ET active le SSH Tailscale
+tailscale status                 # vérifier qui est joignable
+```
+
+Côté téléphone : l'application Tailscale, plus n'importe quel client SSH
+(Termux). Aucune clé à générer.
+
+Dans les ACL du réseau, restreindre l'usage à tes propres appareils et exiger
+une ré-authentification périodique plutôt qu'un accès permanent :
+
+```jsonc
+"ssh": [
+  {
+    "action": "check",           // "accept" = permanent ; "check" = ré-auth
+    "checkPeriod": "12h",        // au-delà, le navigateur redemande l'identité
+    "src":  ["autogroup:member"],
+    "dst":  ["autogroup:self"],
+    "users": ["autogroup:nonroot"]
+  }
+]
+```
+
+`check` est le point important : sans lui, un téléphone volé et déverrouillé
+donne un shell permanent. Avec, il redemande l'identité — donc la passkey.
+
+Pour piloter une session de travail depuis le téléphone, se rattacher à un tmux
+existant plutôt qu'ouvrir un shell neuf :
+
+```bash
+ssh <machine> -t 'tmux new -A -s phone'
+```
+
+`new -A` rattache la session si elle existe, la crée sinon : la même session
+survit aux coupures réseau, qui sont la règle en mobilité.
+
+### Le poste fixe ne dort plus
+
+Une machine endormie n'a pas de `tailscaled` éveillé : **elle est injoignable,
+et aucun réglage sur la machine n'y change rien.** Le Wake-on-LAN se fait par
+un paquet envoyé sur le réseau LOCAL, ce qui suppose un appareil déjà allumé
+pour l'émettre — un Raspberry Pi, un NAS, une box qui sache le faire. Il n'y en
+a pas ici.
+
+Le choix est donc assumé : `install.sh` désactive la **suspension
+automatique** sur le poste fixe, en écrivant `None` dans le réglage COSMIC
+`CosmicIdle/v1/suspend_on_ac_time`. L'écran continue de s'éteindre au bout de
+30 min — c'est l'essentiel de l'économie, et ça ne coupe pas le réseau. Seule
+la suspension disparaît.
+
+C'est le seul endroit du dépôt où l'accès distant coûte quelque chose : la
+consommation d'un fixe qui ne s'endort plus. Le contraire aurait coûté un
+accès qui marche une fois sur deux, ce qui ne vaut rien.
+
+Le réglage ne s'applique **qu'à un châssis de bureau** (types DMI 3/4/6/7) :
+sur un portable la suspension est un service rendu, et le profil `popos`
+pourrait un jour tourner ailleurs que sur cette tour.
+
+Vérifier que ça tient — l'écriture du fichier ne prouve rien, seule l'absence
+de suspension le prouve :
+
+```bash
+cat ~/.config/cosmic/com.system76.CosmicIdle/v1/suspend_on_ac_time   # -> None
+journalctl --since "7 days ago" | grep -c "PM: suspend entry"        # -> 0
+```
+
+Avant ce changement, cette machine s'endormait **14 fois par mois**.
+
+---
+
+## Caméra
+
+Une StreamCam est branchée sur le poste fixe. `dots-cam` permet de l'allumer
+depuis le téléphone — à travers le réseau maillé, jamais autrement.
+
+```bash
+dots-cam snap [fichier]     # une image, la caméra se referme aussitôt
+dots-cam start [secondes]   # flux MJPEG, 30 min par défaut
+dots-cam stop
+dots-cam status
+```
+
+Le flux s'ouvre sur `http://<adresse-tailscale>:8080/`, lisible dans le
+navigateur du téléphone sans rien installer.
+
+Trois propriétés, et ce sont elles qui ont dicté le code :
+
+**Éteinte par défaut.** Rien n'est `enable`, rien ne démarre au boot. Le flux
+est une unité systemd *transitoire* : elle n'existe pas tant qu'on ne l'a pas
+demandée et disparaît en s'arrêtant. Il n'y a pas d'état oublié quelque part.
+
+**Jamais hors du réseau maillé.** Le flux se lie à l'adresse Tailscale, et le
+script **refuse de démarrer** si elle n'existe pas. Se lier à `0.0.0.0` « en
+attendant » offrirait la caméra au réseau local entier — exactement le repli
+commode que ce dépôt passe son temps à retirer.
+
+**Extinction automatique.** `RuntimeMaxSec` coupe au bout du délai, que la
+connexion ait tenu ou non. Le risque n'est pas d'allumer une caméra, c'est de
+la laisser allumée.
+
+S'y ajoute un témoin que le logiciel ne contrôle pas : la LED blanche de la
+StreamCam est allumée tant que le capteur diffuse. Aucune commande de ce dépôt
+ne l'éteint. Chaque allumage laisse par ailleurs une trace dans le journal
+systemd, l'unité y étant nommée.
+
+`install.sh` ajoute l'utilisateur au groupe **`video`**, et ça n'est pas du
+confort : sans lui, l'accès à `/dev/video0` ne tient qu'à l'ACL que `logind`
+pose pour la session graphique *active*. La caméra marcherait tant qu'on est
+assis devant, et échouerait précisément quand on est loin — le seul moment où
+elle sert. **Une reconnexion est nécessaire** pour que le groupe prenne effet.
+
+Le mode `snap` est le moins exposé des deux : la caméra s'ouvre le temps d'une
+image et se referme, rien n'écoute sur le réseau. Si le flux tourne déjà, la
+capture lui est demandée à lui plutôt que d'échouer sur un « device busy »
+incompréhensible.
+
+Côté Omarchy, rien : la caméra est sur le fixe, et `ustreamer` n'est pas dans
+les dépôts officiels d'Arch.
+
+---
+
 ## Machine-specific
 
 Le clair de ces fichiers n'est jamais committé. Certains sont restaurables
