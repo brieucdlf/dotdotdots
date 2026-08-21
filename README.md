@@ -173,6 +173,13 @@ dots-secrets enroll            # enrôler une YubiKey de plus
 même sinon. Détail du modèle, ajout d'un secret, perte d'une clé :
 [`secrets/README.md`](secrets/README.md).
 
+La chaîne ne sert pas qu'aux fichiers de configuration. `todo-secu` y range les
+**faiblesses connues et non corrigées** — une liste de trous ouverts est une
+carte, pas une note de travail : elle dit par où entrer et ce qui n'est pas
+surveillé. Le reste du dépôt peut rester public sans dommage ; publier qu'on
+utilise Tailscale et une YubiKey n'affaiblit rien, la sécurité ne tenant pas au
+secret du dispositif.
+
 ---
 
 ## SSH

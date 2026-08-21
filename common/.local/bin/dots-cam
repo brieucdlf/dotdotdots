@@ -25,6 +25,23 @@ PORT="${DOTS_CAM_PORT:-8080}"
 UNIT="dots-cam"
 DEFAULT_MAX="${DOTS_CAM_MAX:-1800}"   # 30 min
 
+# Deux résolutions, parce que le capteur n'offre pas la même chose selon le
+# format. `v4l2-ctl -d /dev/video0 --list-formats-ext` fait foi :
+#
+#   MJPG (compressé)     jusqu'à 1920x1080 à 60 fps  -> le flux
+#   YUYV (non compressé) jusqu'à 2304x1296 à  5 fps  -> la photo
+#
+# La StreamCam n'est PAS une 4K malgré ce qu'on lit souvent : 2304x1296 est son
+# maximum absolu, soit 3 Mpx. Demander plus fait retomber silencieusement en
+# 1080p, ce qui donne l'illusion d'une capture haute définition.
+#
+# La photo prend donc le maximum du capteur, quitte à ouvrir en non compressé ;
+# le flux prend le maximum utilisable en continu.
+SNAP_RES="${DOTS_CAM_SNAP_RES:-2304x1296}"
+SNAP_FMT="${DOTS_CAM_SNAP_FMT:-YUYV}"
+STREAM_RES="${DOTS_CAM_RES:-1920x1080}"
+STREAM_FPS="${DOTS_CAM_FPS:-30}"
+
 say()  { printf "  %s\n" "$*"; }
 warn() { printf "  ! %s\n" "$*" >&2; }
 die()  { printf "  ✗ %s\n" "$*" >&2; exit 1; }
@@ -62,10 +79,10 @@ cmd_start() {
     --property=RuntimeMaxSec="$max" \
     --description="webcam, flux temporaire sur le réseau maillé" \
     ustreamer --host "$ip" --port "$PORT" --device "$DEVICE" \
-              --format=MJPEG --resolution=1280x720 --desired-fps=15 \
+              --format=MJPEG --resolution="$STREAM_RES" --desired-fps="$STREAM_FPS" \
               --drop-same-frames=30 >/dev/null
 
-  say "allumée pour $((max / 60)) min — http://$ip:$PORT/"
+  say "allumée pour $((max / 60)) min en $STREAM_RES — http://$ip:$PORT/"
   say "la LED de la caméra est allumée tant que le capteur diffuse."
 }
 
@@ -101,7 +118,9 @@ cmd_snap() {
   else
     need fswebcam
     [[ -e $DEVICE ]] || die "$DEVICE absent — la caméra est-elle branchée ?"
-    fswebcam -d "$DEVICE" -r 1280x720 --no-banner --quiet "$out" \
+    # -p est indispensable : sans lui fswebcam demande du MJPEG et retombe en
+    # 1080p SANS rien dire, alors qu'on a demandé plus.
+    fswebcam -d "$DEVICE" -p "$SNAP_FMT" -r "$SNAP_RES" --no-banner --quiet "$out" \
       || die "capture impossible"
   fi
   say "image: $out"
@@ -111,7 +130,7 @@ usage() {
   cat <<'USAGE'
   dots-cam — webcam à distance, éteinte par défaut
 
-    dots-cam snap [fichier]   une image, la caméra se referme aussitôt
+    dots-cam snap [fichier]   une image au maximum du capteur (2304x1296)
     dots-cam start [secondes] flux sur le réseau maillé (défaut 1800 = 30 min)
     dots-cam stop             éteint tout de suite
     dots-cam status           allumée ou non, et depuis quand

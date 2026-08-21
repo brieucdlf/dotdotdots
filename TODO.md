@@ -86,17 +86,11 @@ automatique par `install.sh`. Voir `secrets/README.md`.
 - [x] clé logicielle retirée de GitHub — l'épinglage n'était qu'une préférence
       locale tant que le compte l'acceptait encore
 - [x] anciennes `sk` non résidentes écartées dans `~/.dotfiles-backup/`
-- [ ] « The Framework » garde une clé logicielle sur le compte : c'est le
-      maillon faible restant. Même bascule à faire sur cette machine
-- [ ] `id_ed25519_heartbeat` (clé des autres hôtes) porte encore
-      `contact@brieucdlf.fr` en commentaire : `ssh-keygen -c -C heartbeat -f`
 - [x] signature des commits par SSH : `gpg.format = ssh`, `commit.gpgsign`,
       `allowed_signers` committé, `signingkey` dans identity.gitconfig chiffré
 - [x] les deux `sk` déclarées chez GitHub en type **signing** (1125645 USB-C,
       1125646 USB-A) en plus d'`authentication` — GitHub sépare les deux usages.
       Vérifié : `.commit.verification` renvoie `{"reason":"valid"}`
-- [ ] la clé GPG expirée `3B98056CF6BD3B32` ne sert plus à rien et porte
-      l'adresse purgée : à révoquer ou supprimer du trousseau
 - [x] `libfido2` installé côté Arch — dépendance dure sur Debian, simple
       `optdepend` sur Arch : sans elle `ssh-keygen -K` échoue **après** le PIN,
       sur un message qui ne nomme ni FIDO ni la YubiKey
@@ -119,66 +113,29 @@ automatique par `install.sh`. Voir `secrets/README.md`.
 - [ ] redémarrage automatique laissé désactivé : les correctifs de **noyau**
       attendent donc un reboot manuel. À faire de temps en temps, sciemment
 
-## Sécurité — reste à faire
+## Sécurité
 
 - [x] `gitleaks` (point 5) : installé par `install.sh` (binaire amont vérifié
       par empreinte sur Pop, paquet sur Arch), `.gitleaks.toml` avec allowlist
       structurelle, scan de l'index au `pre-commit` qui refuse le commit — et
       refuse aussi de tourner si gitleaks manque
-- [ ] **RÉVOQUER** les deux clés d'API trouvées dans l'historique par le premier
-      scan : elles sont publiques depuis le 04/10/2025 (5 commits, fichier de
-      config d'un éditeur, absentes de l'arbre courant). Réécrire l'historique
-      ne suffit pas — dix mois de clones et de caches. Seule la rotation compte
-- [ ] rejouer un scan d'historique après rotation, pour confirmer qu'il ne
-      reste que des entrées mortes
 - [ ] dérouler la procédure d'installation **complète** sur une machine vierge.
       Les deux trous trouvés le 21/08 (libfido2, clone SSH circulaire)
       n'existaient que sur le chemin jamais parcouru : Arch, machine neuve. Les
       relire ne les trouve pas, seul un vrai passage les trouve
-- [ ] « The Framework » garde une clé logicielle d'authentification sur le
-      compte GitHub — cette machine peut encore pousser sans matériel
-- [ ] clé de signature « Yubikey ssh » (id 357231) sur le compte : ne
-      correspond à aucune clé de ce poste. Identifier ou retirer
-- [ ] clé GPG `3B98056CF6BD3B32` expirée depuis un an, porte l'adresse purgée
 
-## Accès distant (téléphone → machines)
+Les faiblesses connues et **non corrigées** ne sont pas listées ici : une liste
+de trous ouverts est une carte, pas une note de travail. Elles vivent dans
+`secrets/todo-secu.age`, chiffré pour les deux YubiKeys :
 
-Tailscale + son SSH intégré, pas d'`openssh-server`. Voir README.
+```bash
+dots-secrets unseal todo-secu   # lire
+dots-secrets edit   todo-secu   # modifier, rescelle au passage
+```
 
-- [x] `install.sh` installe Tailscale et active `tailscaled` (sans `up`)
-- [ ] `sudo tailscale up --ssh` sur chaque machine — décision manuelle
-- [ ] application Tailscale sur le téléphone, puis un client SSH (Termux)
-- [ ] ACL du réseau : `action: check` + `checkPeriod`, `dst: autogroup:self`,
-      `users: autogroup:nonroot`. Sans `check`, un téléphone volé et
-      déverrouillé donne un shell permanent
-- [ ] protéger le compte du fournisseur d'identité par la YubiKey en passkey —
-      c'est ce qui rétablit la chaîne matérielle, le téléphone n'ayant aucune
-      clé SSH
-- [x] réveil : pas de relais disponible (ni Pi ni NAS), donc pas de WoL. Choix
-      assumé : `install.sh` désactive la suspension automatique du poste fixe
-      (`CosmicIdle/v1/suspend_on_ac_time` = `None`), l'écran s'éteignant
-      toujours. Seul coût de l'accès distant dans tout le dépôt
-- [ ] vérifier après une semaine que ça tient :
-      `journalctl --since "7 days ago" | grep -c "PM: suspend entry"` -> 0
-      (référence avant changement : 14 par mois)
-- [ ] si un appareil toujours allumé arrive un jour sur le LAN, rebasculer sur
-      WoL + annonce de sous-réseau et laisser le fixe se rendormir
-- [ ] vérifier que rien n'écoute hors du réseau maillé : `ss -tlnp` ne doit
-      montrer aucun `:22` sur une interface publique
-
-## Caméra
-
-`dots-cam`, webcam pilotable depuis le téléphone. Voir README.
-
-- [x] script écrit, refus de démarrer hors réseau maillé vérifié, unité
-      transitoire avec extinction automatique
-- [x] `install.sh` installe ustreamer/v4l-utils/fswebcam et ajoute au groupe
-      `video` (popos seulement)
-- [ ] lancer `./install.sh`, puis **se reconnecter** pour que le groupe `video`
-      prenne effet — sans ça la caméra ne marche que session graphique ouverte
-- [ ] essai bout en bout depuis le téléphone une fois Tailscale rattaché :
-      `dots-cam start` puis `http://<adresse-tailscale>:8080/`
-- [ ] vérifier que l'extinction automatique coupe bien au délai annoncé
+Le reste du dépôt peut rester public sans dommage : publier qu'on utilise
+Tailscale et une YubiKey n'affaiblit rien, la sécurité ne tenant pas au secret
+du dispositif. Ce qui ne doit pas l'être, ce sont les défauts encore ouverts.
 
 ## Divers
 
