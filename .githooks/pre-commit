@@ -1,19 +1,23 @@
 #!/usr/bin/env bash
-# Filet de sécurité : refuse un commit qui publierait le bloc autoMode de
-# Claude Code sur ce dépôt public.
+# Deux filets, dans cet ordre : le bloc autoMode de Claude Code, puis gitleaks
+# sur l'ensemble de ce qui est indexé.
 #
-# En marche normale il ne se déclenche JAMAIS — le filtre `clean` configuré par
-# install.sh a déjà retiré le bloc avant l'indexation. Il n'existe que pour le
-# cas où ce filtre manque : clone frais sur lequel install.sh n'a pas tourné,
-# `git config` nettoyé à la main, jq cassé.
+# ATTENTION en modifiant ce fichier : chaque contrôle doit se terminer sans
+# quitter le script, sinon il coupe les suivants. La version précédente faisait
+# `exit 0` quand settings.json n'était pas du commit — n'importe quel contrôle
+# ajouté après n'aurait jamais tourné.
 set -euo pipefail
 
+# ── 1. bloc autoMode ─────────────────────────────────────────────────────────
+# En marche normale il ne se déclenche JAMAIS : le filtre `clean` configuré par
+# install.sh a déjà retiré le bloc avant l'indexation. Il n'existe que pour le
+# cas où ce filtre manque : clone frais sans install.sh, `git config` nettoyé à
+# la main, jq cassé.
 file="common/.claude/settings.json"
 
-git diff --cached --name-only --diff-filter=ACM | grep -qx "$file" || exit 0
-
-if git show ":$file" 2>/dev/null | grep -q '"autoMode"'; then
-  cat >&2 <<'MSG'
+if git diff --cached --name-only --diff-filter=ACM | grep -qx "$file"; then
+  if git show ":$file" 2>/dev/null | grep -q '"autoMode"'; then
+    cat >&2 <<'MSG'
 
   ✗ commit refusé : autoMode est présent dans la version indexée de
     common/.claude/settings.json, et ce dépôt est public.
@@ -25,6 +29,52 @@ if git show ":$file" 2>/dev/null | grep -q '"autoMode"'; then
     puis re-stage le fichier :
 
         git add common/.claude/settings.json
+
+MSG
+    exit 1
+  fi
+fi
+
+# ── 2. gitleaks ──────────────────────────────────────────────────────────────
+# Le filet précédent et .gitignore ne couvrent que les fuites ANTICIPÉES : un
+# chemin qu'on a pensé à interdire. gitleaks regarde le CONTENU. C'est ce qui
+# manquait le jour où deux clés d'API sont parties dans un settings.json de Zed
+# que personne n'avait pensé à exclure.
+if ! command -v gitleaks >/dev/null 2>&1; then
+  cat >&2 <<'MSG'
+
+  ✗ commit refusé : gitleaks est absent.
+
+    Ce dépôt est public et rien ne relit le contenu de ce que tu committes.
+    Refuser est délibéré : laisser passer donnerait l'illusion d'être couvert.
+
+        ./install.sh          # PAS --no-packages : cette option saute
+                              # justement l'installation des paquets
+
+MSG
+  exit 1
+fi
+
+# `git --staged` depuis 8.20 ; `protect --staged` avant. On ne fige pas la forme.
+if gitleaks git --help >/dev/null 2>&1; then
+  scan=(git --staged)
+else
+  scan=(protect --staged)
+fi
+
+if ! gitleaks "${scan[@]}" --no-banner --redact -c .gitleaks.toml . >/dev/null 2>&1; then
+  echo >&2
+  echo "  ✗ commit refusé : gitleaks a trouvé un secret dans l'index." >&2
+  echo >&2
+  gitleaks "${scan[@]}" --no-banner --redact -v -c .gitleaks.toml . 2>&1 \
+    | grep -vE "^[0-9:]+[AP]M" | sed 's/^/    /' >&2
+  cat >&2 <<'MSG'
+
+    Ce dépôt est PUBLIC. Un secret committé ne se supprime pas, il se RÉVOQUE :
+    réécrire l'historique ne rattrape ni les clones, ni les forks, ni les caches.
+
+    Si c'est un faux positif, ajoute le chemin à l'allowlist de .gitleaks.toml
+    plutôt que de contourner le hook.
 
 MSG
   exit 1

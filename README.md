@@ -318,6 +318,43 @@ jour reste un geste conscient.
 
 ---
 
+## Détection de fuites
+
+`.gitignore`, le filtre `autoMode` et le hook `pre-commit` ne couvrent que les
+fuites **anticipées** : un chemin qu'on a pensé à interdire. `gitleaks` regarde
+le contenu, pas le nom du fichier. C'est la différence entre une liste
+d'interdits et une relecture.
+
+Le scan tourne au `pre-commit`, sur l'index, et **refuse le commit** en cas de
+trouvaille — comme il refuse de s'exécuter si `gitleaks` est absent. Laisser
+passer dans ce cas donnerait précisément l'illusion d'être couvert.
+
+`install.sh` prend le **binaire amont** sur Pop!\_OS, pas le paquet apt :
+Ubuntu livre 8.16 (mi-2023), dont le jeu de règles ignore par exemple les clés
+Anthropic — vérifié. Pour un scanner, la fraîcheur des règles *est* la
+fonction. L'archive est vérifiée par empreinte SHA256 avant installation : un
+outil censé ne pas faire confiance au reste ne peut pas se fier au transfert.
+Côté Arch le dépôt suit l'amont, le paquet suffit.
+
+`.gitleaks.toml` n'écarte que des faux positifs **structurels** : les `.age`
+(du chiffré, haute entropie par construction — les signaler reviendrait à
+signaler que le coffre est bien fermé), les clés publiques `age` et SSH, les
+`.sample`, et les plugins tmux vendorisés. Rien n'y nomme d'employeur ni de
+point d'accès : le fichier est committé, une règle taillée sur un secret précis
+le décrirait.
+
+**Un secret committé ne se supprime pas, il se révoque.** Réécrire l'historique
+ne rattrape ni les clones, ni les forks, ni les caches. C'est pour ça que le
+filet est au `pre-commit` et pas ailleurs : après, il est trop tard, et le seul
+recours est la rotation de la clé.
+
+```bash
+gitleaks git --redact -c .gitleaks.toml .    # tout l'historique
+gitleaks dir --redact -c .gitleaks.toml .    # l'arbre courant
+```
+
+---
+
 ## Machine-specific
 
 Le clair de ces fichiers n'est jamais committé. Certains sont restaurables

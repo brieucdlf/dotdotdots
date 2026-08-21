@@ -121,8 +121,16 @@ automatique par `install.sh`. Voir `secrets/README.md`.
 
 ## Sécurité — reste à faire
 
-- [ ] `gitleaks` (point 5) : les filets actuels (.gitignore, filtre autoMode,
-      hook pre-commit) ne couvrent que les fuites anticipées
+- [x] `gitleaks` (point 5) : installé par `install.sh` (binaire amont vérifié
+      par empreinte sur Pop, paquet sur Arch), `.gitleaks.toml` avec allowlist
+      structurelle, scan de l'index au `pre-commit` qui refuse le commit — et
+      refuse aussi de tourner si gitleaks manque
+- [ ] **RÉVOQUER** les deux clés d'API trouvées dans l'historique par le premier
+      scan : elles sont publiques depuis le 04/10/2025 (5 commits, fichier de
+      config d'un éditeur, absentes de l'arbre courant). Réécrire l'historique
+      ne suffit pas — dix mois de clones et de caches. Seule la rotation compte
+- [ ] rejouer un scan d'historique après rotation, pour confirmer qu'il ne
+      reste que des entrées mortes
 - [ ] dérouler la procédure d'installation **complète** sur une machine vierge.
       Les deux trous trouvés le 21/08 (libfido2, clone SSH circulaire)
       n'existaient que sur le chemin jamais parcouru : Arch, machine neuve. Les

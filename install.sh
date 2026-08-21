@@ -80,6 +80,8 @@ bootstrap_popos() {
     export PATH="$HOME/.local/bin:$PATH"
   fi
 
+  install_gitleaks
+
   install_nerd_font
   install_ghostty_deb
 }
@@ -103,6 +105,9 @@ bootstrap_omarchy() {
   # FIDO ni de YubiKey ("libfido2.so.1: cannot open shared object file", puis
   # "unexpected internal error"). La YubiKey n'y est pour rien.
   sudo pacman -S --needed --noconfirm libfido2
+
+  # Voir install_gitleaks : ici le dépôt suit l'amont, le paquet suffit.
+  sudo pacman -S --needed --noconfirm gitleaks
 
   # Volontairement PAS d'équivalent d'unattended-upgrades ici. Arch n'a pas de
   # dépôt de sécurité séparé : automatiser, ce serait lancer un `pacman -Syu`
@@ -154,6 +159,50 @@ install_nerd_font() {
   else
     warn "téléchargement de la police échoué — à installer à la main"
   fi
+  rm -rf "$tmp"
+}
+
+# gitleaks : le dernier filet avant publication. .gitignore et le filtre autoMode
+# ne couvrent que les fuites ANTICIPÉES — un chemin qu'on a pensé à interdire.
+# gitleaks regarde le contenu, pas le nom du fichier.
+#
+# Volontairement PAS le paquet apt : Ubuntu livre 8.16 (mi-2023), dont le jeu de
+# règles ignore par exemple les clés Anthropic (`sk-ant-`) — vérifié. Pour un
+# scanner, la fraîcheur des règles EST la fonction ; une version figée donne
+# surtout l'illusion d'être couvert. Arch suit l'amont, voir bootstrap_omarchy.
+install_gitleaks() {
+  have gitleaks && { say "gitleaks déjà présent ($(gitleaks version 2>/dev/null))"; return 0; }
+  say "installation de gitleaks (binaire amont)"
+
+  local tmp arch ver url sums
+  case "$(uname -m)" in
+    x86_64)  arch=x64 ;;
+    aarch64) arch=arm64 ;;
+    *) warn "architecture $(uname -m) non gérée pour gitleaks — installe-le à la main"; return 0 ;;
+  esac
+
+  ver="$(curl -fsSL https://api.github.com/repos/gitleaks/gitleaks/releases/latest \
+        | grep -o '"tag_name": *"v[^"]*"' | head -1 | grep -o 'v[0-9.]*' || true)"
+  [[ -n $ver ]] || { warn "version de gitleaks introuvable — passe"; return 0; }
+
+  tmp="$(mktemp -d)"
+  url="https://github.com/gitleaks/gitleaks/releases/download/$ver"
+  if ! curl -fsSL -o "$tmp/gl.tar.gz" "$url/gitleaks_${ver#v}_linux_${arch}.tar.gz" \
+     || ! curl -fsSL -o "$tmp/sums" "$url/gitleaks_${ver#v}_checksums.txt"; then
+    warn "téléchargement de gitleaks échoué — passe"; rm -rf "$tmp"; return 0
+  fi
+
+  # Un scanner de secrets qu'on installe sans vérifier son empreinte, c'est se
+  # fier au transfert pour l'outil censé ne pas se fier au reste.
+  mv "$tmp/gl.tar.gz" "$tmp/gitleaks_${ver#v}_linux_${arch}.tar.gz"
+  if ! (cd "$tmp" && sha256sum --ignore-missing -c sums >/dev/null 2>&1); then
+    warn "empreinte SHA256 de gitleaks invalide — RIEN n'est installé"; rm -rf "$tmp"; return 1
+  fi
+
+  tar xzf "$tmp/gitleaks_${ver#v}_linux_${arch}.tar.gz" -C "$tmp" gitleaks \
+    && install -Dm755 "$tmp/gitleaks" "$HOME/.local/bin/gitleaks" \
+    && say "gitleaks $ver installé dans ~/.local/bin" \
+    || warn "installation de gitleaks échouée"
   rm -rf "$tmp"
 }
 

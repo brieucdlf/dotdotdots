@@ -1,0 +1,32 @@
+# Configuration gitleaks. Le dépôt est PUBLIC : tout ce qui est committé est
+# publié, et l'historique ne s'efface pas — une fuite se révoque, elle ne se
+# supprime pas.
+#
+# Rien ici ne nomme d'employeur, de projet interne ou de point d'accès : ce
+# fichier est committé, une règle taillée sur un secret précis le décrirait.
+# Les règles génériques par entropie couvrent déjà ces cas.
+
+title = "dotdotdots"
+
+[extend]
+# Les ~170 règles par défaut (jetons GitHub, AWS, Stripe, clés privées…) plus
+# la détection générique par entropie. On n'en retire aucune.
+useDefault = true
+
+[allowlist]
+description = "Faux positifs structurels de ce dépôt"
+
+paths = [
+  # Les .age SONT du chiffré : haute entropie par construction. Les signaler
+  # reviendrait à signaler que le coffre est bien fermé. Leur contenu clair
+  # n'est jamais committé — c'est .gitignore qui le garantit, pas gitleaks.
+  '''secrets/.*\.age$''',
+  # Clés PUBLIQUES age : destinataires du chiffrement, publiables par nature.
+  '''secrets/recipients\.txt$''',
+  # Clés PUBLIQUES SSH autorisées à signer les commits. Même raison.
+  '''common/\.config/git/allowed_signers$''',
+  # Modèles committés exprès : valeurs factices montrant la structure.
+  '''.*\.sample$''',
+  # Plugins tmux vendorisés : code tiers avec ses propres fixtures de test.
+  '''common/\.config/tmux/plugins/.*''',
+]
