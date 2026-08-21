@@ -173,6 +173,18 @@ dots-secrets enroll            # enrôler une YubiKey de plus
 même sinon. Détail du modèle, ajout d'un secret, perte d'une clé :
 [`secrets/README.md`](secrets/README.md).
 
+`ykman` est installé avec le reste : c'est le seul outil qui inspecte et
+reconfigure les applets du token — lister les identifiants résidents, remettre
+un PIN, lire le numéro de série. Rien ici n'en dépend au quotidien, mais sans
+lui un token qui se comporte mal est une boîte noire.
+
+Il sert notamment à retirer l'**applet OTP** si elle n'est pas utilisée
+(`ykman otp delete 1`). Cette applet tape une longue chaîne à chaque touche
+reçue *hors* d'une demande FIDO — donc dans un terminal, un champ de mot de
+passe ou une messagerie, selon ce qui a le focus. Sur un token qui ne sert
+qu'au FIDO et au PIV, elle ne fait que transformer une touche mal placée en
+accident au lieu d'un non-événement.
+
 La chaîne ne sert pas qu'aux fichiers de configuration. `todo-secu` y range les
 **faiblesses connues et non corrigées** — une liste de trous ouverts est une
 carte, pas une note de travail : elle dit par où entrer et ce qui n'est pas

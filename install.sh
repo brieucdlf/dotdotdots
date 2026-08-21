@@ -55,6 +55,17 @@ bootstrap_popos() {
   sudo apt-get install -y --no-install-recommends pcscd
   enable_pcscd
 
+  # ykman : le seul outil qui inspecte et reconfigure les applets du token —
+  # lister les identifiants résidents, retirer l'applet OTP, remettre un PIN,
+  # voir le numéro de série. Rien dans ce dépôt n'en dépend au quotidien, mais
+  # sans lui un token qui se comporte mal est une boîte noire.
+  #
+  # L'applet OTP en particulier mérite d'être retirée si elle ne sert pas
+  # (`ykman otp delete 1`) : elle tape une chaîne à chaque touche reçue hors
+  # d'une demande FIDO — dans un terminal, un champ de mot de passe ou une
+  # messagerie. Une touche mal placée devient un accident, pas un non-événement.
+  sudo apt-get install -y --no-install-recommends yubikey-manager
+
   # Sans terminal, ssh ne demande PAS la passphrase : il appelle un programme
   # externe, et s'il n'en trouve aucun il abandonne sans rien afficher. Le
   # paquet enregistre /usr/bin/ssh-askpass via update-alternatives, chemin que
@@ -96,6 +107,9 @@ bootstrap_omarchy() {
   # que pcsclite charge pour la YubiKey ; pcsclite seul ne suffit pas.
   sudo pacman -S --needed --noconfirm pcsclite ccid
   enable_pcscd
+
+  # Voir bootstrap_popos : même rôle, même nom de paquet.
+  sudo pacman -S --needed --noconfirm yubikey-manager
 
   # Voir bootstrap_popos. Arch n'a pas d'update-alternatives : le binaire garde
   # son nom propre, c'est SSH_ASKPASS qui fait le pont.

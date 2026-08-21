@@ -74,6 +74,10 @@ automatique par `install.sh`. Voir `secrets/README.md`.
 - [ ] recréer les deux secrets, absents de cette machine : `dots-secrets edit
       local.bash`, `edit work.gitconfig`
 - [ ] rejouer la chaîne sur la machine Omarchy (`pcsclite` + `ccid` côté Arch)
+- [x] `ykman` installé par `install.sh` sur les deux profils
+- [ ] retirer l'applet OTP des deux tokens : `ykman otp delete 1`. Elle ne sert
+      à rien ici (FIDO + PIV uniquement) et transforme une touche mal placée en
+      chaîne tapée dans ce qui a le focus
 
 ## SSH
 
