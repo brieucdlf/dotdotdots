@@ -57,6 +57,18 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "_gstack_source": "gstack-timeline-stop",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/thewindrunner/.claude/skills/gstack/hosts/claude/hooks/timeline-stop-hook",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   },
   "enabledPlugins": {

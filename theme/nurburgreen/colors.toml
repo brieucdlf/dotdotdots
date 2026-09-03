@@ -25,3 +25,13 @@ color12 = "#2a5a3a"   # br. blue     — forêt claire
 color13 = "#8a6835"   # br. magenta  — cuir tan
 color14 = "#2d8060"   # br. cyan     — mousse claire
 color15 = "#e0cba0"   # br. white    — reflet cuir clair
+
+# --- Omarchy 4 ---------------------------------------------------------------
+# Le moteur de gabarits d'Omarchy 4 expose TOUTE clé de ce fichier aux
+# templates de default/themed/ ; il n'est plus limité aux noms du format
+# standard. Ces deux-là sont lues par hyprland.lua.tpl (bordures de fenêtres)
+# et par shell.toml.tpl, qui en dérive le liseré du verrouillage, des menus et
+# des notifications. Les mettre ici plutôt que dans hypr/looknfeel.lua leur
+# rend leur portée : elles appartiennent au thème, pas au compositeur.
+hyprland_active_border   = "rgba(d4b88aff) rgba(8a6838ff) 45deg"   # cognac → cuir tan, 45°
+hyprland_inactive_border = "rgba(1a1e1a66)"                        # carbone, très transparent

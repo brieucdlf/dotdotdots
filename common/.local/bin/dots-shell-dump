@@ -22,7 +22,10 @@ set -uo pipefail
 ask() { DOTS_NO_TMUX=1 bash -i -c "$1" 2>/dev/null; }
 
 echo "### profil"
-[[ -d $HOME/.local/share/omarchy ]] && echo "omarchy" || echo "standalone"
+# /usr/share/omarchy depuis Omarchy 4 (paquet pacman) ; ~/.local/share/omarchy
+# n'y est plus qu'un lien de compatibilité. Tester les deux couvre la v3.
+[[ -d ${OMARCHY_PATH:-/usr/share/omarchy} || -d $HOME/.local/share/omarchy ]] &&
+  echo "omarchy" || echo "standalone"
 
 echo
 echo "### alias"

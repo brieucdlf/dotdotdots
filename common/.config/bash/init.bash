@@ -1,7 +1,7 @@
 #!/bin/bash
 # Socle shell indépendant de la distro.
 #
-# Sur Omarchy, ~/.local/share/omarchy/default/bash/rc a déjà tout initialisé :
+# Sur Omarchy, /usr/share/omarchy/default/bash/rc a déjà tout initialisé :
 # chaque bloc ici est gardé et devient un no-op. Sur Pop!_OS (ou toute machine
 # sans Omarchy), c'est ce fichier qui fournit le socle — sans lui : pas de
 # prompt, pas de zoxide, pas d'alias de base.

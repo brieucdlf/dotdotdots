@@ -1,9 +1,13 @@
-# Tokens UI dérivés — volontairement séparés de colors.toml, dont le parser
-# Omarchy n'attend que les clés du format standard (accent/foreground/colorN).
-# Ne rien mettre ici qui existe déjà dans colors.toml.
+# Tokens UI qui ne concernent QUE render.sh. Le partage avec colors.toml a
+# changé de critère avec Omarchy 4 : son parser lit désormais n'importe quelle
+# clé du colors.toml et l'expose aux gabarits, donc « Omarchy ne saurait pas la
+# lire » n'est plus une raison de mettre une couleur ici. Ce qui reste : ce
+# qu'Omarchy n'a aucune raison de voir — tmux, et la rampe COSMIC de Pop!_OS.
+# Ne rien mettre ici qui existe déjà dans colors.toml : render.sh lit les deux
+# fichiers dans la même table, un doublon y passerait inaperçu.
 
 border_inactive = "#2a2e2a"   # bordure de pane tmux inactive — carbone froid
-statusbar_bg    = "#0e100e"   # fond de barre (tmux, waybar) — carbone
+statusbar_bg    = "#0e100e"   # fond de barre tmux — carbone
 
 # --- COSMIC ------------------------------------------------------------------
 # Rampe neutre : COSMIC construit tout son chrome (fonds de panneaux, boutons,

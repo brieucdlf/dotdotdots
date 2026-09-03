@@ -15,18 +15,54 @@ explicite si stow refuse malgré tout. **L'ordre n'a donc plus d'importance :
 plate.**
 
 Ce qu'`install.sh` fait de spécifique à Omarchy : lie `theme/nurburgreen` dans
-`~/.config/omarchy/themes/` pour que le sélecteur, Waybar et Hyprland le voient,
-puis `omarchy restart waybar`.
+`~/.config/omarchy/themes/` pour que le sélecteur, la barre et Hyprland le
+voient, puis `omarchy theme set nurburgreen` — depuis la v4, les fichiers que
+lisent Hyprland et la barre sont dérivés de `colors.toml` à ce moment-là.
 
 Vérifié après coup :
 - [x] la statusbar tmux affiche bien le statut Claude — `status-right` (généré
       par `render.sh`) appelle `tmux-claude-status`, qui répond
 - [x] les modules waybar todo répondent — `waybar-claude-todo` était cassé en
-      repli (motif `grep` commençant par un tiret), corrigé
+      repli (motif `grep` commençant par un tiret), corrigé. Sans objet depuis
+      Omarchy 4 : waybar a disparu, le script aussi
 - [x] tpm charge depuis `~/.config/tmux/plugins` et non `~/.tmux`
 - [x] ghostty prend ses couleurs de `~/.config/theme/current/`, plus d'Omarchy
 - [x] les shims mise passent devant les binaires pacman
 - [ ] `~/.tmux/plugins` traîne encore, vide, depuis l'ancienne install — à supprimer
+
+## Omarchy 4 — appliqué, reste à vérifier à l'œil
+
+Le profil `omarchy/` a été réécrit pour la v4 (voir README, section
+« Omarchy 4 »). Appliqué le 03/09/2026 par `./install.sh --no-packages` : les
+liens sont posés, les fichiers que la migration d'Omarchy avait écrits en dur
+sont dans `~/.dotfiles-backup/20260903-163348/`.
+
+Vérifié après `hyprctl reload` :
+- [x] `hyprctl configerrors` ne renvoie rien
+- [x] les quatre overrides sont pris — `hyprctl getoption` donne `us,fr`,
+      `repeat_delay 600`, `natural_scroll true`, `scroll_factor 0.5`,
+      `rounding 10`, blur à 4 passes ; `Super+Shift+T` est bien lié à Activity
+      (et `Super+Ctrl+T`, le défaut v4, à côté)
+- [x] les bordures viennent du **thème** : `general:col.active_border` vaut
+      `ffd4b88a ff8a6838 45deg`, donc `colors.toml` pilote bien Hyprland
+- [x] `~/.local/state/omarchy/current/theme/` a été recréé de zéro : plus de
+      `waybar.css`, `walker.css`, `mako.ini`, `swayosd.css`, `hyprlock.conf`,
+      et un `hyprland.lua` à la place de `hyprland.conf`
+- [x] la couche `omarchy-bar` existe sur les deux écrans et `shell.toml` porte
+      `background-alpha = 0.30` — reste à confirmer **à l'œil** que la barre est
+      bien translucide et floutée
+- [ ] verrouillage après 2 minutes, et un mot de passe refusé se voit
+- [ ] toucher un réglage de barre (`omarchy bar transparent toggle`), vérifier
+      que `~/.config/omarchy/shell.json` est devenu un vrai fichier, puis que
+      l'`install.sh` suivant le récupère dans le dépôt et le relie. Les témoins
+      par fichier sont en place (`~/.claude/.dots-stowed.d/`), c'est ce chemin
+      qu'il reste à éprouver pour de vrai
+- [ ] rejouer la passe paquets, qui demande un tty : `./install.sh` tout court
+- [ ] faire le ménage dans `~/.config/hypr/` : les `*.conf.bak.*` de la v3 et
+      les `*.omarchy-upgrade-to-quattro.*.bak` de la migration
+- [ ] le hook `Stop` de gstack, repris dans `common/.claude/settings.json` par
+      `reclaim`, porte un chemin **absolu** vers `/home/thewindrunner/…` : il ne
+      vaudra rien sur la machine perso. À rendre relatif ou à sortir du dépôt
 
 ## Converger le socle shell
 

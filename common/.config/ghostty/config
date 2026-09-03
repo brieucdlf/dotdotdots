@@ -1,5 +1,5 @@
 # Thème — généré par theme/render.sh depuis colors.toml, identique sur les deux
-# machines. Volontairement PAS branché sur ~/.config/omarchy/current/theme :
+# machines. Volontairement PAS branché sur ~/.local/state/omarchy/current/theme :
 # le terminal appartient au repo, pas au sélecteur de thème d'Omarchy.
 config-file = "~/.config/theme/current/ghostty.conf"
 
@@ -27,6 +27,11 @@ shell-integration-features = no-cursor
 keybind = f11=toggle_fullscreen
 keybind = shift+insert=paste_from_clipboard
 keybind = control+insert=copy_to_clipboard
+# Shift+Enter et Alt+Shift+Enter en CSI-u : sans ça l'encodage historique les
+# rend indiscernables d'Enter et d'Alt+Enter, et un TUI ne peut pas les
+# distinguer. Repris des défauts d'Omarchy 4.
+keybind = shift+enter=csi:13;2u
+keybind = alt+shift+enter=csi:13;4u
 keybind = super+control+shift+alt+arrow_down=resize_split:down,100
 keybind = super+control+shift+alt+arrow_up=resize_split:up,100
 keybind = super+control+shift+alt+arrow_left=resize_split:left,100

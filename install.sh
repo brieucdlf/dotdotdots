@@ -30,7 +30,12 @@ have() { command -v "$1" &>/dev/null; }
 detect_profile() {
   local id=""
   [[ -r /etc/os-release ]] && id="$(. /etc/os-release && echo "$ID")"
-  if [[ -d $HOME/.local/share/omarchy ]]; then echo omarchy
+  # Omarchy 4 est un paquet pacman : la base vit dans /usr/share/omarchy, et
+  # ~/.local/share/omarchy n'est plus qu'un lien de compatibilité posé par la
+  # migration. Tester les deux — le lien peut disparaître d'une version à
+  # l'autre, /usr/share/omarchy non, et $OMARCHY_PATH n'est pas dans
+  # l'environnement d'un shell non interactif.
+  if [[ -d ${OMARCHY_PATH:-/usr/share/omarchy} || -d $HOME/.local/share/omarchy ]]; then echo omarchy
   elif [[ $id == pop || $id == ubuntu || $id == debian ]]; then echo popos
   elif [[ $id == arch ]]; then echo omarchy
   else echo ""
@@ -532,29 +537,58 @@ backup_conflicts() {
   done < <(find "$pkgdir" -type f -print0)
 }
 
-# ── reprise du settings.json de Claude Code ──────────────────────────────────
-# Claude Code réécrit ~/.claude/settings.json tout seul (thème, effort, plugins
-# activés). S'il le fait en temp + rename — comme cosmic-settings, voir
-# post_popos — le lien posé par stow devient un vrai fichier et la synchro
-# s'arrête SANS RIEN DIRE : c'est le pire mode de panne, on ne s'en aperçoit
-# qu'en constatant que la config ne suit plus.
+# ── reprise des fichiers que leur application réécrit elle-même ──────────────
+# Certaines applications réécrivent leur config toutes seules. Quand elles le
+# font en temp + rename — comme cosmic-settings, voir post_popos — le lien posé
+# par stow devient un vrai fichier et la synchro s'arrête SANS RIEN DIRE :
+# c'est le pire mode de panne, on ne s'en aperçoit qu'en constatant que la
+# config ne suit plus. Deux cas connus :
+#
+#   ~/.claude/settings.json          Claude Code (thème, effort, plugins)
+#   ~/.config/omarchy/shell.json     le shell Omarchy, dont le FileView est
+#                                    déclaré atomicWrites: true — donc CHAQUE
+#                                    réglage de barre (déplacer un widget,
+#                                    changer la transparence, `omarchy bar …`)
+#                                    remplace le lien, ce n'est pas une
+#                                    hypothèse mais le fonctionnement normal
 #
 # Le témoin est indispensable : sans lui, on ne distingue pas « le lien a été
-# écrasé ici » de « première install sur une machine qui a déjà sa config » — et
-# on recopierait la config locale par-dessus celle du dépôt. Le témoin n'existe
-# que si stow est déjà passé sur cette machine.
-STAMP="$HOME/.claude/.dots-stowed"
+# écrasé ici » de « ce fichier existait déjà avant qu'on s'en occupe » — et on
+# recopierait la config locale par-dessus celle du dépôt.
+#
+# Un témoin PAR FICHIER, et pas un seul pour la machine. Le témoin global
+# répond « stow est déjà passé ici », ce qui n'est pas la question : le jour où
+# le dépôt se met à gérer un fichier de plus, celui-ci existe déjà sur la
+# machine sans avoir jamais été lié, et un témoin global le ferait reprendre
+# au premier passage — la version du dépôt serait écrasée par celle qu'on
+# venait justement remplacer. C'est exactement le cas de shell.json, écrit par
+# la migration Omarchy 4 avant que ce dépôt ne le connaisse.
+STAMPS="$HOME/.claude/.dots-stowed.d"
+STAMP="$HOME/.claude/.dots-stowed"          # témoin global, conservé (historique)
 
-reclaim_claude_settings() {
-  local live="$HOME/.claude/settings.json" repo="$ROOT/common/.claude/settings.json"
-  [[ -f $repo && -f $STAMP ]] || return 0
+stamp_of() { printf '%s/%s' "$STAMPS" "${1//\//%}"; }
+
+# reclaim <chemin sous ~> <chemin dans le dépôt>
+reclaim() {
+  local live="$HOME/$1" repo="$2"
+  [[ -f $repo && -f "$(stamp_of "$1")" ]] || return 0
   [[ -f $live && ! -L $live ]] || return 0       # encore un lien : rien à faire
   cmp -s "$live" "$repo" && return 0
   cp -f "$live" "$repo"
-  warn "lien ~/.claude/settings.json remplacé par un fichier — contenu récupéré dans le dépôt"
+  warn "lien ~/$1 remplacé par un fichier — contenu récupéré dans le dépôt"
 }
 
-reclaim_claude_settings
+# Reprise du témoin global pour settings.json, le seul fichier qui était déjà
+# suivi avant les témoins par fichier : sans ça, le premier passage après cette
+# version perdrait ce que Claude Code y a écrit depuis.
+mkdir -p "$STAMPS"
+[[ -f $STAMP && ! -e "$(stamp_of .claude/settings.json)" ]] &&
+  touch "$(stamp_of .claude/settings.json)"
+
+reclaim .claude/settings.json          "$ROOT/common/.claude/settings.json"
+# Sous $PROFILE et pas common : sur Pop!_OS le fichier n'existe pas dans le
+# dépôt, la garde -f suffit alors à ne rien reprendre d'un homonyme local.
+reclaim .config/omarchy/shell.json     "$ROOT/$PROFILE/.config/omarchy/shell.json"
 
 backup_conflicts "$ROOT/common"
 backup_conflicts "$ROOT/$PROFILE"
@@ -584,7 +618,14 @@ if ! stow --dir="$ROOT" --target="$HOME" --restow common "$PROFILE"; then
   exit 1
 fi
 
+# Les liens sont posés : les fichiers gérés par reclaim sont désormais des
+# liens à nous, et un vrai fichier à leur place au passage suivant ne pourra
+# plus vouloir dire autre chose que « l'application l'a réécrit ».
 [[ -d "$ROOT/common/.claude" ]] && touch "$STAMP"
+mkdir -p "$STAMPS"
+touch "$(stamp_of .claude/settings.json)"
+[[ -f "$ROOT/$PROFILE/.config/omarchy/shell.json" ]] &&
+  touch "$(stamp_of .config/omarchy/shell.json)"
 
 # ── thème ────────────────────────────────────────────────────────────────────
 say "rendu du thème"
@@ -626,11 +667,28 @@ fi
 # ── spécifique au profil ─────────────────────────────────────────────────────
 post_omarchy() {
   # Le thème reste piloté par le repo ; Omarchy le voit comme un thème normal.
+  # Un LIEN et pas une copie, et ça compte doublement depuis Omarchy 4 : le
+  # sélecteur refuse le Lua, les configs de terminal et vscode.json d'un thème
+  # « installé », qu'il reconnaît à son dossier .git. Un lien vers un dossier à
+  # soi n'est pas un thème installé — il n'est bridé sur rien.
   local dst="$HOME/.config/omarchy/themes/nurburgreen"
   mkdir -p "$(dirname "$dst")"
   ln -sfn "$ROOT/theme/nurburgreen" "$dst"
   say "thème lié dans le sélecteur Omarchy"
-  have omarchy && omarchy restart waybar &>/dev/null || true
+
+  have omarchy || return 0
+
+  # `theme set` et pas `restart shell` : depuis la v4, les fichiers que lisent
+  # Hyprland, la barre et le verrouillage ne sont plus dans le thème, ils en
+  # sont DÉRIVÉS — colors.toml + les gabarits de default/themed/ (et les nôtres
+  # dans ~/.config/omarchy/themed/) sont rendus au moment du `theme set`, dans
+  # ~/.local/state/omarchy/current/theme. Redémarrer le shell sans repasser par
+  # là lui ferait relire les fichiers de la fois d'avant.
+  if [[ "$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null)" == nurburgreen ]]; then
+    omarchy theme set nurburgreen &>/dev/null || warn "omarchy theme set nurburgreen a échoué"
+  else
+    say "thème courant ≠ nurburgreen — pas réappliqué ; 'omarchy theme set nurburgreen' pour basculer"
+  fi
 }
 
 post_popos() {

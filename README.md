@@ -83,7 +83,7 @@ theme/
 ├── cosmic/         # palette sémantique stock de COSMIC, reprise telle quelle
 └── render.sh       # → ~/.config/theme/current/{ghostty,tmux,colors.sh,*.ron}
 
-omarchy/            # hypr/, waybar/
+omarchy/            # hypr/ (Lua), omarchy/ (shell.json + gabarits de thème)
 popos/              # thème COSMIC + override ghostty (voir son README)
 ```
 
@@ -108,18 +108,97 @@ accent      #f0c000   GT yellow (used sparingly)
 `theme/nurburgreen/colors.toml` est la seule source de vérité. `theme/render.sh`
 en dérive les fichiers consommés par ghostty, tmux, fzf et eza dans
 `~/.config/theme/current/` — **aucune couleur n'est codée en dur dans une config**.
-Les tokens qui n'existent pas dans le format Omarchy (bordures, fond de barre)
-sont dans `ui.toml`, à côté.
+Les tokens qui ne concernent que `render.sh` (bordure de pane tmux, fond de
+barre tmux, rampe neutre COSMIC) sont dans `ui.toml`, à côté.
 
 Changer une couleur = éditer `colors.toml`, relancer `./install.sh --no-packages`.
 
-Sur la machine Omarchy, `install.sh` lie aussi le thème dans le sélecteur Omarchy
-pour que Waybar et Hyprland le voient. Le terminal, lui, ne dépend pas d'Omarchy :
-c'est ce qui rend l'iso vraie.
+Sur la machine Omarchy, `install.sh` lie aussi le thème dans le sélecteur
+Omarchy, puis le réapplique — depuis la v4 les fichiers que lisent Hyprland, la
+barre et le verrouillage ne sont plus *dans* le thème, ils en sont **dérivés**
+au moment du `omarchy theme set` (voir « Omarchy 4 » plus bas). Le terminal,
+lui, ne dépend pas d'Omarchy : c'est ce qui rend l'iso vraie.
 
 Sur Pop!_OS, le desktop COSMIC a droit au même traitement : `render.sh` produit
 un `cosmic-nurburgreen-dark.ron` importable via **Réglages > Apparence >
 Importer un thème**. Détail du mapping dans `popos/README.md`.
+
+---
+
+## Omarchy 4
+
+La machine pro est passée d'Omarchy 3 à 4. Ce n'est pas une montée de version
+ordinaire : trois des quatre choses que le profil `omarchy/` posait ont changé
+de **format** ou d'**adresse**. Ce que le dépôt contient a donc changé aussi.
+
+| v3 | v4 | ce que ça change ici |
+|---|---|---|
+| `~/.config/hypr/*.conf` | `~/.config/hypr/*.lua` | tout le profil réécrit en Lua |
+| waybar (`config.jsonc` + `style.css`) | shell Quickshell (`~/.config/omarchy/shell.json`) | les deux fichiers supprimés, un seul les remplace |
+| `hypridle.conf` | `shell.json`, clé `idle` | le verrouillage n'est plus un démon à part |
+| `hyprlock.conf` | plugin `omarchy.lock`, thémé | l'écran de verrouillage n'est plus dessinable à la main |
+| `~/.config/omarchy/current/` | `~/.local/state/omarchy/current/` | ce qui est *généré* quitte `~/.config` |
+| `~/.local/share/omarchy/` | `/usr/share/omarchy/` | Omarchy est un paquet pacman ; l'ancien chemin n'est plus qu'un lien |
+
+### Le profil ne contient plus que des overrides
+
+En v3, `bindings.conf` et `input.conf` étaient les fichiers **stock** d'Omarchy
+recopiés, avec quelques lignes à soi noyées dedans. C'est ce qui a rendu cette
+migration longue : il a fallu rejouer la comparaison ligne à ligne avec les
+défauts de la v4 pour savoir ce qui était un choix et ce qui était un héritage.
+
+Il en restait très peu. `bindings.lua` tient en une ligne (btop sur
+`Super+Shift+T` ; Omarchy 4 le met sur `Super+Ctrl+T`, les deux coexistent) et
+`input.lua` en quatre valeurs (`us,fr`, `repeat_delay`, deux réglages de
+touchpad). Tout le reste était devenu, ou était déjà, le défaut.
+
+**La règle qui en découle : ne rien recopier d'Omarchy « pour la lisibilité ».**
+Une valeur redite dans le profil fige le défaut du jour et ne bougera plus
+jamais avec les mises à jour, sans que rien ne le signale.
+
+### Les couleurs sont remontées dans le thème
+
+Le moteur de gabarits de la v4 expose **toute** clé de `colors.toml` aux
+templates de `default/themed/`. Deux conséquences :
+
+- les bordures de fenêtres sortent de `looknfeel.lua` et deviennent
+  `hyprland_active_border` / `hyprland_inactive_border` dans `colors.toml`.
+  Elles appartiennent au thème, pas au compositeur — et surtout, `looknfeel.lua`
+  est chargé **après** le thème : y laisser `col.active_border` écrasait
+  n'importe quel thème, y compris après en avoir changé ;
+- ce qui reste dans `ui.toml` n'y est plus parce qu'Omarchy « ne saurait pas le
+  lire », mais parce qu'Omarchy n'a aucune raison de le voir (tmux, COSMIC).
+
+La barre et le verrouillage se thèment par des **sections** de `shell.toml`,
+déposées en gabarits dans `omarchy/.config/omarchy/themed/` :
+`shell.bar.toml.tpl` (barre à 30 % d'opacité, comme l'ancien `style.css`) et
+`shell.lock.toml.tpl` (couleur d'échec lisible). Ils sont rendus depuis
+`colors.toml` — donc valables pour **tous** les thèmes, et sans une couleur en
+dur. Contrepartie : Omarchy remplace la section entière, pas clé par clé ; une
+clé `[bar]` ajoutée en amont ne parviendra pas tant qu'elle n'est pas reprise.
+
+### Ce qui est perdu, et assumé
+
+- **La carte de verre dépoli du verrouillage.** L'ancien `hyprlock.conf`
+  dessinait une carte arrondie, la photo de profil et une horloge en 64 px. Le
+  plugin `omarchy.lock` ne se règle que par des couleurs : le fond d'écran, un
+  champ de saisie, rien d'autre. Seule la palette a été reportée.
+- **Le module CPU de la barre.** Il n'a pas d'équivalent en v4 ; `Super+Shift+T`
+  ouvre toujours btop, ce que faisait le clic sur le module.
+- **`hypridle`, à la seconde près.** La v4 n'a pas de « verrouiller sans
+  économiseur » : `idle.screensaver` et `idle.lock` sont deux délais, pas un
+  interrupteur, et un délai nul déclenche l'économiseur *immédiatement* au lieu
+  de l'éteindre. Les deux sont donc posés à 120 s : le délai de verrouillage de
+  la v3 est conservé exact, rien ne se passe avant, et l'économiseur qui
+  démarre au même instant est tué par `omarchy-system-lock` dans la foulée.
+
+### shell.json est réécrit par le shell
+
+`~/.config/omarchy/shell.json` est stowé comme le reste, mais le shell le
+réécrit lui-même en temp + rename (`atomicWrites: true`) : **chaque** réglage de
+barre — déplacer un widget, `omarchy bar …` — remplace le lien par un vrai
+fichier et arrête la synchro sans rien dire. `install.sh` récupère le contenu
+au passage suivant, comme il le fait pour `~/.claude/settings.json`.
 
 ---
 
@@ -545,7 +624,7 @@ depuis leur version chiffrée, les autres sont propres à la machine et doivent
 | `~/.local/bin/dev-tmux` | lanceur de session tmux propre au boulot | à réécrire |
 | `~/.config/ghostty/local.conf` | `font-size` selon le DPI ; posé par le profil popos pour l'opacité | à refaire (dépend de l'écran) |
 | `~/.config/git/work.gitconfig` | identité pro, appliquée d'office sous `~/Work/` | déchiffré |
-| `omarchy/.config/hypr/monitors.conf` | résolutions et scaling (committé, mais par profil) | committé |
+| `omarchy/.config/hypr/monitors.lua` | résolutions et scaling (committé, mais par profil) | committé |
 | `common/.claude/settings.private.json` | bloc `autoMode` de Claude Code, extrait par le filtre git | régénéré par le filtre |
 
 Chacun a son `.sample` committé à côté, qui montre la structure sans nommer
@@ -883,6 +962,8 @@ rappels de raccourcis du footer (dont `esc to interrupt`). Retirer la clé
 ## Notes
 
 - Omarchy gère le système de base. Ces dotfiles sont des overrides —
-  `~/.local/share/omarchy/` n'est jamais touché.
-- Hyprland recharge à chaud. Waybar demande `omarchy restart waybar`.
+  `/usr/share/omarchy/` n'est jamais touché (v3 : `~/.local/share/omarchy/`,
+  aujourd'hui un simple lien vers le premier).
+- Hyprland recharge à chaud. `shell.json` et les plugins aussi. Les couleurs
+  passent par `omarchy theme set nurburgreen`, pas par un redémarrage.
 - tpm vit dans `~/.config/tmux/plugins` (XDG), pas `~/.tmux`.
