@@ -257,6 +257,19 @@ ssh -G github.com | grep '^identityfile' | grep -c heartbeat   # doit valoir 0
 Le contrôle porte sur la nature des clés, pas sur leur nombre : github.com en
 liste deux, une par YubiKey. Ce qui doit être absent, c'est la clé logicielle.
 
+Les hôtes de travail ne sont **pas** dans le fichier versionné : une IP, un
+compte ou même un alias désignent une infra interne, et le dépôt est public.
+Ils vivent dans `~/.ssh/config.local`, tiré par un `Include` en **tête** de
+`config` — premier-gagnant oblige, placé en bas il n'aurait rien pu redresser.
+Un Include absent n'est pas une erreur pour ssh : les machines qui n'ont pas ce
+fichier ne voient rien.
+
+Un hôte déclaré là doit nommer sa propre clé. Le bloc négatif ne propose que
+`id_ed25519_heartbeat`, et `IdentitiesOnly yes` interdit tout le reste : sans
+`IdentityFile` local, ssh se présente les mains vides et le serveur refuse
+(`Permission denied (publickey)`), précédé du révélateur `no such identity`
+quand la clé logicielle générique n'existe pas non plus sur cette machine.
+
 `install.sh` crée `~/.ssh` en **vrai dossier** avant de stower. Sans ça, stow le
 plierait en un lien vers le dépôt et le premier `ssh-keygen` écrirait une clé
 privée dans un dépôt public. `.gitignore` couvre le cas en second rideau :
@@ -565,8 +578,9 @@ branche. Les noms recréés sont ceux qu'attend déjà `~/.ssh/config`, il n'y a
 donc rien à renommer ni à éditer.
 
 Ce qui reste propre à la machine : `~/.ssh/id_ed25519_heartbeat` (clé
-logicielle pour les autres hôtes) et les fichiers marqués « à réécrire » ou
-« `.sample` à recopier » ci-dessus.
+logicielle pour les autres hôtes), `~/.ssh/config.local` (hôtes de travail,
+voir « SSH ») et les fichiers marqués « à réécrire » ou « `.sample` à
+recopier » ci-dessus.
 
 ---
 
