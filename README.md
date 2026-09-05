@@ -76,7 +76,7 @@ common/            # les 2 machines, identique au byte près
 │   ├── mise/config.toml        # ← versions des outils, la clé de l'iso
 │   └── zed/
 ├── .claude/                    # config Claude Code (settings, skills, statusline)
-└── .local/bin/                 # tmux-claude-status, dots-secrets, dots-shell-dump
+└── .local/bin/                 # dots-herdr-theme, dots-secrets, dots-shell-dump
 
 theme/
 ├── nurburgreen/    # colors.toml = SOURCE UNIQUE des couleurs (+ ui.toml)
@@ -126,12 +126,31 @@ Le `colors.toml` du thème est la seule source de vérité. `theme/render.sh`
 en dérive les fichiers consommés par ghostty, tmux, fzf, eza, btop et herdr dans
 `~/.config/theme/current/` — **aucune couleur n'est codée en dur dans une config**.
 
+Sur Omarchy, `install.sh` rend le thème **actif** — le bureau fait foi. Ailleurs
+il n'y a pas de thème actif à lire, d'où `--theme` :
+
+```bash
+./install.sh --no-packages --theme kreide
+```
+
+Le choix est retenu : `render.sh` laisse le nom dans
+`~/.config/theme/current/.theme-name`, et les passages suivants le reprennent.
+Sans quoi `--theme` n'aurait valu que pour une fois.
+
+herdr est thémé par `install.sh` sur les deux machines, pas seulement par le
+crochet `theme-set` — ce crochet est dans le paquet `omarchy` et n'existe pas
+sur Pop!_OS, où `.bashrc` préfère pourtant herdr dès qu'il est installé. Les
+deux appellent `common/.local/bin/dots-herdr-theme`.
+
 Deux contraintes valent pour **tout** thème ajouté ici :
 
 - son fond d'écran doit porter l'assombrissement du haut (la barre ne peint
   aucun fond — voir `theme/<nom>/assets/README.md`) ;
 - ses clés `herdr_*` dans `ui.toml` doivent tenir 3:1 sur ses propres surfaces,
-  les slots ANSI sombres n'y suffisent pas.
+  les slots ANSI sombres n'y suffisent pas — fonds compris : `herdr_row_bg` doit
+  se voir sur `herdr_panel_bg`, sinon la ligne active ne se distingue de rien ;
+- le thème d'icônes qu'il nomme doit exister sur la machine. `install.sh`
+  prévient quand ce n'est pas le cas, il ne l'installe pas.
 Les tokens qui ne concernent que `render.sh` (bordure de pane tmux, fond de
 barre tmux, rampe neutre COSMIC) sont dans `ui.toml`, à côté.
 

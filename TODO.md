@@ -185,6 +185,19 @@ du dispositif. Ce qui ne doit pas l'être, ce sont les défauts encore ouverts.
 
 - [x] ~~pousser la branche et merger dans `master`~~ — fait, la machine Pop est validée
 - [ ] uniformiser l'emplacement du repo entre les deux machines (`~/.dots` vs `~/.dotfiles`)
+- [ ] `theme/kreide/icons.theme` nomme `Nordzy-yellow-dark`, posé à la main dans
+      `~/.local/share/icons` — rien ne l'installe. `install.sh` le signale
+      maintenant ; reste à l'ajouter à la passe paquets (AUR sur Arch)
+- [ ] btop n'est thémé que sur Omarchy : `~/.config/btop/themes/current.theme`
+      pointe vers `~/.local/state/omarchy/current/theme/btop.theme`, et
+      `~/.config/btop/` n'est pas dans le dépôt. Sur Pop!_OS le `btop.theme`
+      rendu dans `~/.config/theme/current/` n'est lu par personne — vrai pour
+      les deux thèmes, pas une régression de kreide
+- [ ] `install.sh` : `reclaim()` recopie la config vivante dans le dépôt sans
+      montrer de diff. C'est par là que le crochet herdr et `shell.json` sont
+      entrés sans relecture
+- [ ] `theme/render.sh` publie en effaçant-puis-copiant : une panne au milieu
+      laisse `~/.config/theme/current` à moitié. Un `mv` de dossier serait atomique
 - [ ] `common/.config/nvim/colors/{nurburgreen,kreide}.lua` ont encore leur
       palette en dur — seul endroit qui ne dérive pas de `colors.toml`. Le
       *choix* du colorscheme, lui, suit désormais le thème actif
