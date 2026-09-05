@@ -48,6 +48,8 @@ local c = {
 
   -- accents
   yellow      = "#f0c000",
+  green_pill  = "#0f8f4c",   -- = herdr_green : le vert BRG en pleine lumière
+  teal_pill   = "#35a37c",   -- = herdr_teal  : mousse claire
   yellow_dim  = "#c49800",
 
   -- states
@@ -79,8 +81,8 @@ hi("ColorColumn",     { bg = c.surface1 })
 -- line numbers
 hi("LineNr",          { fg = c.green_light })
 hi("CursorLineNr",    { fg = c.cognac,      bold = true })
-hi("LineNrAbove",     { fg = c.green_dim })
-hi("LineNrBelow",     { fg = c.green_dim })
+hi("LineNrAbove",     { fg = c.comment })
+hi("LineNrBelow",     { fg = c.comment })
 
 -- folds
 hi("Folded",          { fg = c.overlay1,  bg = c.surface1 })
@@ -415,14 +417,14 @@ hi("WhichKeySeparator", { fg = c.overlay1 })
 hi("WhichKeyValue",     { fg = c.overlay2 })
 
 -- ── mini.nvim ─────────────────────────────────────────────────────────────────
-hi("MiniStatuslineModeNormal",  { fg = c.bg,  bg = c.cognac,     bold = true })
-hi("MiniStatuslineModeInsert",  { fg = c.bg,  bg = c.green_mid,  bold = true })
+hi("MiniStatuslineModeNormal",  { fg = c.bg,  bg = c.yellow,     bold = true })
+hi("MiniStatuslineModeInsert",  { fg = c.bg,  bg = c.green_pill, bold = true })
 hi("MiniStatuslineModeVisual",  { fg = c.bg,  bg = c.yellow,     bold = true })
 hi("MiniStatuslineModeReplace", { fg = c.bg,  bg = c.cognac_mid, bold = true })
-hi("MiniStatuslineModeCommand", { fg = c.bg,  bg = c.teal,       bold = true })
+hi("MiniStatuslineModeCommand", { fg = c.bg,  bg = c.teal_pill,  bold = true })
 hi("MiniStatuslineFilename",    { fg = c.fg_muted, bg = c.surface1 })
 hi("MiniStatuslineFileinfo",    { fg = c.overlay2, bg = c.surface0 })
-hi("MiniStatuslineInactive",    { fg = c.overlay1, bg = c.surface0 })
+hi("MiniStatuslineInactive",    { fg = c.comment,  bg = c.surface0 })
 hi("MiniPickBorder",            { fg = c.green_light })
 hi("MiniPickBorderFocus",       { fg = c.green_mid })
 hi("MiniPickMatchCurrent",      { bg = c.green_dim })

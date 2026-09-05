@@ -11,6 +11,9 @@ BACKUP="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
 PROFILE=""
 DO_PACKAGES=1
 BACKED_UP=0
+# Vide = « celui qui est actif, sinon le défaut ». Voir --theme plus bas : sur
+# Pop!_OS il n'y a pas de thème actif à lire, c'est le seul moyen d'en choisir un.
+THEME_ARG=""
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -18,6 +21,9 @@ while [[ $# -gt 0 ]]; do
       [[ $# -ge 2 ]] || { echo "--profile attend un nom de profil" >&2; exit 1; }
       PROFILE="$2"; shift 2 ;;
     --no-packages) DO_PACKAGES=0; shift ;;
+    --theme)
+      [[ $# -ge 2 ]] || { echo "--theme attend un nom de thème" >&2; exit 1; }
+      THEME_ARG="$2"; shift 2 ;;
     *) echo "option inconnue: $1" >&2; exit 1 ;;
   esac
 done
@@ -30,7 +36,12 @@ have() { command -v "$1" &>/dev/null; }
 detect_profile() {
   local id=""
   [[ -r /etc/os-release ]] && id="$(. /etc/os-release && echo "$ID")"
-  if [[ -d $HOME/.local/share/omarchy ]]; then echo omarchy
+  # Omarchy 4 est un paquet pacman : la base vit dans /usr/share/omarchy, et
+  # ~/.local/share/omarchy n'est plus qu'un lien de compatibilité posé par la
+  # migration. Tester les deux — le lien peut disparaître d'une version à
+  # l'autre, /usr/share/omarchy non, et $OMARCHY_PATH n'est pas dans
+  # l'environnement d'un shell non interactif.
+  if [[ -d ${OMARCHY_PATH:-/usr/share/omarchy} || -d $HOME/.local/share/omarchy ]]; then echo omarchy
   elif [[ $id == pop || $id == ubuntu || $id == debian ]]; then echo popos
   elif [[ $id == arch ]]; then echo omarchy
   else echo ""
@@ -532,29 +543,62 @@ backup_conflicts() {
   done < <(find "$pkgdir" -type f -print0)
 }
 
-# ── reprise du settings.json de Claude Code ──────────────────────────────────
-# Claude Code réécrit ~/.claude/settings.json tout seul (thème, effort, plugins
-# activés). S'il le fait en temp + rename — comme cosmic-settings, voir
-# post_popos — le lien posé par stow devient un vrai fichier et la synchro
-# s'arrête SANS RIEN DIRE : c'est le pire mode de panne, on ne s'en aperçoit
-# qu'en constatant que la config ne suit plus.
+# ── reprise des fichiers que leur application réécrit elle-même ──────────────
+# Certaines applications réécrivent leur config toutes seules. Quand elles le
+# font en temp + rename — comme cosmic-settings, voir post_popos — le lien posé
+# par stow devient un vrai fichier et la synchro s'arrête SANS RIEN DIRE :
+# c'est le pire mode de panne, on ne s'en aperçoit qu'en constatant que la
+# config ne suit plus. Deux cas connus :
+#
+#   ~/.claude/settings.json          Claude Code (thème, effort, plugins)
+#   ~/.config/omarchy/shell.json     le shell Omarchy, dont le FileView est
+#                                    déclaré atomicWrites: true — donc CHAQUE
+#                                    réglage de barre (déplacer un widget,
+#                                    changer la transparence, `omarchy bar …`)
+#                                    remplace le lien, ce n'est pas une
+#                                    hypothèse mais le fonctionnement normal
 #
 # Le témoin est indispensable : sans lui, on ne distingue pas « le lien a été
-# écrasé ici » de « première install sur une machine qui a déjà sa config » — et
-# on recopierait la config locale par-dessus celle du dépôt. Le témoin n'existe
-# que si stow est déjà passé sur cette machine.
-STAMP="$HOME/.claude/.dots-stowed"
+# écrasé ici » de « ce fichier existait déjà avant qu'on s'en occupe » — et on
+# recopierait la config locale par-dessus celle du dépôt.
+#
+# Un témoin PAR FICHIER, et pas un seul pour la machine. Le témoin global
+# répond « stow est déjà passé ici », ce qui n'est pas la question : le jour où
+# le dépôt se met à gérer un fichier de plus, celui-ci existe déjà sur la
+# machine sans avoir jamais été lié, et un témoin global le ferait reprendre
+# au premier passage — la version du dépôt serait écrasée par celle qu'on
+# venait justement remplacer. C'est exactement le cas de shell.json, écrit par
+# la migration Omarchy 4 avant que ce dépôt ne le connaisse.
+STAMPS="$HOME/.claude/.dots-stowed.d"
+STAMP="$HOME/.claude/.dots-stowed"          # témoin global, conservé (historique)
 
-reclaim_claude_settings() {
-  local live="$HOME/.claude/settings.json" repo="$ROOT/common/.claude/settings.json"
-  [[ -f $repo && -f $STAMP ]] || return 0
+stamp_of() { printf '%s/%s' "$STAMPS" "${1//\//%}"; }
+
+# reclaim <chemin sous ~> <chemin dans le dépôt>
+reclaim() {
+  local live="$HOME/$1" repo="$2"
+  [[ -f $repo && -f "$(stamp_of "$1")" ]] || return 0
   [[ -f $live && ! -L $live ]] || return 0       # encore un lien : rien à faire
   cmp -s "$live" "$repo" && return 0
   cp -f "$live" "$repo"
-  warn "lien ~/.claude/settings.json remplacé par un fichier — contenu récupéré dans le dépôt"
+  warn "lien ~/$1 remplacé par un fichier — contenu récupéré dans le dépôt"
 }
 
-reclaim_claude_settings
+# Reprise du témoin global pour settings.json, le seul fichier qui était déjà
+# suivi avant les témoins par fichier : sans ça, le premier passage après cette
+# version perdrait ce que Claude Code y a écrit depuis.
+mkdir -p "$STAMPS"
+[[ -f $STAMP && ! -e "$(stamp_of .claude/settings.json)" ]] &&
+  touch "$(stamp_of .claude/settings.json)"
+
+reclaim .claude/settings.json          "$ROOT/common/.claude/settings.json"
+# herdr réécrit son propre crochet à chaque mise à jour de son intégration
+# (« managed by herdr » en tête du fichier), et il est stowé : sans reprise, sa
+# version écraserait celle du dépôt À TRAVERS le lien, en silence.
+reclaim .claude/hooks/herdr-agent-state.sh "$ROOT/common/.claude/hooks/herdr-agent-state.sh"
+# Sous $PROFILE et pas common : sur Pop!_OS le fichier n'existe pas dans le
+# dépôt, la garde -f suffit alors à ne rien reprendre d'un homonyme local.
+reclaim .config/omarchy/shell.json     "$ROOT/$PROFILE/.config/omarchy/shell.json"
 
 backup_conflicts "$ROOT/common"
 backup_conflicts "$ROOT/$PROFILE"
@@ -584,11 +628,92 @@ if ! stow --dir="$ROOT" --target="$HOME" --restow common "$PROFILE"; then
   exit 1
 fi
 
+# Les liens sont posés : les fichiers gérés par reclaim sont désormais des
+# liens à nous, et un vrai fichier à leur place au passage suivant ne pourra
+# plus vouloir dire autre chose que « l'application l'a réécrit ».
 [[ -d "$ROOT/common/.claude" ]] && touch "$STAMP"
+mkdir -p "$STAMPS"
+touch "$(stamp_of .claude/settings.json)"
+[[ -f "$ROOT/common/.claude/hooks/herdr-agent-state.sh" ]] &&
+  touch "$(stamp_of .claude/hooks/herdr-agent-state.sh)"
+[[ -f "$ROOT/$PROFILE/.config/omarchy/shell.json" ]] &&
+  touch "$(stamp_of .config/omarchy/shell.json)"
 
 # ── thème ────────────────────────────────────────────────────────────────────
-say "rendu du thème"
-"$ROOT/theme/render.sh" nurburgreen "$HOME/.config/theme/current"
+# Le dépôt en porte plusieurs maintenant. Le défaut ne vaut que pour une
+# machine neuve : ailleurs on rend CELUI QUI EST ACTIF, sinon ghostty, tmux et
+# fzf resteraient dans la palette d'un thème que le bureau n'affiche plus.
+DEFAULT_THEME=nurburgreen
+
+our_themes() {
+  local d
+  for d in "$ROOT"/theme/*/; do
+    [[ -f ${d}colors.toml ]] && basename "$d"
+  done
+}
+
+# Pas de pipeline : `our_themes | grep -q` renverrait 141. grep sort à la
+# première correspondance, basename meurt de SIGPIPE, et `set -o pipefail`
+# (en tête de ce fichier) propage son 141 — donc TOUT thème sauf le dernier
+# dans l'ordre alphabétique était déclaré « pas à nous », en silence.
+# Le nom vient de ~/.local/state/omarchy/current/theme.name, écrit par Omarchy,
+# et finit collé dans un chemin. On exige un nom de dossier simple : sans ça
+# « ../../ailleurs » passait le test -f et faisait rendre un dossier hors du
+# dépôt, puis `omarchy theme set` dessus.
+is_our_theme() {
+  [[ $1 =~ ^[A-Za-z0-9._-]+$ && $1 != .* ]] || return 1
+  [[ -f "$ROOT/theme/$1/colors.toml" ]]
+}
+
+theme_to_render() {
+  local active
+  # --theme d'abord : c'est le seul chemin hors Omarchy. `theme.name` n'existe
+  # que là-bas, donc sans ce drapeau la machine Pop!_OS était clouée au défaut
+  # et ne pouvait pas atteindre le second thème du dépôt.
+  if [[ -n $THEME_ARG ]]; then
+    if is_our_theme "$THEME_ARG"; then
+      printf '%s' "$THEME_ARG"; return
+    fi
+    echo "install: thème inconnu: $THEME_ARG (dispo: $(our_themes | tr '\n' ' '))" >&2
+    exit 1
+  fi
+  # Sur Omarchy, le bureau fait foi.
+  active="$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null)"
+  if [[ -n $active ]] && is_our_theme "$active"; then
+    printf '%s' "$active"; return
+  fi
+  # Ailleurs, ce que le dernier rendu a laissé. Sans ça, `--theme` ne tenait
+  # qu'un passage : la fois suivante sans le drapeau revenait au défaut, et le
+  # thème choisi sur Pop!_OS disparaissait sans prévenir.
+  local last
+  last="$(cat "$HOME/.config/theme/current/.theme-name" 2>/dev/null)"
+  if [[ -n $last ]] && is_our_theme "$last"; then
+    printf '%s' "$last"; return
+  fi
+  printf '%s' "$DEFAULT_THEME"
+}
+
+THEME="$(theme_to_render)"
+say "rendu du thème ($THEME)"
+"$ROOT/theme/render.sh" "$THEME" "$HOME/.config/theme/current"
+
+# herdr est thémé ici et pas seulement par le crochet theme-set : ce crochet
+# vit dans le paquet `omarchy` et n'est donc pas posé sur Pop!_OS, où .bashrc
+# préfère pourtant herdr dès qu'il est installé. Sans cet appel il y tournait
+# avec ses couleurs par défaut, le herdr-theme.toml rendu juste à côté n'étant
+# lu par personne. Sortie 2 = pas de config herdr sur cette machine.
+HERDR_THEME="$ROOT/common/.local/bin/dots-herdr-theme"
+if [[ -x $HERDR_THEME ]]; then
+  # shellcheck source=/dev/null
+  [[ -f "$HOME/.config/theme/current/palette.sh" ]] &&
+    . "$HOME/.config/theme/current/palette.sh"
+  "$HERDR_THEME" graft "$HOME/.config/theme/current/herdr-theme.toml" "${THEME_ACCENT:-}"
+  case $? in
+    0) say "herdr thémé" ;;
+    2) ;;
+    *) warn "herdr non thémé — sa configuration a été laissée telle quelle" ;;
+  esac
+fi
 
 # ── outils ───────────────────────────────────────────────────────────────────
 if [[ $DO_PACKAGES -eq 1 ]] && have mise; then
@@ -626,18 +751,79 @@ fi
 # ── spécifique au profil ─────────────────────────────────────────────────────
 post_omarchy() {
   # Le thème reste piloté par le repo ; Omarchy le voit comme un thème normal.
-  local dst="$HOME/.config/omarchy/themes/nurburgreen"
-  mkdir -p "$(dirname "$dst")"
-  ln -sfn "$ROOT/theme/nurburgreen" "$dst"
-  say "thème lié dans le sélecteur Omarchy"
-  have omarchy && omarchy restart waybar &>/dev/null || true
+  # Un LIEN et pas une copie, et ça compte doublement depuis Omarchy 4 : le
+  # sélecteur refuse le Lua, les configs de terminal et vscode.json d'un thème
+  # « installé », qu'il reconnaît à son dossier .git. Un lien vers un dossier à
+  # soi n'est pas un thème installé — il n'est bridé sur rien.
+  local name dst
+  mkdir -p "$HOME/.config/omarchy/themes"
+  while read -r name; do
+    dst="$HOME/.config/omarchy/themes/$name"
+    # -n ne protège que d'un LIEN vers un dossier. Sur un VRAI dossier (copie
+    # d'une install à la main, `omarchy theme install`, reste de migration),
+    # `ln -sfn` réussit en créant themes/<nom>/<nom> à l'intérieur, et le
+    # sélecteur voit un thème cassé qu'aucun passage suivant ne répare.
+    if [[ -d $dst && ! -L $dst ]]; then
+      mkdir -p "$BACKUP/omarchy-themes"
+      mv "$dst" "$BACKUP/omarchy-themes/$name"
+      BACKED_UP=1
+      warn "sauvegardé: dossier ~/.config/omarchy/themes/$name -> $BACKUP/omarchy-themes/$name"
+    fi
+    ln -sfn "$ROOT/theme/$name" "$dst"
+  done < <(our_themes)
+  say "thèmes liés dans le sélecteur Omarchy : $(our_themes | tr '\n' ' ')"
+
+  # Un thème peut nommer un thème d'icônes que la machine n'a pas : kreide
+  # demande Nordzy-yellow-dark, qui n'est ni dans le dépôt ni installé par
+  # quoi que ce soit ici, alors que le Yaru-sage de nurburgreen vient de la
+  # distribution. Sans ce contrôle, la bascule se fait et les icônes changent
+  # pour autre chose, sans un mot.
+  local icons
+  while read -r name; do
+    [[ -f "$ROOT/theme/$name/icons.theme" ]] || continue
+    icons="$(tr -d '[:space:]' <"$ROOT/theme/$name/icons.theme")"
+    [[ -n $icons ]] || continue
+    [[ -d "/usr/share/icons/$icons" || -d "$HOME/.local/share/icons/$icons" || -d "$HOME/.icons/$icons" ]] ||
+      warn "thème d'icônes absent pour $name : $icons (ni /usr/share/icons ni ~/.local/share/icons)"
+  done < <(our_themes)
+
+  # Les plugins déclarés dans shell.json vivent dans des dépôts à part et ne
+  # sont PAS installés d'ici — écrire dans ~/.config/omarchy/plugins/ recharge
+  # tous les plugins du shell à chaud, y compris le verrouillage, ce qu'un
+  # script d'install n'a rien à faire de déclencher. On se contente donc de
+  # dire ce qui manque : sans ça, un shell.json qui nomme un plugin absent et
+  # un raccourci qui pointe dans le vide ne se voient qu'à l'usage.
+  local shelljson="$ROOT/$PROFILE/.config/omarchy/shell.json" pid
+  if [[ -f $shelljson ]] && have jq; then
+    while read -r pid; do
+      [[ -n $pid ]] || continue
+      [[ -d "$HOME/.config/omarchy/plugins/$pid" ]] ||
+        warn "plugin déclaré dans shell.json mais absent : $pid (attendu dans ~/.config/omarchy/plugins/$pid)"
+    done < <(jq -r '.plugins[]?.id // empty' "$shelljson" 2>/dev/null)
+  fi
+
+  have omarchy || return 0
+
+  # `theme set` et pas `restart shell` : depuis la v4, les fichiers que lisent
+  # Hyprland, la barre et le verrouillage ne sont plus dans le thème, ils en
+  # sont DÉRIVÉS — colors.toml + les gabarits de default/themed/ (et les nôtres
+  # dans ~/.config/omarchy/themed/) sont rendus au moment du `theme set`, dans
+  # ~/.local/state/omarchy/current/theme. Redémarrer le shell sans repasser par
+  # là lui ferait relire les fichiers de la fois d'avant.
+  local active
+  active="$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null)"
+  if [[ -n $active ]] && is_our_theme "$active"; then
+    omarchy theme set "$active" &>/dev/null || warn "omarchy theme set $active a échoué"
+  else
+    say "thème courant (${active:-aucun}) hors du dépôt — pas réappliqué ; 'omarchy theme set $DEFAULT_THEME' pour basculer"
+  fi
 }
 
 post_popos() {
   # COSMIC lui-même (raccourcis, panel, dock) n'est pas géré ici — par choix.
   # Seul le thème est fourni, pour que le desktop soit dans la même palette que
   # le terminal.
-  local src="$HOME/.config/theme/current/cosmic-nurburgreen-dark.ron"
+  local src="$HOME/.config/theme/current/cosmic-$THEME-dark.ron"
   if [[ -f $src ]]; then
     mkdir -p "$HOME/.local/share/cosmic-themes"
     cp -f "$src" "$HOME/.local/share/cosmic-themes/"

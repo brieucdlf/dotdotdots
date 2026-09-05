@@ -2,53 +2,22 @@
 # Statusline Claude Code. Reçoit le JSON de session sur stdin (schéma :
 # https://code.claude.com/docs/en/statusline).
 #
-# Double rôle :
-#  1. AFFICHER une ligne compacte sous le prompt ;
-#  2. DÉPOSER dans un cache ce que `claude-panel` ne peut obtenir nulle part
-#     ailleurs. Deux fichiers :
-#       - rate-limits.json  : les quotas, propres au compte. C'est le SEUL
-#         endroit où `rate_limits` est exposé — ni la CLI ni les transcripts
-#         ne les portent, le panneau ne pourrait qu'estimer.
-#       - sessions/<id>.json : modèle, effort, coût, contexte et PR de CETTE
-#         session. Le coût, le pourcentage de contexte et le numéro de PR ne
-#         sont connus que du client, ils n'existent dans aucun fichier de
-#         session.
+# AFFICHER une ligne compacte sous le prompt, et rien d'autre. Ce script
+# déposait aussi `rate_limits` et un résumé par session dans
+# ~/.cache/claude-panel/ — le panneau tmux qui les relisait n'existe plus, et
+# ce cache n'avait plus aucun lecteur (ni ici, ni dans ~/.claude/hooks, ni
+# dans ~/.local/bin). Le dépôt tournait à chaque rafraîchissement, une dizaine
+# de processus pour des fichiers que personne n'ouvrait.
+#
+# À savoir si le besoin revient : `rate_limits`, `cost.total_cost_usd` et
+# `context_window.used_percentage` ne sont exposés QU'ICI, au stdin de la
+# statusline. Ni la CLI ni les transcripts ne les portent.
 #
 # Les couleurs sont les index ANSI 0-15, donc la palette du thème telle que
 # ghostty la pose : rien de codé en dur ici non plus.
 set -uo pipefail
 
 in=$(cat)
-cache="$HOME/.cache/claude-panel"
-
-# Écriture atomique : le panneau lit ce fichier en parallèle, il ne doit jamais
-# tomber sur un JSON à moitié écrit. mktemp dans le MÊME dossier, sinon `mv`
-# traverse les systèmes de fichiers et perd son atomicité.
-drop() {  # $1 = destination, $2 = filtre jq
-  local dir tmp
-  dir=$(dirname "$1")
-  mkdir -p "$dir" 2>/dev/null || return 0
-  tmp=$(mktemp "$dir/.drop.XXXXXX" 2>/dev/null) || return 0
-  if jq -c "$2" <<<"$in" >"$tmp" 2>/dev/null; then mv -f "$tmp" "$1"; else rm -f "$tmp"; fi
-}
-
-drop "$cache/rate-limits.json" '{rate_limits: (.rate_limits // {}), at: now}'
-
-sid=$(jq -r '.session_id // empty' <<<"$in" 2>/dev/null || true)
-# Le nom du fichier vient d'une donnée externe : on n'accepte qu'un UUID, sinon
-# un session_id fantaisiste écrirait où il veut.
-if [[ $sid =~ ^[0-9a-fA-F-]{36}$ ]]; then
-  drop "$cache/sessions/$sid.json" '{
-    model:  (.model.display_name // null),
-    effort: (.effort.level // null),
-    cost:   (.cost.total_cost_usd // 0),
-    ctx:    (.context_window.used_percentage // null),
-    window: (.context_window.context_window_size // null),
-    mid:    (.model.id // null),
-    pr:     (.pr.number // null),
-    at:     now
-  }'
-fi
 
 # Index ANSI 0-15. Au-delà de 7 c'est la rampe « bright » (90-97) et NON
 # \033[38m, qui introduit les couleurs étendues et ne colore rien tout seul.

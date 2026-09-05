@@ -2,7 +2,7 @@
 
 COSMIC gère son propre desktop et n'est **pas** piloté par ces dotfiles : ses
 raccourcis, son panel et son dock n'ont pas d'équivalent transposable depuis
-Hyprland/Waybar. Ce qui est partagé avec la machine Omarchy vit dans `common/` —
+Hyprland et la barre d'Omarchy. Ce qui est partagé avec la machine Omarchy vit dans `common/` —
 terminal, shell, tmux, neovim, thème, outils.
 
 ## Thème COSMIC
@@ -43,7 +43,7 @@ d'Hyprland est une fonction de compositeur ; COSMIC n'a pas d'équivalent.
 ## Opacité du terminal
 
 Conséquence directe : `background-opacity = 0.85` dans `common/` a été calibré
-pour Hyprland, dont le `looknfeel.conf` floute derrière les fenêtres (`size 12,
+pour Hyprland, dont le `looknfeel.lua` floute derrière les fenêtres (`size 12,
 passes 4`). Le blur transforme la transparence en verre dépoli. Sous COSMIC, le
 même alpha donne de la transparence brute, fatigante à la lecture.
 
@@ -155,6 +155,8 @@ flatpak override --user --unset-env=SIGNAL_PASSWORD_STORE org.signal.Signal
 
 ## Si tu passes cette machine sous Hyprland
 
-La bascule consiste à déplacer `omarchy/.config/{hypr,waybar}` vers
-`common/` et à ne laisser dans les profils que `monitors.conf` et les modules
-Waybar liés à Omarchy.
+La bascule consiste à déplacer `omarchy/.config/hypr/` vers `common/` et à ne
+laisser dans les profils que `monitors.lua`. `omarchy/.config/omarchy/`, lui,
+ne bouge pas : `shell.json` et les gabarits de `themed/` sont la barre et le
+thème d'**Omarchy**, pas d'Hyprland — une machine Arch + Hyprland sans Omarchy
+n'a rien pour les lire.

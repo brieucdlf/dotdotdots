@@ -14,19 +14,59 @@ explicite si stow refuse malgré tout. **L'ordre n'a donc plus d'importance :
 `git pull && ./install.sh` suffit, y compris sur une machine encore en arbo
 plate.**
 
-Ce qu'`install.sh` fait de spécifique à Omarchy : lie `theme/nurburgreen` dans
-`~/.config/omarchy/themes/` pour que le sélecteur, Waybar et Hyprland le voient,
-puis `omarchy restart waybar`.
+Ce qu'`install.sh` fait de spécifique à Omarchy : lie **chaque** dossier de
+`theme/` qui a un `colors.toml` dans `~/.config/omarchy/themes/` pour que le
+sélecteur, la barre et Hyprland les voient, puis réapplique CELUI QUI EST ACTIF
+— depuis la v4, les fichiers que lisent Hyprland et la barre sont dérivés de
+`colors.toml` à ce moment-là.
 
 Vérifié après coup :
 - [x] la statusbar tmux affiche bien le statut Claude — `status-right` (généré
       par `render.sh`) appelle `tmux-claude-status`, qui répond
 - [x] les modules waybar todo répondent — `waybar-claude-todo` était cassé en
-      repli (motif `grep` commençant par un tiret), corrigé
+      repli (motif `grep` commençant par un tiret), corrigé. Sans objet depuis
+      Omarchy 4 : waybar a disparu, le script aussi
 - [x] tpm charge depuis `~/.config/tmux/plugins` et non `~/.tmux`
 - [x] ghostty prend ses couleurs de `~/.config/theme/current/`, plus d'Omarchy
 - [x] les shims mise passent devant les binaires pacman
 - [ ] `~/.tmux/plugins` traîne encore, vide, depuis l'ancienne install — à supprimer
+
+## Omarchy 4 — appliqué, reste à vérifier à l'œil
+
+Le profil `omarchy/` a été réécrit pour la v4 (voir README, section
+« Omarchy 4 »). Appliqué le 03/09/2026 par `./install.sh --no-packages` : les
+liens sont posés, les fichiers que la migration d'Omarchy avait écrits en dur
+sont dans `~/.dotfiles-backup/20260903-163348/`.
+
+Vérifié après `hyprctl reload` :
+- [x] `hyprctl configerrors` ne renvoie rien
+- [x] les quatre overrides sont pris — `hyprctl getoption` donne `us,fr`,
+      `repeat_delay 600`, `natural_scroll true`, `scroll_factor 0.5`,
+      `rounding 10`, blur à 4 passes ; `Super+Shift+T` est bien lié à Activity
+      (et `Super+Ctrl+T`, le défaut v4, à côté)
+- [x] les bordures viennent du **thème** : `general:col.active_border` vaut
+      `ffd4b88a ff8a6838 45deg`, donc `colors.toml` pilote bien Hyprland
+- [x] `~/.local/state/omarchy/current/theme/` a été recréé de zéro : plus de
+      `waybar.css`, `walker.css`, `mako.ini`, `swayosd.css`, `hyprlock.conf`,
+      et un `hyprland.lua` à la place de `hyprland.conf`
+- [x] la couche `omarchy-bar` existe sur les deux écrans. `background-alpha`
+      est passé à **0** depuis : la barre ne peint plus aucun fond, et
+      l'assombrissement qui rend son texte lisible est cuit dans le fond
+      d'écran de chaque thème (voir `theme/<nom>/assets/README.md`). Le flou
+      sur `omarchy-bar` a été retiré pour la même raison — reste à confirmer
+      **à l'œil**
+- [ ] verrouillage après 2 minutes, et un mot de passe refusé se voit
+- [ ] toucher un réglage de barre (`omarchy bar transparent toggle`), vérifier
+      que `~/.config/omarchy/shell.json` est devenu un vrai fichier, puis que
+      l'`install.sh` suivant le récupère dans le dépôt et le relie. Les témoins
+      par fichier sont en place (`~/.claude/.dots-stowed.d/`), c'est ce chemin
+      qu'il reste à éprouver pour de vrai
+- [ ] rejouer la passe paquets, qui demande un tty : `./install.sh` tout court
+- [ ] faire le ménage dans `~/.config/hypr/` : les `*.conf.bak.*` de la v3 et
+      les `*.omarchy-upgrade-to-quattro.*.bak` de la migration
+- [ ] le hook `Stop` de gstack, repris dans `common/.claude/settings.json` par
+      `reclaim`, porte un chemin **absolu** vers `/home/thewindrunner/…` : il ne
+      vaudra rien sur la machine perso. À rendre relatif ou à sortir du dépôt
 
 ## Converger le socle shell
 
@@ -145,8 +185,24 @@ du dispositif. Ce qui ne doit pas l'être, ce sont les défauts encore ouverts.
 
 - [x] ~~pousser la branche et merger dans `master`~~ — fait, la machine Pop est validée
 - [ ] uniformiser l'emplacement du repo entre les deux machines (`~/.dots` vs `~/.dotfiles`)
-- [ ] `common/.config/nvim/colors/nurburgreen.lua` a encore la palette en dur —
-      seul endroit qui ne dérive pas de `colors.toml`
+- [ ] `theme/kreide/icons.theme` nomme `Nordzy-yellow-dark`, posé à la main dans
+      `~/.local/share/icons` — rien ne l'installe. `install.sh` le signale
+      maintenant ; reste à l'ajouter à la passe paquets (AUR sur Arch)
+- [ ] btop n'est thémé que sur Omarchy : `~/.config/btop/themes/current.theme`
+      pointe vers `~/.local/state/omarchy/current/theme/btop.theme`, et
+      `~/.config/btop/` n'est pas dans le dépôt. Sur Pop!_OS le `btop.theme`
+      rendu dans `~/.config/theme/current/` n'est lu par personne — vrai pour
+      les deux thèmes, pas une régression de kreide
+- [ ] `install.sh` : `reclaim()` recopie la config vivante dans le dépôt sans
+      montrer de diff. C'est par là que le crochet herdr et `shell.json` sont
+      entrés sans relecture
+- [ ] `theme/render.sh` publie en effaçant-puis-copiant : une panne au milieu
+      laisse `~/.config/theme/current` à moitié. Un `mv` de dossier serait atomique
+- [ ] `common/.config/nvim/colors/{nurburgreen,kreide}.lua` ont encore leur
+      palette en dur — seul endroit qui ne dérive pas de `colors.toml`. Le
+      *choix* du colorscheme, lui, suit désormais le thème actif
+      (`plugins/theme.lua` charge `~/.config/theme/current/neovim.lua`), et
+      lualine lit les groupes `MiniStatusline*` au lieu de figer des hexas.
 - [ ] `bin/oh-my-posh` (19 Mo) reste dans l'historique git ; un `filter-repo`
       allégerait les clones, mais réécrit les hashes
 - [ ] COSMIC : `corner_radii` laissé au barème stock, on pourrait l'aligner sur

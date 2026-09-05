@@ -1,0 +1,58 @@
+# Tokens UI qui ne concernent QUE render.sh — mêmes règles que pour
+# nurburgreen : ce qu'Omarchy n'a aucune raison de lire (tmux, rampe COSMIC),
+# et rien qui existe déjà dans colors.toml.
+
+border_inactive = "#31373b"   # bordure de pane tmux inactive — gris jante
+statusbar_bg    = "#101315"   # fond de barre tmux — entre l'encre et le bitume
+
+# --- herdr --------------------------------------------------------------------
+# Voir le même bloc dans nurburgreen : les couleurs sémantiques de herdr, posées
+# en avant-plan sur ses surfaces, dont la ligne sélectionnée (border_inactive).
+# Kreide s'en tirait mieux, mais color1 (2,32:1) et color4 (2,19:1) passaient
+# quand même sous 3:1 là-dessus. color6 est écarté aussi : trop proche de color2
+# pour que « green » et « teal » se distinguent.
+herdr_green    = "#7c8983"   # = color2, la menthe
+herdr_teal     = "#8fa7a2"   # = color14, menthe en lumière
+herdr_blue     = "#6b86a0"   # bitume bleuté, relevé
+
+# Les FONDS de herdr. panel_bg et surface0 tombaient tous deux sur la même
+# couleur, et active_row_bg sur statusbar_bg : la ligne ACTIVE se détachait à
+# 1,04:1 du panneau, c'est-à-dire pas du tout. Ces clés donnent une vraie
+# échelle, et herdr_row_bg tient 1,38:1 sur le panneau (texte à 8,7:1 dessus).
+herdr_panel_bg = "#0b0d0e"   # = color0, l'encre
+herdr_row_bg   = "#262c30"   # la ligne active, visible sur le panneau
+herdr_surface0 = "#15181a"   # = background
+herdr_surface1 = "#2a2f33"   # = color8
+
+# overlay1 valait color7, comme subtext0 : deux crans d'atténuation qui n'en
+# faisaient qu'un. Et « yellow » aliasait accent, donc l'avertissement de herdr
+# et sa couleur de focus étaient la même.
+herdr_overlay1 = "#7c8983"   # = color2. Assez loin de subtext0 (ΔE 10) pour
+                             # faire deux crans, et 3,3:1 sur la ligne
+                             # sélectionnée — un gris plus sombre y tombait
+                             # sous 3:1, un gris plus clair se confondait.
+herdr_yellow   = "#f5c95a"   # = color11
+herdr_red      = "#b76c5f"   # brique relevée
+herdr_peach    = "#c0704a"   # = color9, la rouille
+herdr_mauve    = "#a99cb0"   # = color13
+herdr_overlay0 = "#8d8296"   # = color5
+
+# --- COSMIC ------------------------------------------------------------------
+# Rampe neutre complète : COSMIC bâtit tout son chrome dessus. Les trois
+# premiers crans sont les gris exacts de la palette (color0, color8,
+# border_inactive) ; les suivants prolongent la même signature — bleu
+# légèrement au-dessus du rouge, ce qui tire la rampe au froid — jusqu'au
+# blanc. C'est la différence avec nurburgreen, dont la rampe tire au vert.
+cosmic_neutral_0  = "#000000"
+cosmic_neutral_1  = "#0b0d0e"   # = color0
+cosmic_neutral_2  = "#2a2f33"   # = color8
+cosmic_neutral_3  = "#31373b"   # = border_inactive
+cosmic_neutral_4  = "#474e53"
+cosmic_neutral_5  = "#61686d"
+cosmic_neutral_6  = "#7d8489"
+cosmic_neutral_7  = "#9aa0a5"
+cosmic_neutral_8  = "#bcc1c5"
+cosmic_neutral_9  = "#dee1e3"
+cosmic_neutral_10 = "#ffffff"
+cosmic_gray_1     = "#1c2023"
+cosmic_gray_2     = "#272c30"

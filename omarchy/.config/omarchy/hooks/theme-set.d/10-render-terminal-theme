@@ -1,0 +1,103 @@
+#!/bin/bash
+# Rend la palette côté TERMINAL quand le thème du bureau change.
+#
+# ~/.config/theme/current est ce que lisent ghostty, tmux, fzf, eza, btop et
+# herdr — et il est produit par theme/render.sh, pas par Omarchy. Sans ce
+# crochet, `omarchy theme set` ne repeint que le bureau : le terminal reste
+# dans la palette du thème précédent jusqu'au prochain install.sh. C'est
+# exactement ce qui est arrivé en passant à kreide.
+#
+# Le crochet marche DANS LES DEUX SENS. Basculer sur un thème d'Omarchy ne
+# rendait rien — il sortait ici — et laissait herdr greffé sur le dernier thème
+# du dépôt, définitivement : le bureau en catppuccin, herdr en kreide, sans que
+# rien ne le dise. On dégreffe donc, en remettant ce qu'Omarchy livre.
+#
+# Omarchy appelle `omarchy-hook theme-set <nom>` en fin de bascule ; tout
+# fichier de ce dossier est lancé avec le nom en $1.
+set -u
+
+THEME="${1:-}"
+[[ -n $THEME ]] || exit 0
+
+# Le nom arrive d'Omarchy et finit collé dans des chemins ($ROOT/theme/$THEME).
+# On exige un nom de dossier simple : « ../../ailleurs » satisfaisait le test
+# -f et faisait rendre un dossier hors du dépôt.
+[[ $THEME =~ ^[A-Za-z0-9._-]+$ && $THEME != .* ]] || {
+  printf 'theme-set: nom de thème refusé : %s\n' "$THEME" >&2
+  exit 1
+}
+
+# Le dépôt est retrouvé depuis ce fichier, qui est un lien stow vers lui : pas
+# de chemin en dur, le crochet marche quel que soit l'endroit où ~/.dots vit.
+ROOT="$(cd "$(dirname "$(readlink -f "$0")")/../../../../.." && pwd)"
+RENDER="$ROOT/theme/render.sh"
+CURRENT="$HOME/.config/theme/current"
+
+# La greffe herdr elle-même vit dans common/.local/bin/dots-herdr-theme : ce
+# crochet est dans le paquet stow `omarchy` et n'existe donc pas sur Pop!_OS,
+# alors que .bashrc y préfère herdr dès qu'il est installé. install.sh appelle
+# le même exécutable, les deux machines sont traitées pareil.
+HERDR="$ROOT/common/.local/bin/dots-herdr-theme"
+
+# Le crochet tourne détaché : stderr ne va nulle part et `omarchy theme set`
+# annonce un succès quoi qu'il arrive. Ce qui doit se voir passe donc par une
+# notification.
+note() {
+  command -v notify-send >/dev/null 2>&1 && notify-send -a dots -- "$1" "$2"
+  printf 'theme-set: %s — %s\n' "$1" "$2" >&2
+}
+
+# ── le thème est-il à nous ? ─────────────────────────────────────────────────
+if [[ -x $RENDER && -f $ROOT/theme/$THEME/colors.toml ]]; then
+  # render.sh ne publie plus rien s'il lui manque une clé, et sort non nul :
+  # le silence d'avant laissait le terminal sur l'ancienne palette sans
+  # que `omarchy theme set` ait l'air d'avoir raté quoi que ce soit.
+  if ! out="$("$RENDER" "$THEME" "$CURRENT" 2>&1)"; then
+    missing="$(printf '%s\n' "$out" | sed -n 's/^  - //p' | paste -sd' ' -)"
+    printf '%s\n' "$out" >&2
+    if [[ -n $missing ]]; then
+      note "thème $THEME non rendu" "clés manquantes : $missing"
+    else
+      note "thème $THEME non rendu" "voir le journal"
+    fi
+    exit 1
+  fi
+
+  # tmux relit sa conf : couleurs de barre, de bordures de panes, de sélection.
+  if command -v tmux >/dev/null && tmux has-session 2>/dev/null; then
+    tmux source-file "$HOME/.config/tmux/tmux.conf" 2>/dev/null
+  fi
+
+  # shellcheck source=/dev/null
+  [[ -f $CURRENT/palette.sh ]] && . "$CURRENT/palette.sh"
+  if [[ -x $HERDR ]]; then
+    "$HERDR" graft "$CURRENT/herdr-theme.toml" "${THEME_ACCENT:-}"
+    case $? in
+      0|2) ;;   # greffé, ou pas de config herdr sur cette machine
+      *) note "herdr non thémé" "la configuration a été laissée telle quelle" ;;
+    esac
+  fi
+  exit 0
+fi
+
+# ── thème d'Omarchy : on dégreffe ────────────────────────────────────────────
+# render.sh ne sait pas rendre un colors.toml qui n'est pas au format du dépôt,
+# donc ghostty, tmux, fzf, eza et btop restent sur la dernière palette à nous —
+# il n'y a rien à faire de mieux, mais il faut le DIRE.
+ungrafted=0
+if [[ -x $HERDR ]]; then
+  "$HERDR" ungraft
+  case $? in
+    0) ungrafted=1 ;;
+    2|3) ;;   # pas de config herdr, ou rien n'était greffé
+    *) note "herdr non dégreffé" "il reste sur la palette du thème précédent" ;;
+  esac
+fi
+
+# Un seul message, et qui dit ce qui s'est réellement passé.
+if (( ungrafted )); then
+  note "thème $THEME hors du dépôt" \
+       "le terminal garde la palette précédente ; herdr est revenu à celle d'Omarchy"
+else
+  note "thème $THEME hors du dépôt" "le terminal garde la palette précédente"
+fi

@@ -1,0 +1,45 @@
+# Kreide — échantillonnée dans une photo de 911 GT3 RS craie
+# Noir bitume / gris craie / jaune étrier. Nord pour la méthode : des gris
+# franchement froids, une seule couleur chaude, et rien qui sature.
+#
+# Les six couleurs qui portent le thème viennent du cadre, pas d'une intuition :
+#   #292827 occupe 36 % de l'image (le bitume), #999594 est la carrosserie,
+#   #cac9c9 son reflet, #7c8983 la menthe de l'enseigne au fond,
+#   #e8b33c les étriers.
+
+accent               = "#e8b33c"   # étrier de frein — la seule chaude
+cursor               = "#f5c95a"   # étrier en pleine lumière
+foreground           = "#c9ccca"   # craie, le reflet de la carrosserie
+background           = "#15181a"   # bitume mouillé, tiré froid
+selection_foreground = "#e6e9e7"
+selection_background = "#31373b"   # gris jante
+
+color0  = "#0b0d0e"   # black        — encre, l'ombre sous la voiture
+color1  = "#a4574a"   # red          — brique froide, feu arrière éteint
+color2  = "#7c8983"   # green        — la menthe de l'enseigne, au fond
+color3  = "#e8b33c"   # yellow       — étrier
+color4  = "#5b6b75"   # blue         — bitume bleuté, le flanc à l'ombre
+color5  = "#8d8296"   # magenta      — gris mauve, l'asphalte au crépuscule
+color6  = "#6f8783"   # cyan         — menthe sombre
+color7  = "#9aa09f"   # white        — craie éteinte
+
+color8  = "#2a2f33"   # br. black    — carrosserie dans l'ombre
+color9  = "#c0704a"   # br. red      — rouille chaude, le seul écart
+color10 = "#94a29b"   # br. green    — menthe claire
+color11 = "#f5c95a"   # br. yellow   — étrier en pleine lumière
+color12 = "#7d8f9b"   # br. blue     — ciel gris dans la carrosserie
+color13 = "#a99cb0"   # br. magenta  — mauve clair
+color14 = "#8fa7a2"   # br. cyan     — menthe en lumière
+color15 = "#e6e9e7"   # br. white    — craie pure
+
+# --- Omarchy 4 ---------------------------------------------------------------
+# Toute clé de ce fichier est exposée aux gabarits de default/themed/ ; ces
+# deux-là sont lues par hyprland.lua.tpl. Voir le même bloc dans nurburgreen.
+hyprland_active_border   = "rgba(c9cccaff) rgba(6d7478ff) 45deg"   # craie → bitume, 45°
+hyprland_inactive_border = "rgba(2a2f3366)"                         # carrosserie sombre, transparente
+
+# Le rail du lanceur (plugin brieuc.launcher), consommé par
+# ~/.config/omarchy/themed/shell.launcher.toml.tpl. Une clé à part et pas
+# color0 : le moteur de gabarits d'Omarchy FORCE color0 := background, donc
+# l'encre de la palette n'arrive jamais jusqu'au gabarit sous ce nom-là.
+launcher_rail = "#0b0d0e"   # encre — l'ombre sous la voiture
