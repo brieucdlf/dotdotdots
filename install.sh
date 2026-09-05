@@ -11,6 +11,9 @@ BACKUP="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
 PROFILE=""
 DO_PACKAGES=1
 BACKED_UP=0
+# Vide = « celui qui est actif, sinon le défaut ». Voir --theme plus bas : sur
+# Pop!_OS il n'y a pas de thème actif à lire, c'est le seul moyen d'en choisir un.
+THEME_ARG=""
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -18,6 +21,9 @@ while [[ $# -gt 0 ]]; do
       [[ $# -ge 2 ]] || { echo "--profile attend un nom de profil" >&2; exit 1; }
       PROFILE="$2"; shift 2 ;;
     --no-packages) DO_PACKAGES=0; shift ;;
+    --theme)
+      [[ $# -ge 2 ]] || { echo "--theme attend un nom de thème" >&2; exit 1; }
+      THEME_ARG="$2"; shift 2 ;;
     *) echo "option inconnue: $1" >&2; exit 1 ;;
   esac
 done
@@ -586,6 +592,10 @@ mkdir -p "$STAMPS"
   touch "$(stamp_of .claude/settings.json)"
 
 reclaim .claude/settings.json          "$ROOT/common/.claude/settings.json"
+# herdr réécrit son propre crochet à chaque mise à jour de son intégration
+# (« managed by herdr » en tête du fichier), et il est stowé : sans reprise, sa
+# version écraserait celle du dépôt À TRAVERS le lien, en silence.
+reclaim .claude/hooks/herdr-agent-state.sh "$ROOT/common/.claude/hooks/herdr-agent-state.sh"
 # Sous $PROFILE et pas common : sur Pop!_OS le fichier n'existe pas dans le
 # dépôt, la garde -f suffit alors à ne rien reprendre d'un homonyme local.
 reclaim .config/omarchy/shell.json     "$ROOT/$PROFILE/.config/omarchy/shell.json"
@@ -624,6 +634,8 @@ fi
 [[ -d "$ROOT/common/.claude" ]] && touch "$STAMP"
 mkdir -p "$STAMPS"
 touch "$(stamp_of .claude/settings.json)"
+[[ -f "$ROOT/common/.claude/hooks/herdr-agent-state.sh" ]] &&
+  touch "$(stamp_of .claude/hooks/herdr-agent-state.sh)"
 [[ -f "$ROOT/$PROFILE/.config/omarchy/shell.json" ]] &&
   touch "$(stamp_of .config/omarchy/shell.json)"
 
@@ -644,21 +656,64 @@ our_themes() {
 # première correspondance, basename meurt de SIGPIPE, et `set -o pipefail`
 # (en tête de ce fichier) propage son 141 — donc TOUT thème sauf le dernier
 # dans l'ordre alphabétique était déclaré « pas à nous », en silence.
-is_our_theme() { [[ -f "$ROOT/theme/$1/colors.toml" ]]; }
+# Le nom vient de ~/.local/state/omarchy/current/theme.name, écrit par Omarchy,
+# et finit collé dans un chemin. On exige un nom de dossier simple : sans ça
+# « ../../ailleurs » passait le test -f et faisait rendre un dossier hors du
+# dépôt, puis `omarchy theme set` dessus.
+is_our_theme() {
+  [[ $1 =~ ^[A-Za-z0-9._-]+$ && $1 != .* ]] || return 1
+  [[ -f "$ROOT/theme/$1/colors.toml" ]]
+}
 
 theme_to_render() {
   local active
+  # --theme d'abord : c'est le seul chemin hors Omarchy. `theme.name` n'existe
+  # que là-bas, donc sans ce drapeau la machine Pop!_OS était clouée au défaut
+  # et ne pouvait pas atteindre le second thème du dépôt.
+  if [[ -n $THEME_ARG ]]; then
+    if is_our_theme "$THEME_ARG"; then
+      printf '%s' "$THEME_ARG"; return
+    fi
+    echo "install: thème inconnu: $THEME_ARG (dispo: $(our_themes | tr '\n' ' '))" >&2
+    exit 1
+  fi
+  # Sur Omarchy, le bureau fait foi.
   active="$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null)"
   if [[ -n $active ]] && is_our_theme "$active"; then
-    printf '%s' "$active"
-  else
-    printf '%s' "$DEFAULT_THEME"
+    printf '%s' "$active"; return
   fi
+  # Ailleurs, ce que le dernier rendu a laissé. Sans ça, `--theme` ne tenait
+  # qu'un passage : la fois suivante sans le drapeau revenait au défaut, et le
+  # thème choisi sur Pop!_OS disparaissait sans prévenir.
+  local last
+  last="$(cat "$HOME/.config/theme/current/.theme-name" 2>/dev/null)"
+  if [[ -n $last ]] && is_our_theme "$last"; then
+    printf '%s' "$last"; return
+  fi
+  printf '%s' "$DEFAULT_THEME"
 }
 
 THEME="$(theme_to_render)"
 say "rendu du thème ($THEME)"
 "$ROOT/theme/render.sh" "$THEME" "$HOME/.config/theme/current"
+
+# herdr est thémé ici et pas seulement par le crochet theme-set : ce crochet
+# vit dans le paquet `omarchy` et n'est donc pas posé sur Pop!_OS, où .bashrc
+# préfère pourtant herdr dès qu'il est installé. Sans cet appel il y tournait
+# avec ses couleurs par défaut, le herdr-theme.toml rendu juste à côté n'étant
+# lu par personne. Sortie 2 = pas de config herdr sur cette machine.
+HERDR_THEME="$ROOT/common/.local/bin/dots-herdr-theme"
+if [[ -x $HERDR_THEME ]]; then
+  # shellcheck source=/dev/null
+  [[ -f "$HOME/.config/theme/current/palette.sh" ]] &&
+    . "$HOME/.config/theme/current/palette.sh"
+  "$HERDR_THEME" graft "$HOME/.config/theme/current/herdr-theme.toml" "${THEME_ACCENT:-}"
+  case $? in
+    0) say "herdr thémé" ;;
+    2) ;;
+    *) warn "herdr non thémé — sa configuration a été laissée telle quelle" ;;
+  esac
+fi
 
 # ── outils ───────────────────────────────────────────────────────────────────
 if [[ $DO_PACKAGES -eq 1 ]] && have mise; then
@@ -711,11 +766,26 @@ post_omarchy() {
     if [[ -d $dst && ! -L $dst ]]; then
       mkdir -p "$BACKUP/omarchy-themes"
       mv "$dst" "$BACKUP/omarchy-themes/$name"
+      BACKED_UP=1
       warn "sauvegardé: dossier ~/.config/omarchy/themes/$name -> $BACKUP/omarchy-themes/$name"
     fi
     ln -sfn "$ROOT/theme/$name" "$dst"
   done < <(our_themes)
   say "thèmes liés dans le sélecteur Omarchy : $(our_themes | tr '\n' ' ')"
+
+  # Un thème peut nommer un thème d'icônes que la machine n'a pas : kreide
+  # demande Nordzy-yellow-dark, qui n'est ni dans le dépôt ni installé par
+  # quoi que ce soit ici, alors que le Yaru-sage de nurburgreen vient de la
+  # distribution. Sans ce contrôle, la bascule se fait et les icônes changent
+  # pour autre chose, sans un mot.
+  local icons
+  while read -r name; do
+    [[ -f "$ROOT/theme/$name/icons.theme" ]] || continue
+    icons="$(tr -d '[:space:]' <"$ROOT/theme/$name/icons.theme")"
+    [[ -n $icons ]] || continue
+    [[ -d "/usr/share/icons/$icons" || -d "$HOME/.local/share/icons/$icons" || -d "$HOME/.icons/$icons" ]] ||
+      warn "thème d'icônes absent pour $name : $icons (ni /usr/share/icons ni ~/.local/share/icons)"
+  done < <(our_themes)
 
   # Les plugins déclarés dans shell.json vivent dans des dépôts à part et ne
   # sont PAS installés d'ici — écrire dans ~/.config/omarchy/plugins/ recharge
