@@ -14,10 +14,11 @@ explicite si stow refuse malgré tout. **L'ordre n'a donc plus d'importance :
 `git pull && ./install.sh` suffit, y compris sur une machine encore en arbo
 plate.**
 
-Ce qu'`install.sh` fait de spécifique à Omarchy : lie `theme/nurburgreen` dans
-`~/.config/omarchy/themes/` pour que le sélecteur, la barre et Hyprland le
-voient, puis `omarchy theme set nurburgreen` — depuis la v4, les fichiers que
-lisent Hyprland et la barre sont dérivés de `colors.toml` à ce moment-là.
+Ce qu'`install.sh` fait de spécifique à Omarchy : lie **chaque** dossier de
+`theme/` qui a un `colors.toml` dans `~/.config/omarchy/themes/` pour que le
+sélecteur, la barre et Hyprland les voient, puis réapplique CELUI QUI EST ACTIF
+— depuis la v4, les fichiers que lisent Hyprland et la barre sont dérivés de
+`colors.toml` à ce moment-là.
 
 Vérifié après coup :
 - [x] la statusbar tmux affiche bien le statut Claude — `status-right` (généré
@@ -48,9 +49,12 @@ Vérifié après `hyprctl reload` :
 - [x] `~/.local/state/omarchy/current/theme/` a été recréé de zéro : plus de
       `waybar.css`, `walker.css`, `mako.ini`, `swayosd.css`, `hyprlock.conf`,
       et un `hyprland.lua` à la place de `hyprland.conf`
-- [x] la couche `omarchy-bar` existe sur les deux écrans et `shell.toml` porte
-      `background-alpha = 0.30` — reste à confirmer **à l'œil** que la barre est
-      bien translucide et floutée
+- [x] la couche `omarchy-bar` existe sur les deux écrans. `background-alpha`
+      est passé à **0** depuis : la barre ne peint plus aucun fond, et
+      l'assombrissement qui rend son texte lisible est cuit dans le fond
+      d'écran de chaque thème (voir `theme/<nom>/assets/README.md`). Le flou
+      sur `omarchy-bar` a été retiré pour la même raison — reste à confirmer
+      **à l'œil**
 - [ ] verrouillage après 2 minutes, et un mot de passe refusé se voit
 - [ ] toucher un réglage de barre (`omarchy bar transparent toggle`), vérifier
       que `~/.config/omarchy/shell.json` est devenu un vrai fichier, puis que
@@ -181,8 +185,11 @@ du dispositif. Ce qui ne doit pas l'être, ce sont les défauts encore ouverts.
 
 - [x] ~~pousser la branche et merger dans `master`~~ — fait, la machine Pop est validée
 - [ ] uniformiser l'emplacement du repo entre les deux machines (`~/.dots` vs `~/.dotfiles`)
-- [ ] `common/.config/nvim/colors/nurburgreen.lua` a encore la palette en dur —
-      seul endroit qui ne dérive pas de `colors.toml`
+- [ ] `common/.config/nvim/colors/{nurburgreen,kreide}.lua` ont encore leur
+      palette en dur — seul endroit qui ne dérive pas de `colors.toml`. Le
+      *choix* du colorscheme, lui, suit désormais le thème actif
+      (`plugins/theme.lua` charge `~/.config/theme/current/neovim.lua`), et
+      lualine lit les groupes `MiniStatusline*` au lieu de figer des hexas.
 - [ ] `bin/oh-my-posh` (19 Mo) reste dans l'historique git ; un `filter-repo`
       allégerait les clones, mais réécrit les hashes
 - [ ] COSMIC : `corner_radii` laissé au barème stock, on pourrait l'aligner sur

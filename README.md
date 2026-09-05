@@ -76,10 +76,11 @@ common/            # les 2 machines, identique au byte près
 │   ├── mise/config.toml        # ← versions des outils, la clé de l'iso
 │   └── zed/
 ├── .claude/                    # config Claude Code (settings, skills, statusline)
-└── .local/bin/                 # claude-panel, tmux-claude-status, dots-shell-dump
+└── .local/bin/                 # tmux-claude-status, dots-secrets, dots-shell-dump
 
 theme/
 ├── nurburgreen/    # colors.toml = SOURCE UNIQUE des couleurs (+ ui.toml)
+├── kreide/         # idem — tout dossier avec un colors.toml est un thème
 ├── cosmic/         # palette sémantique stock de COSMIC, reprise telle quelle
 └── render.sh       # → ~/.config/theme/current/{ghostty,tmux,colors.sh,*.ron}
 
@@ -93,7 +94,13 @@ un dossier posé par l'autre passage.
 
 ---
 
-## Thème Nurburgreen
+## Thèmes
+
+Deux, et le dépôt en accepte d'autres : `install.sh` traite **tout dossier de
+`theme/` qui contient un `colors.toml`**, le lie dans le sélecteur d'Omarchy, et
+rend celui qui est ACTIF — pas un nom écrit en dur.
+
+### Nurburgreen
 
 Construit autour d'une Porsche 911 GT3 en British Racing Green.
 
@@ -105,9 +112,26 @@ foreground  #d4b88a   cognac leather
 accent      #f0c000   GT yellow (used sparingly)
 ```
 
-`theme/nurburgreen/colors.toml` est la seule source de vérité. `theme/render.sh`
-en dérive les fichiers consommés par ghostty, tmux, fzf et eza dans
+### Kreide
+
+Une 911 GT3 RS craie : bitume mouillé, gris froids, un seul jaune d'étrier.
+
+```
+background  #15181a   bitume mouillé
+foreground  #c9ccca   craie
+accent      #e8b33c   étrier de frein
+```
+
+Le `colors.toml` du thème est la seule source de vérité. `theme/render.sh`
+en dérive les fichiers consommés par ghostty, tmux, fzf, eza, btop et herdr dans
 `~/.config/theme/current/` — **aucune couleur n'est codée en dur dans une config**.
+
+Deux contraintes valent pour **tout** thème ajouté ici :
+
+- son fond d'écran doit porter l'assombrissement du haut (la barre ne peint
+  aucun fond — voir `theme/<nom>/assets/README.md`) ;
+- ses clés `herdr_*` dans `ui.toml` doivent tenir 3:1 sur ses propres surfaces,
+  les slots ANSI sombres n'y suffisent pas.
 Les tokens qui ne concernent que `render.sh` (bordure de pane tmux, fond de
 barre tmux, rampe neutre COSMIC) sont dans `ui.toml`, à côté.
 
@@ -120,8 +144,23 @@ au moment du `omarchy theme set` (voir « Omarchy 4 » plus bas). Le terminal,
 lui, ne dépend pas d'Omarchy : c'est ce qui rend l'iso vraie.
 
 Sur Pop!_OS, le desktop COSMIC a droit au même traitement : `render.sh` produit
-un `cosmic-nurburgreen-dark.ron` importable via **Réglages > Apparence >
+un `cosmic-<thème>-dark.ron` importable via **Réglages > Apparence >
 Importer un thème**. Détail du mapping dans `popos/README.md`.
+
+## Multiplexeur
+
+Le shell interactif attache **herdr** au démarrage — un serveur en arrière-plan
+dans lequel les terminaux vivent, à la place de tmux et non dedans. `DOTS_MUX`
+en décide :
+
+| Valeur | Effet |
+|---|---|
+| *(vide)* | herdr, et tmux s'il n'est pas installé |
+| `tmux` | l'ancien comportement |
+| `none` | shell nu — `DOTS_NO_TMUX=1` fait pareil |
+
+Le garde est `HERDR_PANE_ID`, ce que `TMUX` est à tmux : posé seulement dans un
+pane. La conf tmux reste en place et thémée ; elle sert dès que `DOTS_MUX=tmux`.
 
 ---
 
@@ -171,7 +210,8 @@ templates de `default/themed/`. Deux conséquences :
 
 La barre et le verrouillage se thèment par des **sections** de `shell.toml`,
 déposées en gabarits dans `omarchy/.config/omarchy/themed/` :
-`shell.bar.toml.tpl` (barre à 30 % d'opacité, comme l'ancien `style.css`) et
+`shell.bar.toml.tpl` (barre sans aucun fond — l'assombrissement est cuit dans
+le fond d'écran du thème, voir `theme/kreide/assets/README.md`) et
 `shell.lock.toml.tpl` (couleur d'échec lisible). Ils sont rendus depuis
 `colors.toml` — donc valables pour **tous** les thèmes, et sans une couleur en
 dur. Contrepartie : Omarchy remplace la section entière, pas clé par clé ; une
@@ -191,6 +231,26 @@ clé `[bar]` ajoutée en amont ne parviendra pas tant qu'elle n'est pas reprise.
   de l'éteindre. Les deux sont donc posés à 120 s : le délai de verrouillage de
   la v3 est conservé exact, rien ne se passe avant, et l'économiseur qui
   démarre au même instant est tué par `omarchy-system-lock` dans la foulée.
+
+### Le lanceur vit dans un dépôt à part
+
+`shell.json` déclare le plugin `brieuc.launcher`, `hypr/bindings.lua` lui donne
+`SUPER + A`, `looknfeel.lua` floute sa couche et
+`themed/shell.launcher.toml.tpl` l'habille. **Le plugin lui-même n'est pas
+ici** : il vit dans son propre dépôt, cloné vers
+`~/.config/omarchy/plugins/brieuc.launcher/`.
+
+`install.sh` ne l'installe pas, exprès — écrire dans
+`~/.config/omarchy/plugins/` recharge à chaud TOUS les plugins du shell, y
+compris le verrouillage, et un script d'install n'a pas à déclencher ça. Il se
+contente de dire ce qui manque : chaque id de `shell.json` sans dossier
+correspondant sort en `warn`. Sur une machine neuve, cloner le dépôt du plugin
+à cet emplacement, puis `omarchy-shell shell rescanPlugins`.
+
+`launcher_rail` reste dans les `colors.toml` pour le plugin, mais **pas** dans
+le gabarit partagé : `~/.config/omarchy/themed/` est rendu pour tous les
+thèmes, y compris ceux d'Omarchy, qui n'ont pas cette clé — le moteur y
+laisserait le gabarit non substitué.
 
 ### shell.json est réécrit par le shell
 
@@ -712,246 +772,16 @@ avec `required = true` — un `jq` absent fait échouer l'indexation au lieu de
 publier le fichier brut. **Un clone sur lequel `install.sh` n'a pas tourné n'a
 pas cette protection** : le hook `pre-commit` est là pour ce cas.
 
-### Le panneau
+### La statusline
 
-Le panneau n'existe que dans les fenêtres tmux qui font tourner Claude Code. Il
-s'ouvre et se ferme tout seul : les hooks `SessionStart` et `SessionEnd`
-appellent `tmux-claude-panel`, qui réconcilie **toutes** les fenêtres avec les
-sessions vivantes. Une fenêtre `docker` ou `npm` n'en verra jamais.
+`common/.claude/statusline.sh` affiche modèle, effort, contexte, quotas 5 h et
+7 j, coût et branche. Les trois derniers ne s'inventent pas : `rate_limits`,
+`cost.total_cost_usd` et `context_window.used_percentage` ne sont exposés qu'au
+**stdin de la statusline**, ni par la CLI ni par les transcripts.
 
-La détection ne devine rien : chaque session Claude écrit son emplacement dans
-`~/.claude/sessions/<pid>.json`, au format `session:@fenêtre.%pane`. Le script
-lit ce champ et vérifie que le pid vit encore.
-
-`prefix + a` reste la commande manuelle, et cycle sur trois états :
-
-```
-fermé  ──▶  large (44 col)  ──▶  replié (5 col)  ──▶  fermé
-```
-
-Dans une fenêtre sans session Claude, il refuse et le dit. Fermer à la main pose
-une option de fenêtre `@claude_panel_off` : sans elle, le premier hook venu
-rouvrirait le panneau et « fermer » ne voudrait rien dire. Le drapeau vit le
-temps de la fenêtre ; `prefix + a` le lève.
-
-Deux détails qui évitent des faux positifs : à `SessionStart` le fichier de
-session n'est pas forcément encore écrit, donc le hook fait compter d'office son
-propre pane ; à `SessionEnd` le processus est encore vivant, donc le hook exclut
-la session qui se termine — sinon elle se compterait elle-même et le panneau
-resterait. Comme `SessionEnd` part aussi pour les sous-agents, l'exclusion porte
-sur le `session_id` et non sur le pane : exclure un sous-agent ne retire rien, la
-session parente tient le panneau ouvert.
-
-```
- CLAUDE                               13:49      ∘
-                                                 ⠹
- AGENTS ────────────────────────────────  4      ∙
-                                                 ∙
- ▸ ∘ migration-schema-v2       12j  bloqué       4
-      attend un go avant de committer…
-   ⠹ dotfiles-setup                48%  2m
-   ∙ mon-autre-projet-b2           31%  3h      5h
-                                               27%
- QUOTA ────────────────────────────────────     7j
-                                               17%
-   5 h   ████░░░░░░░░░░░░    27%   ↻ 1h20
-   7 j   ███░░░░░░░░░░░░░    17%   ↻ 3j04h
-
- CONSO ────────────────────────────────────
-
-   aujourd'hui   ~15.40 $   84k sortie
-   7 j · ici    ~112.90 $  1.1M sortie
-
-   ≈ équivalent API · 0.22 $/tour
-   63% lecture · 22% cache 1h · 13% sortie
-
-   api-platform    45%  █████░░░░░░░
-   mon-projet      23%  ███░░░░░░░░░
-   autre-projet    21%  ███░░░░░░░░░
-
-   opus-5          96%  ████████████
-   fable-5          2%  █░░░░░░░░░░░
-```
-
-Les titres de section sont prolongés par un filet jusqu'au bord, dans le gris
-de bordure du thème : ça sépare franchement, et le compteur reste calé à droite. Une ligne vide suit
-chaque titre — elle fait partie de l'en-tête, aucun appelant ne peut l'oublier. Le filet s'arrête une colonne avant le bord
-— écrire jusqu'à la dernière provoque un retour à la ligne différé sur certains
-terminaux, et une ligne vide parasite.
-
-Quand le pane a le focus, la liste est navigable :
-
-| | |
-|---|---|
-| `j` / `k`, `↑` / `↓`, molette | déplacer la sélection (`▸`) |
-| `Entrée` | sauter sur l'agent |
-| clic | sélectionner ; re-cliquer la ligne déjà sélectionnée saute |
-| `Suppr` | arrêter l'agent — **deux fois**, voir plus bas |
-| `q` | fermer le panneau |
-
-Sauter essaie trois pistes, dans l'ordre :
-
-1. l'emplacement que la session a enregistré (`select-window` + `select-pane`) ;
-2. à défaut, le pid remonté dans l'arbre des processus jusqu'à celui d'un pane —
-   le champ `tmux` manque pour un agent lancé par `claude attach`, et le pid du
-   pane est celui du shell, pas de claude ;
-3. `claude attach <id>` dans une fenêtre neuve, **uniquement** si l'agent ne
-   tourne pas déjà.
-
-Sinon il le dit et ne fait rien. Cette dernière garde n'est pas théorique :
-`sessions/` et `jobs/` **se recouvrent** dès qu'on attache un agent background —
-il gagne un fichier de session tout en gardant son état de job. Sans
-déduplication par `sessionId` il apparaît deux fois, et la ligne background,
-dépourvue d'emplacement tmux, relance un `claude attach` à chaque Entrée : d'où
-l'impression que sélectionner un agent le duplique. Les deux entrées sont donc
-fusionnées, la session vivante l'emportant tout en gardant l'id court pour
-`claude attach`/`stop`.
-
-La sélection est mémorisée par `sessionId` et non par position, sinon elle
-sauterait d'un agent à l'autre au moindre changement d'ordre.
-
-**Un agent qui travaille** tourne — `⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏` en accent — et sa colonne de
-droite bascule sur la durée du **tour en cours** au lieu de l'âge de la session :
-d'un agent qui tourne, ce qu'on veut savoir c'est depuis combien de temps il
-mouline, pas quand il a démarré.
-
-L'animation est **découplée** du rafraîchissement des données. Les données ne
-sont relues qu'une fois par intervalle ; entre-temps le panneau ne réécrit que
-les caractères d'icône, par positionnement du curseur, à 120 ms. Couplées, les
-deux donnaient une icône qui change toutes les deux secondes — ça se lit comme
-un battement, pas comme un mouvement. Le braille s'impose pour la même raison :
-`✳ ✽ ✻` n'ont pas la même graisse, l'icône grossissait et rétrécissait.
-
-Coût mesuré : 8 réveils par seconde et 0,2 % d'un cœur pendant qu'un agent
-travaille. Sans agent en cours il n'y a aucune image à peindre, et le panneau
-dort d'une traite.
-
-**Le contexte de chaque agent** est en colonne de droite, à côté de la durée.
-C'est le chiffre qui mérite d'être scannable : une session à 85 % va compacter
-et perdre son historique sans prévenir. Il vire au jaune puis au rouge.
-
-La durée n'est jamais l'âge de la session mais le temps écoulé depuis le
-**dernier changement d'état** : « travaille depuis 2m » et « inactif depuis 3h »
-se décident, « démarré il y a 4h » n'apprend rien.
-
-**L'agent de la fenêtre courante** — et celui que tu pointes — portent l'accent
-et gagnent deux lignes de détail :
-
-```
-   ⠹ dotfiles-setup                48%  2m
-     Opus 5 · high · ~46.89 $
-     feat/claude-code · #115
-```
-
-Deux lignes courtes plutôt qu'une longue tronquée : une branche coupée en
-plein milieu devient trompeuse. La branche vient d'un `git` par dossier,
-mémorisé 30 s et appelé seulement pour les agents détaillés — un ou deux par
-rafraîchissement au pire. Le numéro de PR vient de `pr.number`, que seule la
-statusline reçoit.
-
-La statusline n'écrit que lorsqu'une session rafraîchit sa ligne : une session
-endormie depuis une heure a des chiffres figés. Ils sont alors marqués
-`périmé` et grisés, jamais présentés comme frais.
-
-Deux signaux sur deux éléments distincts : l'agent d'ici porte l'accent sur son
-**nom**, celui qui travaille anime son **icône**. Les cumuler sur le même
-élément les rendrait indistinguables, et l'icône garde sinon la couleur de son
-état — la mise en valeur ne doit pas manger l'information. Modèle, effort, contexte et coût viennent du cache
-`sessions/<id>.json` écrit par la statusline : le coût et le pourcentage de
-contexte ne sont calculés que côté client, aucun fichier de session ne les
-porte. Le panneau se sait « ici » en comparant sa propre fenêtre (`TMUX_PANE`)
-à celle de chaque agent.
-
-Si Claude meurt sans passer par la sortie normale — `kill -9`, crash, pane
-fermé —, aucun `SessionEnd` ne part : le panneau le constate lui-même et se
-referme au bout de trois tours. Trois, pas un, pour ne pas disparaître sur un
-hoquet de lecture.
-
-`q` pose le même drapeau `@claude_panel_off` qu'une fermeture par `prefix + a` :
-fermer, c'est fermer, quel que soit le chemin emprunté.
-
-**Arrêter un agent** demande deux `Suppr` : le premier arme et colore la ligne
-en rouge, le second confirme. L'armement expire au bout de 5 s, et tout
-déplacement le lève — la confirmation ne vaut que pour la ligne visée, jamais
-pour celle où l'on vient d'arriver. Un délai minimum de 0,3 s sépare les deux :
-sans lui, une touche maintenue enfoncée armerait et confirmerait dans la même
-rafale de répétition automatique.
-
-Deux chemins d'arrêt selon la nature de l'agent. Un agent background détaché
-passe par `claude stop`, qui **conserve la conversation** — elle reste
-reprenable par `claude attach`. Une session vivante reçoit un `SIGTERM` : elle
-se ferme proprement et ses hooks `SessionEnd` partent, donc le panneau de sa
-fenêtre se referme tout seul.
-
-Le repli **redimensionne** au lieu de tuer : le processus survit, donc pas de
-rescan, et le rendu bascule tout seul en compact sous 14 colonnes. Un SIGWINCH
-réveille le panneau, il n'attend pas le tick suivant. Ni noms ni coûts en
-replié — à cinq colonnes, tout ce qui est tronqué est du bruit.
-
-Les agents sont lus **directement** dans `~/.claude/{sessions,jobs}/`.
-`claude agents --json` est l'interface documentée, mais elle coûte ~270 ms par
-appel (démarrage d'un runtime node) pour des données déjà sur le disque —
-27 ms contre 290 ms par rendu, dans un pane qui se rafraîchit toutes les cinq
-secondes. Les fichiers donnent en prime le `needs` de chaque agent bloqué,
-affiché sous son nom : « bloqué » tout seul ne dit pas ce qu'on attend de toi.
-Si l'arborescence n'est pas celle attendue, le panneau repasse par la CLI
-plutôt que d'afficher un vide mensonger (`--cli` force ce chemin).
-
-Les usages sont agrégés depuis les transcripts, en incrémental — un curseur
-d'octets par fichier dans `~/.cache/claude-panel/`, sans quoi 169 Mo de JSONL
-seraient relus à chaque rafraîchissement. Les seaux sont **heure × projet ×
-modèle**, et le modèle vient de *chaque message*, pas de la session : changer de
-modèle en cours de route est attribué correctement, à la réponse près.
-
-Le chiffre mis en avant est le **coût**, pas le volume, et le volume affiché est
-celui des tokens de **sortie**. La raison tient dans une mesure : 98 % des
-tokens sont de la lecture de cache, qui ne pèse que 63 % de la note. Un compteur
-de tokens brut suit les relectures de contexte, pas le travail produit — et
-classer les projets par volume désignerait le mauvais coupable. Les trois
-ventilations (poste de coût, projet, modèle) sont donc **en coût**, sur 7 jours,
-une seule journée étant trop bruitée pour qu'un classement veuille dire
-quelque chose.
-
-Le nom lisible d'un projet vient du `cwd` des entrées : le dossier de transcript
-est un chemin encodé dont on ne peut pas redéduire le nom, les tirets du chemin
-et ceux des dossiers s'y confondent.
-
-Deux mentions ne sont pas décoratives. **`· ici`** : les transcripts d'une autre
-machine et les sessions web ne laissent aucune trace locale, donc la journée est
-complète mais la semaine ne l'est pas — les comparer sans le savoir induit en
-erreur. **`≈ équivalent API`** : sur abonnement ces dollars ne sont pas la
-facture. 294 $ d'équivalent tiennent dans 21 % du quota hebdomadaire ; le
-chiffre sert à comparer un projet ou un modèle à un autre, le bloc QUOTA seul
-dit ce qui contraint. La table de tarifs est codée en dur, un modèle inconnu
-compte ses tokens sans être chiffré.
-
-Le **coût par tour** est le chiffre le plus actionnable : à chaque échange, une
-session relit tout son contexte. Une session à 86 % d'une fenêtre de 1M coûte
-0,43 $ le tour avant d'avoir généré un mot, contre 0,01 $ pour Haiku à 72 % de
-200k — trente fois moins.
-
-### Conseils
-
-Une section apparaît quand il y a quelque chose à faire, et disparaît sinon —
-un bandeau « tout va bien » permanent occupe la place de ce qui compte.
-
-| Déclencheur | Conseil |
-|---|---|
-| contexte ≥ 60 % **et** tour ≥ 0,05 $ (ou contexte ≥ 90 %) | `/compact`, avec le coût par tour évité |
-| quota 5 h ≥ 75 % | passer sur un modèle plus léger, avec l'heure de reset |
-| quota 7 j ≥ 85 % | lever le pied jusqu'au reset |
-
-Le double seuil sur le contexte n'est pas un raffinement gratuit : 72 % d'une
-fenêtre de 200k sur Haiku, c'est un centime par tour. Conseiller de compacter
-pour économiser un centime, c'est du bruit — et le bruit finit par faire ignorer
-la section entière.
-
-Le quota et le coût ne s'inventent pas : `rate_limits`, `cost.total_cost_usd` et
-`context_window.used_percentage` ne sont exposés qu'au stdin de la statusline.
-`common/.claude/statusline.sh` les affiche **et** les dépose dans deux caches
-que le panneau relit — `rate-limits.json` pour le compte, `sessions/<id>.json`
-par session. Le panneau marque le quota « périmé » au-delà de 10 minutes plutôt
-que d'afficher une valeur morte.
+Le panneau tmux qui les relisait a été retiré : les agents en cours et la conso
+se lisent dans le module `omarchy.agents` de la barre, et le multiplexeur est
+herdr (voir « Multiplexeur »).
 
 Contrepartie : avec une statusline active, Claude Code masque la plupart des
 rappels de raccourcis du footer (dont `esc to interrupt`). Retirer la clé
