@@ -56,3 +56,6 @@ secrets/*
 !secrets/recipients.txt
 !secrets/*.age
 !secrets/README.md
+
+# Sous-produit de `py_compile` quand on vérifie un script de bin/ à la main.
+__pycache__/

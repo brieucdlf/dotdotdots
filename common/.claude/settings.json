@@ -38,22 +38,12 @@
         ]
       },
       {
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.local/bin/tmux-claude-panel hook-start",
-            "statusMessage": "Panneau tmux"
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.local/bin/tmux-claude-panel hook-end",
-            "timeout": 5
+            "command": "bash \"$HOME/.claude/hooks/herdr-agent-state.sh\" session",
+            "timeout": 10
           }
         ]
       }
@@ -64,7 +54,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/home/thewindrunner/.claude/skills/gstack/hosts/claude/hooks/timeline-stop-hook",
+            "command": "$HOME/.claude/skills/gstack/hosts/claude/hooks/timeline-stop-hook",
             "timeout": 5
           }
         ]
