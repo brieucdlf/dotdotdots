@@ -1,0 +1,161 @@
+#!/bin/bash
+# Rend la palette côté TERMINAL quand le thème du bureau change.
+#
+# ~/.config/theme/current est ce que lisent ghostty, tmux, fzf, eza, btop et
+# herdr — et il est produit par theme/render.sh, pas par Omarchy. Sans ce
+# crochet, `omarchy theme set` ne repeint que le bureau : le terminal reste
+# dans la palette du thème précédent jusqu'au prochain install.sh. C'est
+# exactement ce qui est arrivé en passant à kreide.
+#
+# Le crochet marche DANS LES DEUX SENS. Basculer sur un thème d'Omarchy ne
+# rendait rien — il sortait ici — et laissait herdr greffé sur le dernier thème
+# du dépôt, définitivement : le bureau en catppuccin, herdr en kreide, sans que
+# rien ne le dise. On dégreffe donc, en remettant ce qu'Omarchy livre.
+#
+# Omarchy appelle `omarchy-hook theme-set <nom>` en fin de bascule ; tout
+# fichier de ce dossier est lancé avec le nom en $1.
+set -u
+
+THEME="${1:-}"
+[[ -n $THEME ]] || exit 0
+
+# Le dépôt est retrouvé depuis ce fichier, qui est un lien stow vers lui : pas
+# de chemin en dur, le crochet marche quel que soit l'endroit où ~/.dots vit.
+ROOT="$(cd "$(dirname "$(readlink -f "$0")")/../../../../.." && pwd)"
+RENDER="$ROOT/theme/render.sh"
+CURRENT="$HOME/.config/theme/current"
+
+HERDR_CFG="$HOME/.config/herdr/config.toml"
+HERDR_BLOCK="$CURRENT/herdr-theme.toml"
+HERDR_STOCK="${OMARCHY_PATH:-/usr/share/omarchy}/config/herdr/config.toml"
+HERDR_BEGIN="# >>> dots theme — généré par theme/render.sh, ne pas éditer >>>"
+HERDR_END="# <<< dots theme <<<"
+
+# Le crochet tourne détaché : stderr ne va nulle part et `omarchy theme set`
+# annonce un succès quoi qu'il arrive. Ce qui doit se voir passe donc par une
+# notification.
+note() {
+  command -v notify-send >/dev/null 2>&1 && notify-send -a dots -- "$1" "$2"
+  printf 'theme-set: %s — %s\n' "$1" "$2" >&2
+}
+
+# La valeur brute (guillemets compris) de `accent` dans la section [ui] d'un
+# fichier de conf herdr. C'est une clé À PART de [theme] : elle colore les
+# surbrillances, les bordures et la navigation, et Omarchy la met à "blue" pour
+# imiter tmux. Sans ce passage, herdr resterait bleu au milieu de kreide.
+ui_accent_of() {
+  [[ -f $1 ]] || return 0
+  awk '/^\[ui\]/ { u = 1; next }
+       /^\[/     { u = 0 }
+       u && /^accent[[:space:]]*=/ {
+         sub(/^accent[[:space:]]*=[[:space:]]*/, ""); print; exit }' "$1"
+}
+
+# Les sections [theme] et [theme.custom] telles qu'Omarchy les livre. C'est ce
+# qui permet de dégreffer honnêtement : on ne devine pas ses valeurs, on les lit
+# dans le paquet.
+stock_theme_block() {
+  [[ -f $HERDR_STOCK ]] || return 0
+  awk '/^\[/ { p = ($0 == "[theme]" || $0 == "[theme.custom]") } p' "$HERDR_STOCK"
+}
+
+# herdr_write <rhs-accent> <fichier-bloc|""> <marqueurs 0|1>
+#
+# herdr n'a pas d'include : sa configuration est un seul fichier, et le reste
+# (prefix, raccourcis, new_cwd) vient d'Omarchy et lui appartient. On ne touche
+# donc QUE [theme], [theme.custom] et la ligne `accent` de [ui].
+herdr_write() {
+  local acc="$1" block="$2" wrap="$3" tmp
+  [[ -f $HERDR_CFG ]] || return 0
+
+  tmp="$(mktemp)" || return 0
+  trap 'rm -f "$tmp"' RETURN
+
+  awk -v b="$HERDR_BEGIN" -v e="$HERDR_END" -v acc="$acc" '
+    $0 == b            { skip = 1; next }
+    $0 == e            { skip = 0; next }
+    skip               { next }
+    /^\[theme\]$/      { drop = 1; next }
+    /^\[theme\.custom\]$/ { drop = 1; next }
+    /^\[ui\]$/         { drop = 0; inui = 1; print
+                         if (acc != "") print "accent = " acc
+                         next }
+    /^\[/              { drop = 0; inui = 0 }
+    inui && /^accent[[:space:]]*=/ { next }
+    drop               { next }
+                       { print }
+  ' "$HERDR_CFG" >"$tmp" || return 1
+
+  # Le garde porte sur la SORTIE D'AWK, avant qu'on y ajoute quoi que ce soit :
+  # les marqueurs, eux, sont écrits juste après et seraient présents même sur
+  # un fichier tronqué. [keys] est la section qu'Omarchy possède et qu'on ne
+  # touche jamais — si elle a disparu, le filtre n'a pas fait ce qu'on croit.
+  [[ -s $tmp ]] && grep -q '^\[keys\]' "$tmp" || return 1
+
+  if [[ -n $block && -f $block ]]; then
+    # Les lignes vides de fin sont retirées avant l'ajout : sans ça, le saut
+    # posé devant le bloc s'empile sur celui que la section retirée laissait
+    # derrière elle, et le fichier gagne une ligne vide par bascule.
+    printf '%s\n' "$(cat "$tmp")" >"$tmp.trim" && mv -f "$tmp.trim" "$tmp"
+    if [[ $wrap == 1 ]]; then
+      { printf '%s\n' "$HERDR_BEGIN"; cat "$block"; printf '%s\n' "$HERDR_END"; } >>"$tmp" || return 1
+    else
+      { printf '\n'; cat "$block"; } >>"$tmp" || return 1
+    fi
+  fi
+
+  # `cat >` et non `mv` : le fichier garde son inode, ses droits, et herdr ne
+  # voit jamais un chemin vide entre les deux.
+  cat "$tmp" >"$HERDR_CFG" || return 1
+  command -v herdr >/dev/null && herdr server reload-config >/dev/null 2>&1
+  return 0
+}
+
+# ── le thème est-il à nous ? ─────────────────────────────────────────────────
+if [[ -x $RENDER && -f $ROOT/theme/$THEME/colors.toml ]]; then
+  # render.sh ne publie plus rien s'il lui manque une clé, et sort non nul :
+  # le silence d'avant laissait le terminal sur l'ancienne palette sans
+  # que `omarchy theme set` ait l'air d'avoir raté quoi que ce soit.
+  if ! out="$("$RENDER" "$THEME" "$CURRENT" 2>&1)"; then
+    # render.sh liste les clés une par ligne ; on les remet sur une seule pour
+    # que la notification tienne, et le détail complet part dans le journal.
+    missing="$(printf '%s\n' "$out" | sed -n 's/^  - //p' | paste -sd' ' -)"
+    printf '%s\n' "$out" >&2
+    if [[ -n $missing ]]; then
+      note "thème $THEME non rendu" "clés manquantes : $missing"
+    else
+      note "thème $THEME non rendu" "voir le journal"
+    fi
+    exit 1
+  fi
+
+  # tmux relit sa conf : couleurs de barre, de bordures de panes, de sélection.
+  if command -v tmux >/dev/null && tmux has-session 2>/dev/null; then
+    tmux source-file "$HOME/.config/tmux/tmux.conf" 2>/dev/null
+  fi
+
+  # shellcheck source=/dev/null
+  [[ -f $CURRENT/palette.sh ]] && . "$CURRENT/palette.sh"
+  acc=""
+  [[ -n ${THEME_ACCENT:-} ]] && acc="\"$THEME_ACCENT\""
+  herdr_write "$acc" "$HERDR_BLOCK" 1 ||
+    note "herdr non thémé" "la configuration a été laissée telle quelle"
+  exit 0
+fi
+
+# ── thème d'Omarchy : on dégreffe ────────────────────────────────────────────
+# render.sh ne sait pas rendre un colors.toml qui n'est pas au format du dépôt,
+# donc ghostty, tmux, fzf, eza et btop restent sur la dernière palette à nous —
+# il n'y a rien à faire de mieux, mais il faut le DIRE.
+grep -qF "$HERDR_BEGIN" "$HERDR_CFG" 2>/dev/null && grafted=1 || grafted=0
+
+if [[ $grafted == 1 ]]; then
+  stock="$(mktemp)" || exit 0
+  trap 'rm -f "$stock"' EXIT HUP INT TERM
+  stock_theme_block >"$stock"
+  herdr_write "$(ui_accent_of "$HERDR_STOCK")" "$stock" 0 ||
+    note "herdr non dégreffé" "il reste sur la palette du thème précédent"
+fi
+
+note "thème $THEME hors du dépôt" \
+     "le terminal garde la palette précédente ; herdr est revenu à celle d'Omarchy"
