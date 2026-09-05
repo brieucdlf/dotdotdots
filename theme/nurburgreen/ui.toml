@@ -18,11 +18,24 @@ statusbar_bg    = "#0e100e"   # fond de barre tmux — carbone
 # la ligne sélectionnée.
 #
 # Nurburgreen n'a que deux familles, le vert BRG et le cognac, là où herdr veut
-# sept teintes distinctes : « blue » et « teal » sont donc des verts, séparés
-# par la clarté et non par la teinte. C'est le thème qui est ainsi, pas un oubli.
+# sept teintes distinctes : « blue » et « teal » restent donc deux verts. La
+# première version les séparait de 0,2° de teinte et 3,2 de clarté — soit un
+# ΔE de 11, que l'œil ne fait pas. Ils sont maintenant à ΔE 23, séparés pour de
+# bon par la clarté, ce que ce commentaire prétendait déjà.
 herdr_green    = "#0f8f4c"   # BRG en pleine lumière
 herdr_teal     = "#35a37c"   # mousse claire
-herdr_blue     = "#5ea88a"   # forêt claire, le plus froid disponible
+herdr_blue     = "#8ec7ac"   # menthe pâle — écartée du teal, voir plus bas
+
+# Les FONDS de herdr : même correction que dans kreide. panel_bg et surface0
+# étaient identiques, et active_row_bg ne se détachait pas du panneau (1,00:1).
+herdr_panel_bg = "#0c100c"   # = color0, carbone
+herdr_row_bg   = "#272d27"   # la ligne active, 1,36:1 sur le panneau
+herdr_surface0 = "#121812"
+herdr_surface1 = "#1a1e1a"   # = color8
+
+herdr_overlay1 = "#aa9e92"   # ΔE 15 de subtext0 et 5,3:1 sur la ligne
+                             # sélectionnée ; color13 y tombait à 2,7:1
+herdr_yellow   = "#f5d020"   # = color11, distinct de accent (color3)
 herdr_red      = "#c06a38"   # cognac au soleil
 herdr_peach    = "#d99a5c"   # cognac clair
 herdr_mauve    = "#b08a4a"   # cuir tan
