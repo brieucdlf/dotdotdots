@@ -43,7 +43,7 @@ local c = {
   mint        = "#7c8983",   -- color2
   mint_bright = "#8fa7a2",   -- color14
   mint_dark   = "#6f8783",   -- color6
-  mint_light  = "#94a29b",   -- color10
+  orchid      = "#a99cb0",   -- color13 — les TYPES, tenus loin des mots-clés
   slate       = "#4a5558",
 
   -- la seule chaude, et les neutres qui l'entourent
@@ -53,7 +53,8 @@ local c = {
   rust         = "#c0704a",  -- color9, rouille chaude
   rust_bright  = "#c0704a",  -- color9
   brique       = "#a4574a",  -- color1, brique froide
-  mauve        = "#a99cb0",  -- color13
+  deep_teal    = "#547983",  -- ce qui est « spécial » : sorti de la famille menthe
+  param        = "#546683",  -- les paramètres, distincts des variables ET des commentaires
 
   yellow      = "#e8b33c",   -- accent, l'étrier de frein
   yellow_dim  = "#b8891f",
@@ -85,8 +86,8 @@ hi("ColorColumn",     { bg = c.surface1 })
 -- line numbers
 hi("LineNr",          { fg = c.slate })
 hi("CursorLineNr",    { fg = c.rust,      bold = true })
-hi("LineNrAbove",     { fg = c.sel_bg })
-hi("LineNrBelow",     { fg = c.sel_bg })
+hi("LineNrAbove",     { fg = c.comment })
+hi("LineNrBelow",     { fg = c.comment })
 
 -- folds
 hi("Folded",          { fg = c.overlay1,  bg = c.surface1 })
@@ -172,10 +173,10 @@ hi("Boolean",         { fg = c.yellow,     bold = true })
 hi("Constant",        { fg = c.steel })
 
 -- types
-hi("Type",            { fg = c.mint_light })
+hi("Type",            { fg = c.orchid })
 hi("StorageClass",    { fg = c.mint_bright,  bold = true })
-hi("Structure",       { fg = c.mint_light, bold = true })
-hi("Typedef",         { fg = c.mint_light })
+hi("Structure",       { fg = c.orchid, bold = true })
+hi("Typedef",         { fg = c.orchid })
 
 -- preprocessor
 hi("PreProc",         { fg = c.brique })
@@ -185,8 +186,8 @@ hi("Macro",           { fg = c.brique })
 hi("PreCondit",       { fg = c.brique })
 
 -- special chars / tags
-hi("Special",         { fg = c.mauve })
-hi("SpecialChar",     { fg = c.mauve })
+hi("Special",         { fg = c.deep_teal })
+hi("SpecialChar",     { fg = c.deep_teal })
 hi("Tag",             { fg = c.rust })
 hi("Delimiter",       { fg = c.overlay2 })
 
@@ -227,8 +228,8 @@ hi("SpellLocal", { undercurl = true, sp = c.slate })
 
 -- ── TreeSitter ────────────────────────────────────────────────────────────────
 hi("@variable",                { fg = c.fg })
-hi("@variable.builtin",        { fg = c.mauve, italic = true })
-hi("@variable.parameter",      { fg = c.fg_muted })
+hi("@variable.builtin",        { fg = c.deep_teal, italic = true })
+hi("@variable.parameter",      { fg = c.param })
 hi("@variable.member",         { fg = c.fg })
 
 hi("@constant",                { fg = c.steel })
@@ -236,9 +237,9 @@ hi("@constant.builtin",        { fg = c.yellow, bold = true })
 hi("@constant.macro",          { fg = c.brique })
 
 hi("@string",                  { fg = c.mint_dark })
-hi("@string.escape",           { fg = c.mint_light })
-hi("@string.special",          { fg = c.mauve })
-hi("@string.regexp",           { fg = c.mint_light })
+hi("@string.escape",           { fg = c.orchid })
+hi("@string.special",          { fg = c.deep_teal })
+hi("@string.regexp",           { fg = c.orchid })
 
 hi("@number",                  { fg = c.steel })
 hi("@number.float",            { fg = c.steel })
@@ -251,7 +252,7 @@ hi("@function.macro",          { fg = c.brique })
 hi("@function.method",         { fg = c.fg_bright, bold = true })
 hi("@function.method.call",    { fg = c.fg_bright })
 
-hi("@constructor",             { fg = c.mint_light, bold = true })
+hi("@constructor",             { fg = c.orchid, bold = true })
 hi("@operator",                { fg = c.rust })
 hi("@keyword",                 { fg = c.mint_bright, bold = true })
 hi("@keyword.import",          { fg = c.brique })
@@ -261,11 +262,11 @@ hi("@keyword.exception",       { fg = c.brique, bold = true })
 hi("@keyword.conditional",     { fg = c.mint_bright, bold = true })
 hi("@keyword.repeat",          { fg = c.mint_bright, bold = true })
 
-hi("@type",                    { fg = c.mint_light })
-hi("@type.builtin",            { fg = c.mint_light, italic = true })
-hi("@type.definition",         { fg = c.mint_light, bold = true })
+hi("@type",                    { fg = c.orchid })
+hi("@type.builtin",            { fg = c.orchid, italic = true })
+hi("@type.definition",         { fg = c.orchid, bold = true })
 
-hi("@module",                  { fg = c.mauve })
+hi("@module",                  { fg = c.deep_teal })
 hi("@label",                   { fg = c.mint_bright })
 hi("@comment",                 { fg = c.comment, italic = true })
 hi("@comment.todo",            { fg = c.yellow, bg = c.surface1, bold = true })
@@ -274,16 +275,16 @@ hi("@punctuation.delimiter",   { fg = c.overlay2 })
 hi("@punctuation.bracket",     { fg = c.fg_dim })
 hi("@punctuation.special",     { fg = c.rust })
 hi("@tag",                     { fg = c.mint_bright })
-hi("@tag.attribute",           { fg = c.mauve, italic = true })
+hi("@tag.attribute",           { fg = c.deep_teal, italic = true })
 hi("@tag.delimiter",           { fg = c.overlay2 })
 
 hi("@markup.heading",          { fg = c.fg_bright, bold = true })
 hi("@markup.heading.1",        { fg = c.fg_bright, bold = true })
-hi("@markup.heading.2",        { fg = c.mauve, bold = true })
-hi("@markup.heading.3",        { fg = c.mint_light, bold = true })
+hi("@markup.heading.2",        { fg = c.deep_teal, bold = true })
+hi("@markup.heading.3",        { fg = c.orchid, bold = true })
 hi("@markup.link",             { fg = c.mint_dark, underline = true })
 hi("@markup.link.url",         { fg = c.mint_dark, underline = true })
-hi("@markup.raw",              { fg = c.mauve, bg = c.surface1 })
+hi("@markup.raw",              { fg = c.deep_teal, bg = c.surface1 })
 hi("@markup.italic",           { italic = true })
 hi("@markup.strong",           { bold = true })
 hi("@markup.strikethrough",    { strikethrough = true })
@@ -292,18 +293,18 @@ hi("@markup.list.checked",     { fg = c.mint_dark })
 hi("@markup.list.unchecked",   { fg = c.overlay2 })
 
 -- ── LSP ───────────────────────────────────────────────────────────────────────
-hi("@lsp.type.class",          { fg = c.mint_light, bold = true })
-hi("@lsp.type.enum",           { fg = c.mint_light })
+hi("@lsp.type.class",          { fg = c.orchid, bold = true })
+hi("@lsp.type.enum",           { fg = c.orchid })
 hi("@lsp.type.enumMember",     { fg = c.steel })
 hi("@lsp.type.function",       { fg = c.fg_bright, bold = true })
-hi("@lsp.type.interface",      { fg = c.mint_light, italic = true })
+hi("@lsp.type.interface",      { fg = c.orchid, italic = true })
 hi("@lsp.type.keyword",        { fg = c.mint_bright, bold = true })
 hi("@lsp.type.method",         { fg = c.fg_bright })
-hi("@lsp.type.namespace",      { fg = c.mauve })
-hi("@lsp.type.parameter",      { fg = c.fg_muted })
+hi("@lsp.type.namespace",      { fg = c.deep_teal })
+hi("@lsp.type.parameter",      { fg = c.param })
 hi("@lsp.type.property",       { fg = c.fg })
-hi("@lsp.type.struct",         { fg = c.mint_light, bold = true })
-hi("@lsp.type.type",           { fg = c.mint_light })
+hi("@lsp.type.struct",         { fg = c.orchid, bold = true })
+hi("@lsp.type.type",           { fg = c.orchid })
 hi("@lsp.type.typeParameter",  { fg = c.mint_dark, italic = true })
 hi("@lsp.type.variable",       { fg = c.fg })
 hi("LspReferenceText",         { bg = c.surface2 })
@@ -336,19 +337,19 @@ hi("CmpItemMenu",           { fg = c.overlay2,    italic = true })
 hi("CmpItemKindText",       { fg = c.fg })
 hi("CmpItemKindFunction",   { fg = c.fg_bright })
 hi("CmpItemKindMethod",     { fg = c.fg_bright })
-hi("CmpItemKindConstructor",{ fg = c.mint_light })
+hi("CmpItemKindConstructor",{ fg = c.orchid })
 hi("CmpItemKindField",      { fg = c.fg })
 hi("CmpItemKindVariable",   { fg = c.fg })
-hi("CmpItemKindClass",      { fg = c.mint_light })
-hi("CmpItemKindInterface",  { fg = c.mint_light })
-hi("CmpItemKindModule",     { fg = c.mauve })
+hi("CmpItemKindClass",      { fg = c.orchid })
+hi("CmpItemKindInterface",  { fg = c.orchid })
+hi("CmpItemKindModule",     { fg = c.deep_teal })
 hi("CmpItemKindProperty",   { fg = c.fg })
 hi("CmpItemKindKeyword",    { fg = c.mint_bright })
 hi("CmpItemKindSnippet",    { fg = c.rust })
-hi("CmpItemKindEnum",       { fg = c.mint_light })
+hi("CmpItemKindEnum",       { fg = c.orchid })
 hi("CmpItemKindEnumMember", { fg = c.steel })
 hi("CmpItemKindConstant",   { fg = c.steel })
-hi("CmpItemKindStruct",     { fg = c.mint_light })
+hi("CmpItemKindStruct",     { fg = c.orchid })
 hi("CmpItemKindTypeParameter", { fg = c.mint_dark })
 
 -- ── Gitsigns ──────────────────────────────────────────────────────────────────
@@ -421,14 +422,14 @@ hi("WhichKeySeparator", { fg = c.overlay1 })
 hi("WhichKeyValue",     { fg = c.overlay2 })
 
 -- ── mini.nvim ─────────────────────────────────────────────────────────────────
-hi("MiniStatuslineModeNormal",  { fg = c.bg,  bg = c.rust,     bold = true })
+hi("MiniStatuslineModeNormal",  { fg = c.bg,  bg = c.yellow,   bold = true })
 hi("MiniStatuslineModeInsert",  { fg = c.bg,  bg = c.mint_bright,  bold = true })
 hi("MiniStatuslineModeVisual",  { fg = c.bg,  bg = c.yellow,     bold = true })
 hi("MiniStatuslineModeReplace", { fg = c.bg,  bg = c.brique, bold = true })
 hi("MiniStatuslineModeCommand", { fg = c.bg,  bg = c.mint_dark,       bold = true })
 hi("MiniStatuslineFilename",    { fg = c.fg_muted, bg = c.surface1 })
 hi("MiniStatuslineFileinfo",    { fg = c.overlay2, bg = c.surface0 })
-hi("MiniStatuslineInactive",    { fg = c.overlay1, bg = c.surface0 })
+hi("MiniStatuslineInactive",    { fg = c.comment,  bg = c.surface0 })
 hi("MiniPickBorder",            { fg = c.slate })
 hi("MiniPickBorderFocus",       { fg = c.mint_bright })
 hi("MiniPickMatchCurrent",      { bg = c.sel_bg })
@@ -452,7 +453,7 @@ hi("DiffviewFilePanelDeletions",  { fg = c.brique })
 hi("DiffviewStatusModified",      { fg = c.rust })
 hi("DiffviewStatusAdded",         { fg = c.mint_bright })
 hi("DiffviewStatusDeleted",       { fg = c.brique })
-hi("DiffviewStatusRenamed",       { fg = c.mint_light })
+hi("DiffviewStatusRenamed",       { fg = c.orchid })
 hi("DiffviewStatusUnmerged",      { fg = c.yellow })
 
 -- ── Noice ────────────────────────────────────────────────────────────────────
