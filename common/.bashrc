@@ -24,12 +24,37 @@ source "$HOME/.config/bash/init.bash"
 source "$HOME/.config/bash/exports.bash"
 source "$HOME/.config/bash/aliases.bash"
 
-# Auto-attach tmux au démarrage.
-# DOTS_NO_TMUX=1 permet d'ouvrir un shell interactif sans tmux (outillage,
-# scripts d'inspection type dots-shell-dump).
-if [ -z "$TMUX" ] && [ -z "$DOTS_NO_TMUX" ] && command -v tmux &>/dev/null; then
-  tmux
+# Multiplexeur au démarrage. DOTS_MUX choisit lequel : herdr (défaut), tmux,
+# ou none pour un shell nu (outillage, scripts d'inspection type
+# dots-shell-dump). DOTS_NO_TMUX=1 reste honoré — c'est l'ancien nom de none.
+#
+# herdr n'est pas un pane de plus dans tmux, c'est un multiplexeur à sa place :
+# un serveur en arrière-plan dans lequel les terminaux vivent. Les emboîter
+# donnerait deux jeux de touches de préfixe pour le même geste.
+__dots_mux="${DOTS_MUX:-herdr}"
+[ -n "${DOTS_NO_TMUX:-}" ] && __dots_mux=none
+
+# La popos n'a pas forcément herdr : plutôt que de retomber sur un shell nu,
+# elle retombe sur tmux, qui y est installé.
+if [ "$__dots_mux" = herdr ] && ! command -v herdr &>/dev/null; then
+  __dots_mux=tmux
 fi
+
+case "$__dots_mux" in
+  herdr)
+    # HERDR_PANE_ID est à herdr ce que TMUX est à tmux : posé seulement DANS
+    # un pane. Sans ce garde, chaque shell ouvert relancerait le multiplexeur.
+    if [ -z "${HERDR_PANE_ID:-}" ] && [ -z "${TMUX:-}" ]; then
+      herdr
+    fi
+    ;;
+  tmux)
+    if [ -z "${TMUX:-}" ] && command -v tmux &>/dev/null; then
+      tmux
+    fi
+    ;;
+esac
+unset __dots_mux
 
 # Machine-specific overrides (gitignored) — sourcé en dernier, override tout
 [[ -f "$HOME/.config/bash/local.bash" ]] && source "$HOME/.config/bash/local.bash"
