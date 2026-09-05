@@ -14,6 +14,14 @@ SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$THEME"
 
 [[ -d $SRC ]] || { echo "render: thème introuvable: $SRC" >&2; exit 1; }
 
+# On rend dans un dossier temporaire, et on ne PUBLIE qu'après vérification.
+# Sans ça, une clé manquante écrivait un `accent = ""` par-dessus la config
+# vivante avant que quoi que ce soit puisse s'en apercevoir.
+DEST="$OUT"
+OUT="$(mktemp -d)"
+MISSING="$(mktemp)"
+trap 'rm -rf "$OUT" "$MISSING"' EXIT HUP INT TERM
+
 # --- lecture TOML (format simple: clé = "valeur"  # commentaire) ------------
 declare -A C
 read_toml() {
@@ -26,11 +34,17 @@ read_toml() {
 read_toml "$SRC/colors.toml"
 read_toml "$SRC/ui.toml"
 
-get() { # get clé [défaut] — échoue fort si absent et sans défaut
+get() { # get clé [défaut] — note l'absence, la sortie est refusée à la fin
   local v="${C[$1]:-}"
   if [[ -z $v ]]; then
     if [[ $# -ge 2 ]]; then v="$2"; else
-      echo "render: clé manquante dans $THEME: $1" >&2; exit 1
+      # PAS d'`exit 1` ici : `get` n'est appelé qu'en $(...), presque toujours
+      # dans un heredoc. Le `exit` ne tuerait que le sous-shell de la
+      # substitution — le `cat` englobant réussirait, `set -e` ne verrait rien,
+      # et le fichier partirait avec une valeur VIDE en rendant 0. On enregistre
+      # donc dans un fichier (un sous-shell ne peut pas écrire une variable du
+      # parent) et la publication est refusée en bas.
+      echo "$1" >>"$MISSING"
     fi
   fi
   printf '%s' "$v"
@@ -38,6 +52,10 @@ get() { # get clé [défaut] — échoue fort si absent et sans défaut
 
 rgb() { # #rrggbb -> "r;g;b" (pour EZA_COLORS / séquences ANSI)
   local h="${1#\#}"
+  # Une clé manquante arrive ici en chaîne vide et `printf %d 0x` crie trois
+  # fois par appel, juste avant le vrai message. Le rendu est refusé de toute
+  # façon : on rend un noir muet pour que l'erreur utile reste lisible.
+  [[ $h =~ ^[0-9a-fA-F]{6}$ ]] || { printf '0;0;0'; return; }
   printf '%d;%d;%d' "0x${h:0:2}" "0x${h:2:2}" "0x${h:4:2}"
 }
 
@@ -89,7 +107,8 @@ EOF
 
 # --- palette brute ----------------------------------------------------------
 # colors.sh n'expose que FZF_DEFAULT_OPTS et EZA_COLORS, déjà mis en forme.
-# Tout script qui veut dessiner (claude-panel) a besoin des couleurs elles-mêmes.
+# Tout script qui veut dessiner a besoin des couleurs elles-mêmes ; le seul
+# consommateur aujourd'hui est le crochet theme-set, pour THEME_ACCENT.
 # Fichier séparé et non fusionné dans colors.sh : celui-ci est sourcé par chaque
 # shell, inutile d'y injecter vingt variables pour un seul consommateur.
 {
@@ -121,6 +140,48 @@ set -g window-status-current-format "#[fg=$(get foreground),bg=$(get color8),bol
 set -g message-style         "fg=$(get foreground),bg=$(get statusbar_bg)"
 set -g message-command-style "fg=$(get foreground),bg=$(get statusbar_bg)"
 set -g mode-style            "fg=$(get color0),bg=$(get color13)"
+EOF
+
+# --- herdr -------------------------------------------------------------------
+# Seulement les deux sections de thème : le reste de ~/.config/herdr/config.toml
+# (raccourcis, prefix, new_cwd) vient d'Omarchy et lui appartient. Le crochet
+# theme-set greffe ce bloc dedans, entre marqueurs.
+#
+# `name = "terminal"` et non un thème intégré : herdr prend alors la palette
+# ANSI du terminal, que ghostty.conf ci-dessus vient justement de dériver du
+# même colors.toml. Les jetons ci-dessous ne recouvrent que ce que « terminal »
+# ne sait pas peindre — les surfaces du châssis.
+cat >"$OUT/herdr-theme.toml" <<EOF
+# généré par theme/render.sh depuis $THEME/colors.toml — ne pas éditer
+[theme]
+name = "terminal"
+
+[theme.custom]
+accent        = "$(get accent)"
+panel_bg      = "$(get launcher_rail "$(get color0)")"
+sidebar_bg    = "$(get launcher_rail "$(get color0)")"
+active_row_bg = "$(get statusbar_bg)"
+selection_bg  = "$(get border_inactive)"
+surface0      = "$(get color0)"
+surface1      = "$(get color8)"
+surface_dim   = "$(get statusbar_bg)"
+overlay0      = "$(get herdr_overlay0 "$(get color5)")"
+overlay1      = "$(get color7)"
+text          = "$(get foreground)"
+subtext0      = "$(get color7)"
+# Les sept sémantiques viennent de herdr_* dans ui.toml et NON des slots ANSI.
+# herdr les pose en avant-plan sur ses surfaces, ligne sélectionnée comprise :
+# sur nurburgreen, color4 y tombait à 1,00:1 — même luminance que le fond,
+# donc invisible. Le repli sur la rampe « bright » vaut mieux que la sombre
+# pour un thème qui n'aurait pas encore ces clés, sans être une garantie :
+# c'est à chaque thème de vérifier les siennes (voir le bloc dans ui.toml).
+mauve         = "$(get herdr_mauve    "$(get color13)")"
+green         = "$(get herdr_green    "$(get color10)")"
+yellow        = "$(get accent)"
+red           = "$(get herdr_red      "$(get color9)")"
+blue          = "$(get herdr_blue     "$(get color12)")"
+teal          = "$(get herdr_teal     "$(get color14)")"
+peach         = "$(get herdr_peach    "$(get color9)")"
 EOF
 
 # --- COSMIC (Pop!_OS) ------------------------------------------------------
@@ -221,4 +282,40 @@ for f in btop.theme neovim.lua icons.theme; do
 done
 [[ -d $SRC/backgrounds ]] && ln -sfn "$SRC/backgrounds" "$OUT/backgrounds"
 
-echo "theme: $THEME rendu dans $OUT"
+# --- vérification, PUIS publication -----------------------------------------
+# Rien n'est publié tant qu'une clé manque. Le message liste toutes les clés
+# d'un coup — chercher la suivante après chaque relance serait pénible — et le
+# code de sortie est non nul, ce que `set -e` d'install.sh et le crochet
+# theme-set voient enfin passer.
+if [[ -s $MISSING ]]; then
+  {
+    echo "render: $THEME est incomplet, rien n'a été publié dans $DEST"
+    echo "render: clés manquantes dans $SRC/{colors,ui}.toml :"
+    sort -u "$MISSING" | sed 's/^/  - /'
+  } >&2
+  exit 1
+fi
+
+mkdir -p "$DEST"
+
+# Ce que render.sh possède dans $DEST. Un fichier que le thème courant ne
+# fournit PAS doit disparaître, sinon celui du thème précédent survit : c'est
+# ce qui laissait neovim.lua pointer sur nurburgreen sous kreide.
+for f in ghostty.conf colors.sh palette.sh tmux.conf herdr-theme.toml \
+         btop.theme neovim.lua icons.theme backgrounds; do
+  if [[ ! -e $OUT/$f && ! -L $OUT/$f ]] && [[ -e $DEST/$f || -L $DEST/$f ]]; then
+    rm -rf "$DEST/$f"
+  fi
+done
+# Idem pour les .ron des AUTRES thèmes, qui s'accumulaient un par thème rendu.
+shopt -s nullglob
+for f in "$DEST"/cosmic-*-dark.ron; do
+  [[ $(basename "$f") == "cosmic-$THEME-dark.ron" ]] || rm -f "$f"
+done
+shopt -u nullglob
+
+# -a : les liens sont recopiés en tant que liens (ils pointent en absolu vers
+# $SRC), et les droits suivent.
+cp -a "$OUT"/. "$DEST"/
+
+echo "theme: $THEME rendu dans $DEST"

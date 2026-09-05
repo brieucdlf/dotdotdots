@@ -9,6 +9,25 @@
 border_inactive = "#2a2e2a"   # bordure de pane tmux inactive — carbone froid
 statusbar_bg    = "#0e100e"   # fond de barre tmux — carbone
 
+# --- herdr --------------------------------------------------------------------
+# Les couleurs sémantiques de herdr (surbrillances de statut, git, diagnostics).
+# Elles NE peuvent PAS être les slots ANSI sombres : herdr les pose en avant-plan
+# sur ses propres surfaces, dont la ligne sélectionnée (border_inactive). Sur
+# cette palette, color4 y tombait à 1,00:1 — luminance identique, invisible —
+# et color2 à 1,19:1. Toutes celles-ci tiennent ≥ 3:1 sur panel_bg, surface1 ET
+# la ligne sélectionnée.
+#
+# Nurburgreen n'a que deux familles, le vert BRG et le cognac, là où herdr veut
+# sept teintes distinctes : « blue » et « teal » sont donc des verts, séparés
+# par la clarté et non par la teinte. C'est le thème qui est ainsi, pas un oubli.
+herdr_green    = "#0f8f4c"   # BRG en pleine lumière
+herdr_teal     = "#35a37c"   # mousse claire
+herdr_blue     = "#5ea88a"   # forêt claire, le plus froid disponible
+herdr_red      = "#c06a38"   # cognac au soleil
+herdr_peach    = "#d99a5c"   # cognac clair
+herdr_mauve    = "#b08a4a"   # cuir tan
+herdr_overlay0 = "#9d8258"   # tan éteint — le cran le plus discret encore lisible
+
 # --- COSMIC ------------------------------------------------------------------
 # Rampe neutre : COSMIC construit tout son chrome (fonds de panneaux, boutons,
 # séparateurs) sur neutral_0..10. Plutôt que de passer par neutral_tint, qui

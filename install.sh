@@ -628,8 +628,37 @@ touch "$(stamp_of .claude/settings.json)"
   touch "$(stamp_of .config/omarchy/shell.json)"
 
 # ── thème ────────────────────────────────────────────────────────────────────
-say "rendu du thème"
-"$ROOT/theme/render.sh" nurburgreen "$HOME/.config/theme/current"
+# Le dépôt en porte plusieurs maintenant. Le défaut ne vaut que pour une
+# machine neuve : ailleurs on rend CELUI QUI EST ACTIF, sinon ghostty, tmux et
+# fzf resteraient dans la palette d'un thème que le bureau n'affiche plus.
+DEFAULT_THEME=nurburgreen
+
+our_themes() {
+  local d
+  for d in "$ROOT"/theme/*/; do
+    [[ -f ${d}colors.toml ]] && basename "$d"
+  done
+}
+
+# Pas de pipeline : `our_themes | grep -q` renverrait 141. grep sort à la
+# première correspondance, basename meurt de SIGPIPE, et `set -o pipefail`
+# (en tête de ce fichier) propage son 141 — donc TOUT thème sauf le dernier
+# dans l'ordre alphabétique était déclaré « pas à nous », en silence.
+is_our_theme() { [[ -f "$ROOT/theme/$1/colors.toml" ]]; }
+
+theme_to_render() {
+  local active
+  active="$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null)"
+  if [[ -n $active ]] && is_our_theme "$active"; then
+    printf '%s' "$active"
+  else
+    printf '%s' "$DEFAULT_THEME"
+  fi
+}
+
+THEME="$(theme_to_render)"
+say "rendu du thème ($THEME)"
+"$ROOT/theme/render.sh" "$THEME" "$HOME/.config/theme/current"
 
 # ── outils ───────────────────────────────────────────────────────────────────
 if [[ $DO_PACKAGES -eq 1 ]] && have mise; then
@@ -671,10 +700,37 @@ post_omarchy() {
   # sélecteur refuse le Lua, les configs de terminal et vscode.json d'un thème
   # « installé », qu'il reconnaît à son dossier .git. Un lien vers un dossier à
   # soi n'est pas un thème installé — il n'est bridé sur rien.
-  local dst="$HOME/.config/omarchy/themes/nurburgreen"
-  mkdir -p "$(dirname "$dst")"
-  ln -sfn "$ROOT/theme/nurburgreen" "$dst"
-  say "thème lié dans le sélecteur Omarchy"
+  local name dst
+  mkdir -p "$HOME/.config/omarchy/themes"
+  while read -r name; do
+    dst="$HOME/.config/omarchy/themes/$name"
+    # -n ne protège que d'un LIEN vers un dossier. Sur un VRAI dossier (copie
+    # d'une install à la main, `omarchy theme install`, reste de migration),
+    # `ln -sfn` réussit en créant themes/<nom>/<nom> à l'intérieur, et le
+    # sélecteur voit un thème cassé qu'aucun passage suivant ne répare.
+    if [[ -d $dst && ! -L $dst ]]; then
+      mkdir -p "$BACKUP/omarchy-themes"
+      mv "$dst" "$BACKUP/omarchy-themes/$name"
+      warn "sauvegardé: dossier ~/.config/omarchy/themes/$name -> $BACKUP/omarchy-themes/$name"
+    fi
+    ln -sfn "$ROOT/theme/$name" "$dst"
+  done < <(our_themes)
+  say "thèmes liés dans le sélecteur Omarchy : $(our_themes | tr '\n' ' ')"
+
+  # Les plugins déclarés dans shell.json vivent dans des dépôts à part et ne
+  # sont PAS installés d'ici — écrire dans ~/.config/omarchy/plugins/ recharge
+  # tous les plugins du shell à chaud, y compris le verrouillage, ce qu'un
+  # script d'install n'a rien à faire de déclencher. On se contente donc de
+  # dire ce qui manque : sans ça, un shell.json qui nomme un plugin absent et
+  # un raccourci qui pointe dans le vide ne se voient qu'à l'usage.
+  local shelljson="$ROOT/$PROFILE/.config/omarchy/shell.json" pid
+  if [[ -f $shelljson ]] && have jq; then
+    while read -r pid; do
+      [[ -n $pid ]] || continue
+      [[ -d "$HOME/.config/omarchy/plugins/$pid" ]] ||
+        warn "plugin déclaré dans shell.json mais absent : $pid (attendu dans ~/.config/omarchy/plugins/$pid)"
+    done < <(jq -r '.plugins[]?.id // empty' "$shelljson" 2>/dev/null)
+  fi
 
   have omarchy || return 0
 
@@ -684,10 +740,12 @@ post_omarchy() {
   # dans ~/.config/omarchy/themed/) sont rendus au moment du `theme set`, dans
   # ~/.local/state/omarchy/current/theme. Redémarrer le shell sans repasser par
   # là lui ferait relire les fichiers de la fois d'avant.
-  if [[ "$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null)" == nurburgreen ]]; then
-    omarchy theme set nurburgreen &>/dev/null || warn "omarchy theme set nurburgreen a échoué"
+  local active
+  active="$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null)"
+  if [[ -n $active ]] && is_our_theme "$active"; then
+    omarchy theme set "$active" &>/dev/null || warn "omarchy theme set $active a échoué"
   else
-    say "thème courant ≠ nurburgreen — pas réappliqué ; 'omarchy theme set nurburgreen' pour basculer"
+    say "thème courant (${active:-aucun}) hors du dépôt — pas réappliqué ; 'omarchy theme set $DEFAULT_THEME' pour basculer"
   fi
 }
 
@@ -695,7 +753,7 @@ post_popos() {
   # COSMIC lui-même (raccourcis, panel, dock) n'est pas géré ici — par choix.
   # Seul le thème est fourni, pour que le desktop soit dans la même palette que
   # le terminal.
-  local src="$HOME/.config/theme/current/cosmic-nurburgreen-dark.ron"
+  local src="$HOME/.config/theme/current/cosmic-$THEME-dark.ron"
   if [[ -f $src ]]; then
     mkdir -p "$HOME/.local/share/cosmic-themes"
     cp -f "$src" "$HOME/.local/share/cosmic-themes/"

@@ -59,3 +59,12 @@ secrets/*
 
 # Sous-produit de `py_compile` quand on vérifie un script de bin/ à la main.
 __pycache__/
+
+# L'ORIGINAL des fonds d'écran, avant les dégradés cuits dedans. C'est une
+# entrée de fabrication, pas un fichier que le thème lit : seul le dérivé de
+# backgrounds/ sert au runtime, et la recette pour le refaire est dans
+# theme/<nom>/assets/README.md. 4,7 Mo pour gt3rs-source.jpg, définitifs dans
+# l'historique d'un dépôt public si on les indexe une fois.
+# À GARDER AILLEURS QU'ICI : le dépôt ne les sauvegarde plus.
+theme/*/assets/*.jpg
+theme/*/assets/*.jpeg

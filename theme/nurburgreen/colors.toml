@@ -33,5 +33,10 @@ color15 = "#e0cba0"   # br. white    — reflet cuir clair
 # et par shell.toml.tpl, qui en dérive le liseré du verrouillage, des menus et
 # des notifications. Les mettre ici plutôt que dans hypr/looknfeel.lua leur
 # rend leur portée : elles appartiennent au thème, pas au compositeur.
-hyprland_active_border   = "rgba(d4b88aff) rgba(8a6838ff) 45deg"   # cognac → cuir tan, 45°
+hyprland_active_border   = "rgba(d4b88aff) rgba(8a6835ff) 45deg"   # cognac → cuir tan, 45°
 hyprland_inactive_border = "rgba(1a1e1a66)"                        # carbone, très transparent
+
+# Le rail du lanceur (plugin brieuc.launcher) — voir le même bloc dans kreide,
+# et shell.launcher.toml.tpl pour ce qu'Omarchy en fait. color0 ne peut pas
+# servir : le moteur le force à background avant de rendre les gabarits.
+launcher_rail = "#0c100c"   # carbone
