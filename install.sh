@@ -783,6 +783,18 @@ say "rendu du thème ($THEME)"
 # préfère pourtant herdr dès qu'il est installé. Sans cet appel il y tournait
 # avec ses couleurs par défaut, le herdr-theme.toml rendu juste à côté n'étant
 # lu par personne. Sortie 2 = pas de config herdr sur cette machine.
+# Config herdr du profil, copiée et non stowée : voir popos/.stow-local-ignore.
+# Elle est posée AVANT la greffe du thème juste en dessous, sinon la copie
+# écraserait le bloc [theme] que la greffe vient d'écrire. Aucun profil n'est
+# obligé d'en fournir une — Omarchy livre la sienne, et ce fichier lui
+# appartient.
+HERDR_CFG_SRC="$ROOT/$PROFILE/.config/herdr/config.toml"
+if [[ -f $HERDR_CFG_SRC ]]; then
+  mkdir -p "$HOME/.config/herdr"
+  cp -f "$HERDR_CFG_SRC" "$HOME/.config/herdr/config.toml"
+  say "config herdr posée (raccourcis)"
+fi
+
 HERDR_THEME="$ROOT/common/.local/bin/dots-herdr-theme"
 if [[ -x $HERDR_THEME ]]; then
   # shellcheck source=/dev/null

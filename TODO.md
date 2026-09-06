@@ -212,6 +212,15 @@ du dispositif. Ce qui ne doit pas l'être, ce sont les défauts encore ouverts.
       *choix* du colorscheme, lui, suit désormais le thème actif
       (`plugins/theme.lua` charge `~/.config/theme/current/neovim.lua`), et
       lualine lit les groupes `MiniStatusline*` au lieu de figer des hexas.
+- [ ] `dots-herdr-theme ungraft` ne marche pas sur Pop!_OS : il lit la config
+      d'origine dans `/usr/share/omarchy/config/herdr/config.toml`, qui n'y
+      existe pas, et refuse (`config d'origine introuvable`). Depuis que
+      `popos/.config/herdr/config.toml` existe, il y a une source à lui donner —
+      `HERDR_STOCK` pourrait retomber sur le fichier du profil
+- [ ] herdr sur Pop!_OS n'a pas d'équivalent du `after-new-session` de tmux, qui
+      ouvrait le split `~/todo` + `claude`. Ni du `C-b` d'effacement de
+      l'historique, ni du mode copie vi (`v`/`C-v`/`y`) — herdr a sa propre
+      sélection souris, pas de mode copie clavier configurable
 - [ ] `bin/oh-my-posh` (19 Mo) reste dans l'historique git ; un `filter-repo`
       allégerait les clones, mais réécrit les hashes
 - [ ] COSMIC : `corner_radii` laissé au barème stock, on pourrait l'aligner sur

@@ -23,6 +23,10 @@ eza = "latest"
 delta = "latest"
 fd = "latest"
 fzf = "latest"
+# herdr : le multiplexeur que .bashrc préfère à tmux. Omarchy le fournit déjà,
+# mais pas Pop!_OS — et c'est justement le rôle de ce fichier de niveler les
+# deux machines plutôt que de laisser une distribution décider à sa place.
+herdr = "latest"
 gh = "latest"
 jq = "latest"
 lazygit = "latest"

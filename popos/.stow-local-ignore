@@ -21,3 +21,8 @@
 # COSMIC. La destination ~/.config/ghostty/local.conf résout dans common/, où
 # elle est gitignorée — le fichier de référence reste versionné ici.
 ^/\.config/ghostty$
+
+# Même raison que ghostty, cause différente : ~/.config/herdr/config.toml est
+# réécrit par herdr lui-même (`config reset-keys`) et par dots-herdr-theme, qui
+# y greffe [theme] à chaque rendu. install.sh le copie (voir « config herdr »).
+^/\.config/herdr$
