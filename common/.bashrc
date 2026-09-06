@@ -58,3 +58,7 @@ unset __dots_mux
 
 # Machine-specific overrides (gitignored) — sourcé en dernier, override tout
 [[ -f "$HOME/.config/bash/local.bash" ]] && source "$HOME/.config/bash/local.bash"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
