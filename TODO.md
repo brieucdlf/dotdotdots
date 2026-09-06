@@ -154,8 +154,17 @@ automatique par `install.sh`. Voir `secrets/README.md`.
 - [x] appliqué et vérifié sur la machine Pop : service `enabled`, premier
       passage effectif
 - [x] rien d'équivalent sur Arch, délibérément (pas de dépôt de sécurité séparé)
-- [ ] redémarrage automatique laissé désactivé : les correctifs de **noyau**
-      attendent donc un reboot manuel. À faire de temps en temps, sciemment
+- [x] redémarrage automatique laissé désactivé, sciemment : les correctifs de
+      **noyau** attendent donc un reboot manuel. Point à repasser à chaque
+      nouveau noyau, pas une case à cocher une fois : le contrôle est
+      `cat /var/run/reboot-required.pkgs` contre `uname -r`
+- [x] noyau **7.1.5** appliqué : reboot du 31/08 à 21:07, `uname -r` répond
+      `7.1.5-76070105-generic` (lot COSMIC Store du 30/08 à 23:53, qui avait
+      aussi remplacé openssl, pam, perl, procps et toute la pile mesa). Nuance
+      pour le contrôle ci-dessus : `/var/run/reboot-required` a été **recréé à
+      21:11**, quatre minutes après ce démarrage, en nommant le noyau qui
+      tournait déjà — le drapeau seul ment, c'est la comparaison avec
+      `uname -r` qui tranche
 
 ## Sécurité
 
