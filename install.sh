@@ -918,6 +918,57 @@ post_omarchy() {
   fi
 }
 
+# Le fond d'écran n'appartient pas au thème COSMIC : le schéma .ron n'a aucun
+# champ pour lui, cosmic-bg a sa propre configuration à côté. On n'y pose donc
+# pas une image mais le DOSSIER rendu — ~/.config/theme/current/backgrounds est
+# un lien vers theme/<actif>/backgrounds, et le fond suit alors le thème sans
+# qu'on repasse jamais par ici. cosmic-bg accepte un dossier : c'est ce qui
+# alimente son diaporama.
+#
+# Chirurgical, et pas un remplacement du fichier : cosmic-bg y range aussi le
+# cadrage, la rotation et le filtre, réglés depuis l'interface. On ne réécrit
+# que `source`, et seulement s'il ne pointe pas déjà au bon endroit — sans ce
+# test, chaque install réécrirait un fichier que cosmic-bg surveille, pour rien.
+setup_cosmic_background() {
+  local dir="$HOME/.config/cosmic/com.system76.CosmicBackground/v1"
+  local f="$dir/all" want="$HOME/.config/theme/current/backgrounds"
+
+  # Le lien est posé par theme/render.sh, et seulement si le thème a des fonds.
+  [[ -e $want ]] || return 0
+
+  if [[ ! -f $f ]]; then
+    # Jamais lancé cosmic-settings sur cette machine : on écrit le fichier
+    # entier. Les valeurs hors `source` sont celles de COSMIC.
+    mkdir -p "$dir"
+    cat >"$f" <<RON
+(
+    output: "all",
+    source: Path("$want"),
+    filter_by_theme: true,
+    rotation_frequency: 300,
+    filter_method: Lanczos,
+    scaling_mode: Zoom,
+    sampling_method: Alphanumeric,
+)
+RON
+    printf 'true' >"$dir/same-on-all"
+    say "fond d'écran COSMIC réglé sur le dossier du thème"
+    return 0
+  fi
+
+  grep -qF "Path(\"$want\")" "$f" && return 0
+
+  # `same-on-all` à false : COSMIC range alors un fichier par sortie, et ce
+  # `all` ne pilote plus rien. On le corrige quand même — il redeviendra la
+  # source dès que l'utilisateur repassera en fond unique — mais on le dit.
+  [[ -f "$dir/same-on-all" && $(cat "$dir/same-on-all") != true ]] &&
+    warn "fond d'écran par sortie (same-on-all=false) — seul 'all' est réglé ici"
+
+  sed -i "s|source: Path(\"[^\"]*\")|source: Path(\"$want\")|" "$f" ||
+    { warn "fond d'écran COSMIC non réglé — $f laissé tel quel"; return 0; }
+  say "fond d'écran COSMIC réglé sur le dossier du thème"
+}
+
 post_popos() {
   # COSMIC lui-même (raccourcis, panel, dock) n'est pas géré ici — par choix.
   # Seul le thème est fourni, pour que le desktop soit dans la même palette que
@@ -929,6 +980,8 @@ post_popos() {
     say "thème COSMIC disponible : $src"
     say "  à importer via Réglages > Apparence > Importer un thème"
   fi
+
+  setup_cosmic_background
 
   # Polices. Elles ne font pas partie du thème : le schéma .ron n'a aucun champ
   # de typo, COSMIC les range dans com.system76.CosmicTk.
