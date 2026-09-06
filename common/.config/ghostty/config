@@ -9,8 +9,12 @@ font-style = Regular
 font-size = 10
 
 # Window
-window-padding-x = 14
-window-padding-y = 14
+# Zéro et pas 14 : herdr dessine sa propre bordure de panes et sa barre de
+# statut jusqu'au bord, et le padding du terminal les décollait du cadre de la
+# fenêtre — deux marges pour une. Sur Hyprland les gaps du compositeur jouent
+# déjà ce rôle à l'extérieur.
+window-padding-x = 0
+window-padding-y = 0
 confirm-close-surface=false
 resize-overlay = never
 # Calibré pour Hyprland, qui floute derrière les fenêtres (looknfeel.conf).
