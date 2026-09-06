@@ -5,7 +5,6 @@
       "Bash(gh:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
-      "Bash(ls:*)",
       "Bash(fd:*)",
       "Bash(rg:*)",
       "Bash(cat:*)",
@@ -16,6 +15,13 @@
       "Bash(go:*)",
       "Read(~/.config/nvim/**)",
       "Read(~/todo/**)"
+    ],
+    "deny": [
+      "Read(~/Documents/**)",
+      "Read(~/Pictures/**)",
+      "Read(~/Downloads/**)",
+      "Read(~/Music/**)",
+      "Read(~/Videos/**)"
     ]
   },
   "env": {
@@ -80,5 +86,16 @@
   "editorMode": "vim",
   "remoteControlAtStartup": true,
   "agentPushNotifEnabled": true,
-  "disableClaudeAiConnectors": true
+  "disableClaudeAiConnectors": true,
+  "sandbox": {
+    "filesystem": {
+      "denyRead": [
+        "~/Documents",
+        "~/Pictures",
+        "~/Downloads",
+        "~/Music",
+        "~/Videos"
+      ]
+    }
+  }
 }
