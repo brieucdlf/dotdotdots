@@ -90,6 +90,8 @@ bootstrap_popos() {
   sudo apt-get install -y --no-install-recommends unattended-upgrades
   setup_auto_updates
 
+  setup_dns_over_tls
+
   # Erlang est compilé depuis les sources par mise (kerl) : sans ces headers,
   # le configure échoue sur "No curses library functions found" et entraîne
   # Elixir avec lui. Omarchy fournit déjà l'équivalent côté Arch.
@@ -140,6 +142,11 @@ bootstrap_omarchy() {
   sudo pacman -S --needed --noconfirm tailscale
   enable_tailscaled
 
+  # Voir setup_dns_over_tls : rien de spécifique à la distribution, c'est du
+  # systemd-resolved des deux côtés. Omarchy laisse resolved actif, la fonction
+  # se dégrade d'elle-même en avertissement si ce n'était pas le cas.
+  setup_dns_over_tls
+
   # Volontairement PAS d'équivalent d'unattended-upgrades ici. Arch n'a pas de
   # dépôt de sécurité séparé : automatiser, ce serait lancer un `pacman -Syu`
   # complet sans surveillance, avec son risque de mise à jour partielle et ses
@@ -165,6 +172,80 @@ APT::Periodic::Unattended-Upgrade "1";'
   printf '%s\n' "$want" | sudo tee "$f" >/dev/null \
     && say "mises à jour de sécurité automatiques activées" \
     || warn "APT::Periodic non configuré — pas de mise à jour automatique"
+}
+
+# Le DNS est le seul protocole du poste qui parte encore en clair. Chaque nom
+# résolu — donc chaque site, chaque app, chaque machine contactée — est lisible
+# par qui tient un maillon du chemin, à commencer par le FAI. Le contenu est en
+# TLS depuis longtemps ; la liste de ce qu'on consulte, non.
+#
+# Ce que fait ce réglage, en deux moitiés qui ne valent que réunies :
+#
+# 1. Le drop-in impose DNSOverTLS=yes (STRICT : resolved refuse de résoudre
+#    plutôt que de retomber en clair — 'opportunistic' se laisse dégrader par
+#    un attaquant qui coupe le 853, ce qui n'offre aucune garantie).
+#    Le '#nom' après chaque adresse n'est pas décoratif : c'est le nom attendu
+#    dans le certificat. Sans lui, le TLS chiffre vers n'importe qui.
+#    FallbackDNS vidé explicitement : les serveurs compilés en dur dans
+#    systemd sont interrogés en clair, ce qui rouvrirait exactement le trou.
+#
+# 2. ipv4/ipv6.ignore-auto-dns sur les liens PHYSIQUES. Sans ça le drop-in ne
+#    sert à rien : le DHCP de la box annonce ses propres serveurs (ici un
+#    résolveur local puis 1.1.1.1 et 8.8.8.8), resolved les monte sur le lien
+#    avec +DefaultRoute, et les interroge en clair par-dessus la config
+#    globale. C'était l'état constaté : 'Current DNS Server: 1.1.1.1', en UDP.
+#
+# tailscale0 est délibérément ÉPARGNÉ : tailscaled y pose 100.100.100.100 pour
+# MagicDNS avec un domaine de routage propre au tailnet. Lui appliquer
+# ignore-auto-dns casserait la résolution des noms de machines du réseau privé,
+# sans rien chiffrer de plus — ce lien ne sort pas sur Internet.
+setup_dns_over_tls() {
+  local d=/etc/systemd/resolved.conf.d f=/etc/systemd/resolved.conf.d/90-dns-over-tls.conf
+  local want='[Resolve]
+DNS=1.1.1.1#cloudflare-dns.com 1.0.0.1#cloudflare-dns.com 9.9.9.9#dns.quad9.net 149.112.112.112#dns.quad9.net 2606:4700:4700::1111#cloudflare-dns.com 2620:fe::fe#dns.quad9.net
+FallbackDNS=
+Domains=~.
+DNSOverTLS=yes
+DNSSEC=allow-downgrade'
+
+  # Pas de resolved en service : le drop-in serait un fichier mort et
+  # ignore-auto-dns couperait la résolution sans rien mettre à la place.
+  if ! systemctl is-active systemd-resolved &>/dev/null; then
+    warn "systemd-resolved inactif — DNS laissé tel quel, rien à chiffrer ici"
+    return 0
+  fi
+
+  if [[ ! -f $f ]] || [[ "$(cat "$f" 2>/dev/null)" != "$want" ]]; then
+    sudo mkdir -p "$d"
+    printf '%s\n' "$want" | sudo tee "$f" >/dev/null || {
+      warn "DNS-over-TLS non configuré — les requêtes restent en clair"; return 0; }
+    sudo systemctl restart systemd-resolved \
+      || warn "systemd-resolved non redémarré — le drop-in n'est pas actif"
+    say "DNS-over-TLS strict (Cloudflare + Quad9, certificat vérifié)"
+  fi
+
+  # Seuls les liens physiques. 'nmcli con show --active' donne aussi les ponts
+  # docker et tailscale0, qu'on ne veut pas toucher — d'où le filtre sur TYPE.
+  have nmcli || return 0
+  local name type changed=0
+  while IFS=: read -r name type; do
+    case "$type" in 802-3-ethernet|802-11-wireless) ;; *) continue ;; esac
+    [[ "$(nmcli -g ipv4.ignore-auto-dns con show "$name" 2>/dev/null)" == yes ]] \
+      && [[ "$(nmcli -g ipv6.ignore-auto-dns con show "$name" 2>/dev/null)" == yes ]] \
+      && continue
+    sudo nmcli con mod "$name" ipv4.ignore-auto-dns yes ipv6.ignore-auto-dns yes \
+      && changed=1 \
+      || warn "$name : DNS du DHCP toujours actif, il court-circuite le DoT"
+  done < <(nmcli -t -f NAME,TYPE con show --active 2>/dev/null)
+
+  if [[ $changed -eq 1 ]]; then
+    # Sans réapplication, l'ancien bail reste monté sur le lien jusqu'au
+    # prochain cycle réseau : le changement serait invisible à la vérification.
+    while IFS=: read -r name type; do
+      case "$type" in 802-3-ethernet|802-11-wireless) sudo nmcli con up "$name" &>/dev/null || true ;; esac
+    done < <(nmcli -t -f NAME,TYPE con show --active 2>/dev/null)
+    say "serveurs DNS du DHCP ignorés sur les liens physiques"
+  fi
 }
 
 # Le socket plutôt que le service : pcscd est activé à la demande, il ne tourne
