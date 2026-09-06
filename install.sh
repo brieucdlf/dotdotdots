@@ -786,10 +786,16 @@ say "rendu du thème ($THEME)"
 HERDR_THEME="$ROOT/common/.local/bin/dots-herdr-theme"
 if [[ -x $HERDR_THEME ]]; then
   # shellcheck source=/dev/null
-  [[ -f "$HOME/.config/theme/current/palette.sh" ]] &&
+  if [[ -f "$HOME/.config/theme/current/palette.sh" ]]; then
     . "$HOME/.config/theme/current/palette.sh"
-  "$HERDR_THEME" graft "$HOME/.config/theme/current/herdr-theme.toml" "${THEME_ACCENT:-}"
-  case $? in
+  fi
+  # `cmd` puis `case $?` sur la ligne suivante ne protège de rien : le statut
+  # n'est pas testé dans une condition, donc `set -e` tue le script AVANT le
+  # case. Sortie 2 = pas de herdr ici — et tout ce qui suit (mise, post_popos,
+  # thème COSMIC, override ghostty, Signal) ne tournait plus depuis.
+  rc=0
+  "$HERDR_THEME" graft "$HOME/.config/theme/current/herdr-theme.toml" "${THEME_ACCENT:-}" || rc=$?
+  case $rc in
     0) say "herdr thémé" ;;
     2) ;;
     *) warn "herdr non thémé — sa configuration a été laissée telle quelle" ;;
