@@ -76,7 +76,7 @@ common/            # les 2 machines, identique au byte près
 │   ├── mise/config.toml        # ← versions des outils, la clé de l'iso
 │   └── zed/
 ├── .claude/                    # config Claude Code (settings, skills, statusline)
-└── .local/bin/                 # dots-herdr-theme, dots-secrets, dots-shell-dump
+└── .local/bin/                 # dots-herdr-graft, dots-secrets, dots-shell-dump
 
 theme/
 ├── nurburgreen/    # colors.toml = SOURCE UNIQUE des couleurs (+ ui.toml)
@@ -140,7 +140,13 @@ Sans quoi `--theme` n'aurait valu que pour une fois.
 herdr est thémé par `install.sh` sur les deux machines, pas seulement par le
 crochet `theme-set` — ce crochet est dans le paquet `omarchy` et n'existe pas
 sur Pop!_OS, où `.bashrc` préfère pourtant herdr dès qu'il est installé. Les
-deux appellent `common/.local/bin/dots-herdr-theme`.
+deux appellent `common/.local/bin/dots-herdr-graft`.
+
+Le même exécutable greffe les **raccourcis**, mais seulement depuis
+`install.sh` : `herdr/keys.toml` est la source unique des deux machines, et la
+greffe remplace la section `[keys]` en place. Les deux blocs sont indépendants
+— changer de thème ne touche pas aux touches, et `ungraft keys` rend les
+raccourcis d'Omarchy sans défaire le thème.
 
 Deux contraintes valent pour **tout** thème ajouté ici :
 

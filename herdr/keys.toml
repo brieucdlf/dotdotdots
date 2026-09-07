@@ -1,0 +1,117 @@
+# Raccourcis herdr — source unique des DEUX machines.
+#
+# Ce fichier n'est ni stowé ni copié : il est GREFFÉ dans la config de herdr par
+# `dots-herdr-graft graft keys`, appelé par install.sh sur les deux profils. La
+# raison est la même que pour le thème — herdr n'a pas d'include, sa config est
+# un seul fichier, et sur Omarchy ce fichier appartient à la distribution. La
+# greffe retire la section [keys] en place (sous-tables comprises) et pose
+# celle-ci à la place, sans toucher au reste.
+#
+# Corollaire : ce que tu édites à la main dans ~/.config/herdr/config.toml est
+# écrasé au prochain install.sh, et `herdr config reset-keys` efface la greffe
+# jusqu'au passage suivant. Édite ICI.
+#
+# `dots-herdr-graft ungraft keys` remet les raccourcis d'origine d'Omarchy, lus
+# dans /usr/share/omarchy/config/herdr/config.toml.
+
+[keys]
+# ── Reprise des raccourcis tmux (common/.config/tmux/tmux.conf) ──────────────
+#
+# On reprend deux choses, pas une : ce que tmux.conf redéfinit, ET les défauts
+# de tmux qu'il laisse en place (prefix+d, prefix+[, prefix+,, prefix+;…). Les
+# seconds sont dans les doigts autant que les premiers ; ne reprendre que le
+# fichier laisserait la moitié du clavier sur les défauts de herdr. Chaque
+# ligne dit d'où elle vient : « tmux : » = tmux.conf, « tmux (défaut) : » =
+# raccourci livré par tmux, non redéfini chez nous.
+#
+# Un tableau lie plusieurs touches à la même action. C'est ce qui permet de
+# garder le raccourci tmux d'origine ET celui que tmux.conf ajoute par-dessus,
+# là où tmux, lui, ne remplaçait rien.
+
+# tmux : `unbind C-b ; set -g prefix C-Space`. herdr est justement livré avec
+# ctrl+b — celui dont on s'était débarrassé.
+prefix = "ctrl+space"
+
+# tmux : `bind r source-file ~/.config/tmux/tmux.conf`. Le défaut herdr met
+# reload_config sur prefix+shift+r et resize_mode sur prefix+r ; on les
+# échange. resize_mode ne perd rien : les quatre raccourcis de
+# redimensionnement directs ci-dessous rendent le mode dédié inutile.
+reload_config = "prefix+r"
+resize_mode = "prefix+shift+r"
+
+# tmux (défaut) : `prefix+d` detach-client. herdr le met sur prefix+q, qui ne
+# sert plus à rien une fois la place prise — on ne lui redonne pas de touche.
+detach = "prefix+d"
+
+# tmux (défaut) : `prefix+[` entre en mode copie. Le reste du mode (v, C-v, y
+# en vi) est interne à tmux et n'a pas d'équivalent à configurer ici.
+copy_mode = "prefix+["
+
+# tmux : `bind-key v split-window -h` (séparateur vertical, panes côte à côte)
+#        `bind-key s split-window -v` (séparateur horizontal, panes empilés)
+# herdr nomme le SÉPARATEUR, tmux nommait la DIRECTION du découpage — d'où
+# l'inversion apparente des mots. Le geste, lui, est identique.
+# Effet de bord assumé : prefix+s ouvrait les réglages de herdr, une liaison
+# explicite écrase ce défaut en silence. C'est le même sacrifice que dans tmux,
+# où prefix+s était choose-session avant que tmux.conf en fasse un split.
+split_vertical = "prefix+v"
+split_horizontal = "prefix+s"
+
+# tmux : `bind-key h/j/k/l select-pane -L/-D/-U/-R`. Déjà les défauts herdr,
+# écrits quand même : ce sont les touches qu'on tient à garder si un défaut
+# amont change.
+focus_pane_left = "prefix+h"
+focus_pane_down = "prefix+j"
+focus_pane_up = "prefix+k"
+focus_pane_right = "prefix+l"
+
+# tmux (défaut) : `prefix+;` last-pane, `prefix+x` kill-pane, `prefix+z`
+# resize-pane -Z. last_pane n'est lié à rien chez herdr ; les deux autres sont
+# déjà ses défauts, même raison qu'au-dessus de les écrire.
+last_pane = "prefix+;"
+close_pane = "prefix+x"
+zoom = "prefix+z"
+
+# tmux : `bind-key -n C-M-h/j/k/l resize-pane -L/-D/-U/-R 5`. Sans préfixe là
+# aussi. herdr laisse ces quatre-là vides par défaut.
+resize_pane_left = "ctrl+alt+h"
+resize_pane_down = "ctrl+alt+j"
+resize_pane_up = "ctrl+alt+k"
+resize_pane_right = "ctrl+alt+l"
+
+# ── Windows tmux → tabs herdr ────────────────────────────────────────────────
+
+# tmux : `bind -n M-H previous-window` / `M-L next-window`, sans préfixe. Mais
+# tmux gardait aussi ses `prefix+p` / `prefix+n` : on liste les deux, sinon la
+# forme préfixée disparaîtrait alors qu'elle marche encore dans tmux.
+previous_tab = ["prefix+p", "alt+shift+h"]
+next_tab = ["prefix+n", "alt+shift+l"]
+
+# tmux (défaut) : `prefix+c` new-window (déjà le défaut herdr), `prefix+,`
+# rename-window, `prefix+&` kill-window. herdr mettait les deux derniers sur
+# prefix+shift+t et prefix+shift+x.
+new_tab = "prefix+c"
+rename_tab = "prefix+,"
+close_tab = "prefix+&"
+
+# tmux : `set -g base-index 1` + le préfixe suivi d'un chiffre. Identique.
+switch_tab = "prefix+1..9"
+
+# ── Sessions tmux → workspaces herdr ─────────────────────────────────────────
+
+# tmux (défaut) : `prefix+$` rename-session, `prefix+(` / `prefix+)` session
+# précédente / suivante. herdr n'a rien sur les deux dernières et met le
+# renommage sur prefix+shift+w.
+rename_workspace = "prefix+$"
+previous_workspace = "prefix+("
+next_workspace = "prefix+)"
+
+# ── Non repris, et pourquoi ──────────────────────────────────────────────────
+#
+# `prefix+o` (tmux : pane suivant) — herdr y a open_notification_target par
+# défaut, et une liaison explicite écrase un défaut sans rien dire. Le geste
+# est déjà couvert par h/j/k/l et prefix+; donc cycle_pane_next reste sur son
+# prefix+tab, et les notifications gardent leur touche.
+#
+# `bind -n C-b send-keys -R \; clear-history` — herdr n'expose aucune action
+# qui vide le scrollback d'un pane. Rien à lier.

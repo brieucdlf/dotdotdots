@@ -795,8 +795,8 @@ if [[ -f $HERDR_CFG_SRC ]]; then
   say "config herdr posée (raccourcis)"
 fi
 
-HERDR_THEME="$ROOT/common/.local/bin/dots-herdr-theme"
-if [[ -x $HERDR_THEME ]]; then
+HERDR_GRAFT="$ROOT/common/.local/bin/dots-herdr-graft"
+if [[ -x $HERDR_GRAFT ]]; then
   # shellcheck source=/dev/null
   if [[ -f "$HOME/.config/theme/current/palette.sh" ]]; then
     . "$HOME/.config/theme/current/palette.sh"
@@ -806,11 +806,24 @@ if [[ -x $HERDR_THEME ]]; then
   # case. Sortie 2 = pas de herdr ici — et tout ce qui suit (mise, post_popos,
   # thème COSMIC, override ghostty, Signal) ne tournait plus depuis.
   rc=0
-  "$HERDR_THEME" graft "$HOME/.config/theme/current/herdr-theme.toml" "${THEME_ACCENT:-}" || rc=$?
+  "$HERDR_GRAFT" graft theme "$HOME/.config/theme/current/herdr-theme.toml" "${THEME_ACCENT:-}" || rc=$?
   case $rc in
     0) say "herdr thémé" ;;
     2) ;;
     *) warn "herdr non thémé — sa configuration a été laissée telle quelle" ;;
+  esac
+
+  # Les raccourcis, eux, sont greffés sur LES DEUX profils : herdr/keys.toml est
+  # la seule source, et sur Omarchy la config appartient à la distribution — la
+  # copie ci-dessus n'y met donc rien. Sans cette greffe, Omarchy gardait ses
+  # propres raccourcis (onglets sur alt+left/right) pendant que le dépôt
+  # décrivait ceux de tmux.
+  rc=0
+  "$HERDR_GRAFT" graft keys "$ROOT/herdr/keys.toml" || rc=$?
+  case $rc in
+    0) say "raccourcis herdr greffés" ;;
+    2) ;;
+    *) warn "raccourcis herdr non greffés — sa configuration a été laissée telle quelle" ;;
   esac
 fi
 

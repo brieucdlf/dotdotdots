@@ -33,11 +33,11 @@ ROOT="$(cd "$(dirname "$(readlink -f "$0")")/../../../../.." && pwd)"
 RENDER="$ROOT/theme/render.sh"
 CURRENT="$HOME/.config/theme/current"
 
-# La greffe herdr elle-même vit dans common/.local/bin/dots-herdr-theme : ce
+# La greffe herdr elle-même vit dans common/.local/bin/dots-herdr-graft : ce
 # crochet est dans le paquet stow `omarchy` et n'existe donc pas sur Pop!_OS,
 # alors que .bashrc y préfère herdr dès qu'il est installé. install.sh appelle
 # le même exécutable, les deux machines sont traitées pareil.
-HERDR="$ROOT/common/.local/bin/dots-herdr-theme"
+HERDR="$ROOT/common/.local/bin/dots-herdr-graft"
 
 # Le crochet tourne détaché : stderr ne va nulle part et `omarchy theme set`
 # annonce un succès quoi qu'il arrive. Ce qui doit se voir passe donc par une
@@ -71,7 +71,7 @@ if [[ -x $RENDER && -f $ROOT/theme/$THEME/colors.toml ]]; then
   # shellcheck source=/dev/null
   [[ -f $CURRENT/palette.sh ]] && . "$CURRENT/palette.sh"
   if [[ -x $HERDR ]]; then
-    "$HERDR" graft "$CURRENT/herdr-theme.toml" "${THEME_ACCENT:-}"
+    "$HERDR" graft theme "$CURRENT/herdr-theme.toml" "${THEME_ACCENT:-}"
     case $? in
       0|2) ;;   # greffé, ou pas de config herdr sur cette machine
       *) note "herdr non thémé" "la configuration a été laissée telle quelle" ;;
@@ -86,7 +86,9 @@ fi
 # il n'y a rien à faire de mieux, mais il faut le DIRE.
 ungrafted=0
 if [[ -x $HERDR ]]; then
-  "$HERDR" ungraft
+  # Le thème seulement : les raccourcis ne dépendent pas du thème actif, et
+  # les dégreffer ici les rendrait à Omarchy à chaque essai de thème.
+  "$HERDR" ungraft theme
   case $? in
     0) ungrafted=1 ;;
     2|3) ;;   # pas de config herdr, ou rien n'était greffé
