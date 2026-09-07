@@ -219,8 +219,10 @@ du dispositif. Ce qui ne doit pas l'être, ce sont les défauts encore ouverts.
       `HERDR_STOCK` pourrait retomber sur le fichier du profil
 - [ ] herdr sur Pop!_OS n'a pas d'équivalent du `after-new-session` de tmux, qui
       ouvrait le split `~/todo` + `claude`. Ni du `C-b` d'effacement de
-      l'historique, ni du mode copie vi (`v`/`C-v`/`y`) — herdr a sa propre
-      sélection souris, pas de mode copie clavier configurable
+      l'historique — herdr n'expose aucune action qui vide un scrollback.
+      L'entrée en mode copie, elle, existe : `copy_mode` est lié à `prefix+[`
+      comme dans tmux. Ce sont les touches DANS le mode (`v`/`C-v`/`y`) qui ne
+      se configurent pas
 - [ ] `bin/oh-my-posh` (19 Mo) reste dans l'historique git ; un `filter-repo`
       allégerait les clones, mais réécrit les hashes
 - [ ] COSMIC : `corner_radii` laissé au barème stock, on pourrait l'aligner sur
