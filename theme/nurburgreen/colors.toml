@@ -40,3 +40,9 @@ hyprland_inactive_border = "rgba(1a1e1a66)"                        # carbone, tr
 # et shell.launcher.toml.tpl pour ce qu'Omarchy en fait. color0 ne peut pas
 # servir : le moteur le force à background avant de rendre les gabarits.
 launcher_rail = "#0c100c"   # carbone
+
+# --- Apps Omarchy (omacalc, omawrite, omacut) ---------------------------------
+# Lues brutes par ces apps Qt, sans les replis d'omarchy-theme-color. Voir le
+# même bloc dans kreide.
+mode      = "dark"
+selection = "#004225"   # BRG exact, comme selection_background

@@ -43,3 +43,10 @@ hyprland_inactive_border = "rgba(2a2f3366)"                         # carrosseri
 # color0 : le moteur de gabarits d'Omarchy FORCE color0 := background, donc
 # l'encre de la palette n'arrive jamais jusqu'au gabarit sous ce nom-là.
 launcher_rail = "#0b0d0e"   # encre — l'ombre sous la voiture
+
+# --- Apps Omarchy (omacalc, omawrite, omacut) ---------------------------------
+# Ces apps Qt lisent ce fichier brut, sans passer par omarchy-theme-color : elles
+# ne connaissent ni selection_background ni le mode déduit de la luminance.
+# omacalc et omawrite veulent mode + selection, omacut seulement accent.
+mode      = "dark"
+selection = "#31373b"   # gris jante, comme selection_background
