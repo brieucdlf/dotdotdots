@@ -7,12 +7,19 @@
 #   #cac9c9 son reflet, #7c8983 la menthe de l'enseigne au fond,
 #   #e8b33c les étriers.
 
-accent               = "#e8b33c"   # étrier de frein — la seule chaude
-cursor               = "#f5c95a"   # étrier en pleine lumière
-foreground           = "#c9ccca"   # craie, le reflet de la carrosserie
-background           = "#15181a"   # bitume mouillé, tiré froid
+# Pas de commentaire en fin de ligne sur ces clés : omacalc et omawrite le
+# lisent comme une partie de la valeur, et leur fenêtre reste noire.
+# étrier de frein — la seule chaude
+accent               = "#e8b33c"
+# étrier en pleine lumière
+cursor               = "#f5c95a"
+# craie, le reflet de la carrosserie
+foreground           = "#c9ccca"
+# bitume mouillé, tiré froid
+background           = "#15181a"
 selection_foreground = "#e6e9e7"
-selection_background = "#31373b"   # gris jante
+# gris jante
+selection_background = "#31373b"
 
 color0  = "#0b0d0e"   # black        — encre, l'ombre sous la voiture
 color1  = "#a4574a"   # red          — brique froide, feu arrière éteint
@@ -49,4 +56,5 @@ launcher_rail = "#0b0d0e"   # encre — l'ombre sous la voiture
 # ne connaissent ni selection_background ni le mode déduit de la luminance.
 # omacalc et omawrite veulent mode + selection, omacut seulement accent.
 mode      = "dark"
-selection = "#31373b"   # gris jante, comme selection_background
+# gris jante, comme selection_background
+selection = "#31373b"

@@ -1,12 +1,18 @@
 # Nurburgreen — British Racing Green exact #004225
 # Porsche 911 GT3 Touring / forêt / cuir cognac / étriers GT Yellow
 
-accent               = "#f0c000"   # Porsche GT Yellow — étriers
-cursor               = "#f5d020"   # jaune vif
-foreground           = "#d4b88a"   # cuir cognac intérieur
-background           = "#001a0f"   # noir BRG profond (dérivé de #004225)
+# Pas de commentaire en fin de ligne sur ces clés : voir kreide.
+# Porsche GT Yellow — étriers
+accent               = "#f0c000"
+# jaune vif
+cursor               = "#f5d020"
+# cuir cognac intérieur
+foreground           = "#d4b88a"
+# noir BRG profond (dérivé de #004225)
+background           = "#001a0f"
 selection_foreground = "#001a0f"
-selection_background = "#004225"   # BRG exact — sélection
+# BRG exact — sélection
+selection_background = "#004225"
 
 color0  = "#0c100c"   # black        — carbone sous lumière BRG
 color1  = "#6b3a1f"   # red          — cognac sombre / écorce
@@ -45,4 +51,5 @@ launcher_rail = "#0c100c"   # carbone
 # Lues brutes par ces apps Qt, sans les replis d'omarchy-theme-color. Voir le
 # même bloc dans kreide.
 mode      = "dark"
-selection = "#004225"   # BRG exact, comme selection_background
+# BRG exact, comme selection_background
+selection = "#004225"
