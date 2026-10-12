@@ -174,18 +174,38 @@ Importer un thème**. Détail du mapping dans `popos/README.md`.
 
 ## Multiplexeur
 
-Le shell interactif attache **herdr** au démarrage — un serveur en arrière-plan
-dans lequel les terminaux vivent, à la place de tmux et non dedans. `DOTS_MUX`
-en décide :
+**Orca** (`stably-orca`) est à l'essai à la place de herdr. Ce n'est pas un
+multiplexeur qu'on attache depuis le shell : c'est une app graphique dont chaque
+terminal est déjà un pane, dans son propre worktree. Avec lui, le shell
+interactif reste nu hors d'Orca. `DOTS_MUX` en décide :
 
 | Valeur | Effet |
 |---|---|
-| *(vide)* | herdr, et tmux s'il n'est pas installé |
+| *(vide)* | orca : shell nu ; sans Orca installé, herdr, puis tmux |
+| `herdr` | herdr — un serveur en arrière-plan dans lequel les terminaux vivent, à la place de tmux et non dedans |
 | `tmux` | l'ancien comportement |
 | `none` | shell nu — `DOTS_NO_TMUX=1` fait pareil |
 
-Le garde est `HERDR_PANE_ID`, ce que `TMUX` est à tmux : posé seulement dans un
-pane. La conf tmux reste en place et thémée ; elle sert dès que `DOTS_MUX=tmux`.
+Dans un terminal d'Orca, aucun multiplexeur n'est attaché, quelle que soit la
+valeur : le garde est `ORCA_PANE_KEY`, que seul Orca pose. Pour herdr, c'est
+`HERDR_PANE_ID`, ce que `TMUX` est à tmux : posé seulement dans un pane. Les
+confs herdr et tmux restent en place et thémées ; `DOTS_MUX=herdr` les rend.
+
+Les raccourcis d'Orca vivent dans `common/.orca/keybindings.json`. Orca ne
+connaît pas de préfixe : un raccourci est une seule combinaison, `Ctrl+Space v`
+est impossible. Le préfixe tmux devient donc `Ctrl+Alt` :
+
+| tmux | Orca | Action |
+|---|---|---|
+| `prefix v` | `Ctrl+Alt+V` | split à droite |
+| `prefix s` | `Ctrl+Alt+S` | split en bas |
+| `prefix h` / `l` | `Ctrl+Alt+H` / `L` | pane précédent / suivant (pas de direction) |
+| `M-H` / `M-L` | `Alt+Shift+H` / `L` | onglet terminal précédent / suivant |
+| `C-b` | `Ctrl+Alt+B` | vider le pane (`Ctrl+B` replie la sidebar d'Orca) |
+| — | `Ctrl+Alt+X` | fermer le pane |
+
+Les défauts qu'ils remplacent (`Ctrl+W`, `Ctrl+K`, `Ctrl+[`, `Ctrl+]`)
+rendent ces touches au shell et à nvim — `Ctrl+[` y est Échap.
 
 ---
 

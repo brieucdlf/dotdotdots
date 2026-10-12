@@ -24,23 +24,38 @@ source "$HOME/.config/bash/init.bash"
 source "$HOME/.config/bash/exports.bash"
 source "$HOME/.config/bash/aliases.bash"
 
-# Multiplexeur au démarrage. DOTS_MUX choisit lequel : herdr (défaut), tmux,
-# ou none pour un shell nu (outillage, scripts d'inspection type
+# Multiplexeur au démarrage. DOTS_MUX choisit lequel : orca (défaut), herdr,
+# tmux, ou none pour un shell nu (outillage, scripts d'inspection type
 # dots-shell-dump). DOTS_NO_TMUX=1 reste honoré — c'est l'ancien nom de none.
 #
 # herdr n'est pas un pane de plus dans tmux, c'est un multiplexeur à sa place :
 # un serveur en arrière-plan dans lequel les terminaux vivent. Les emboîter
 # donnerait deux jeux de touches de préfixe pour le même geste.
-__dots_mux="${DOTS_MUX:-herdr}"
+#
+# orca est à l'essai à la place de herdr. Ce n'est pas un multiplexeur qu'on
+# attache depuis le shell mais une app graphique (stably-orca) dont chaque
+# terminal est déjà un pane, dans son worktree : hors d'Orca, le shell reste nu.
+# Pour revenir à herdr : remettre le défaut ci-dessous, ou exporter
+# DOTS_MUX=herdr dans exports.bash — pas dans local.bash, sourcé trop tard.
+__dots_mux="${DOTS_MUX:-orca}"
 [ -n "${DOTS_NO_TMUX:-}" ] && __dots_mux=none
 
-# La popos n'a pas forcément herdr : plutôt que de retomber sur un shell nu,
-# elle retombe sur tmux, qui y est installé.
+# Un terminal d'Orca est un pane, quel que soit DOTS_MUX : y attacher herdr
+# emboîterait deux multiplexeurs. ORCA_PANE_KEY y est ce que HERDR_PANE_ID est
+# à herdr — posé seulement dans un terminal d'Orca.
+[ -n "${ORCA_PANE_KEY:-}" ] && __dots_mux=none
+
+# La popos n'a pas forcément Orca, ni herdr : plutôt que de retomber sur un
+# shell nu, elle descend orca → herdr → tmux jusqu'à ce qui est installé.
+if [ "$__dots_mux" = orca ] && ! command -v stably-orca &>/dev/null; then
+  __dots_mux=herdr
+fi
 if [ "$__dots_mux" = herdr ] && ! command -v herdr &>/dev/null; then
   __dots_mux=tmux
 fi
 
 case "$__dots_mux" in
+  # orca : rien à attacher, l'app se lance depuis le lanceur (stably-orca).
   herdr)
     # HERDR_PANE_ID est à herdr ce que TMUX est à tmux : posé seulement DANS
     # un pane. Sans ce garde, chaque shell ouvert relancerait le multiplexeur.

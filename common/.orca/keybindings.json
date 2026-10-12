@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "keybindings": {
+    "terminal.splitRight": "Ctrl+Alt+V",
+    "terminal.splitDown": "Ctrl+Alt+S",
+    "terminal.focusNextPane": "Ctrl+Alt+L",
+    "terminal.focusPreviousPane": "Ctrl+Alt+H",
+    "terminal.closePane": "Ctrl+Alt+X",
+    "terminal.clear": "Ctrl+Alt+B",
+    "tab.nextTerminal": "Alt+Shift+L",
+    "tab.previousTerminal": "Alt+Shift+H"
+  },
+  "platforms": {
+    "darwin": {},
+    "linux": {},
+    "win32": {}
+  }
+}
