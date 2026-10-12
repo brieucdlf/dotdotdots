@@ -57,6 +57,10 @@ secrets/*
 !secrets/*.age
 !secrets/README.md
 
+# Copies temporaires que `mise use -g` laisse à côté de config.toml en le
+# réécrivant : ~/.config/mise/config.toml est un lien vers ce dossier.
+common/.config/mise/.config.toml.*
+
 # Sous-produit de `py_compile` quand on vérifie un script de bin/ à la main.
 __pycache__/
 
