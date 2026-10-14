@@ -57,6 +57,11 @@ secrets/*
 !secrets/*.age
 !secrets/README.md
 
+# ~/.orca — seul `keybindings.json` est suivi. Même refus par défaut que
+# ~/.ssh : si stow plie le dossier, Orca y écrit agent-hooks/ et son jeton.
+common/.orca/*
+!common/.orca/keybindings.json
+
 # Copies temporaires que `mise use -g` laisse à côté de config.toml en le
 # réécrivant : ~/.config/mise/config.toml est un lien vers ce dossier.
 common/.config/mise/.config.toml.*

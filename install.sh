@@ -697,6 +697,9 @@ backup_conflicts "$ROOT/$PROFILE"
 mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
 # ssh ne crée pas le dossier de sockets du multiplexage et échoue sans bruit.
 mkdir -p "$HOME/.ssh/sockets" && chmod 700 "$HOME/.ssh/sockets"
+# Même piège pour ~/.orca : plié en lien, il recevrait agent-hooks/ d'Orca —
+# dont endpoint.env et son jeton — dans le dépôt. Seul keybindings.json y est lié.
+mkdir -p "$HOME/.orca"
 
 say "stow common + $PROFILE"
 if ! stow --dir="$ROOT" --target="$HOME" --restow common "$PROFILE"; then
