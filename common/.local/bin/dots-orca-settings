@@ -1,0 +1,114 @@
+#!/bin/bash
+# Applique les réglages d'Orca suivis par le dépôt (orca/settings.json).
+#
+#   dots-orca-settings apply <fichier>   fusionne le fichier dans les réglages
+#   dots-orca-settings show  [clé…]      affiche les réglages actuels
+#
+# Orca n'a ni fichier de config ni import : ses réglages sont un document JSON
+# dans une base SQLite (profile-state.db, domaine `settings`), aux côtés des
+# sessions et des worktrees. On n'y écrit que les clés du fichier, fusionnées
+# en profondeur — agentDefaultArgs.claude change, les autres agents non. Le
+# reste (identifiant d'installation, télémétrie, chemins) est propre à la
+# machine et ne quitte pas sa base.
+#
+# Orca réécrit ce document de mémoire pendant qu'il tourne : une écriture faite
+# sous lui serait écrasée, ou écraserait la sienne. D'où le refus tant que
+# l'app est ouverte. Le démon, lui, peut rester : il garde les terminaux et ne
+# touche pas aux réglages.
+#
+# content_hash est le SHA-256 du JSON compact, tel qu'Orca le sérialise ; on le
+# recalcule et on incrémente revision, comme lui.
+#
+# Sorties : 0 fait (ou déjà à jour), 1 échec, 2 pas de profil Orca (jamais
+# lancé ici), 4 Orca ouvert.
+set -u
+
+DB="${ORCA_PROFILE_DB:-$HOME/.config/orca/profiles/local-default/profile-state.db}"
+
+die() { printf 'dots-orca-settings: %s\n' "$*" >&2; exit 1; }
+
+# L'app, pas le démon ni les processus Chromium qu'elle lance (--type=…).
+orca_app_running() {
+  local pid args
+  for pid in $(pgrep -x orca-ide 2>/dev/null); do
+    args="$(tr '\0' ' ' <"/proc/$pid/cmdline" 2>/dev/null)" || continue
+    case $args in *daemon-entry*|*--type=*) continue ;; esac
+    return 0
+  done
+  return 1
+}
+
+[[ -f $DB ]] || { echo "dots-orca-settings: pas de profil Orca ($DB) — lance Orca une fois" >&2; exit 2; }
+
+case "${1:-}" in
+  show)
+    shift
+    exec python3 - "$DB" "$@" <<'EOF'
+import json, sqlite3, sys
+db, keys = sys.argv[1], sys.argv[2:]
+con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+s = json.loads(con.execute(
+    "select payload from profile_state_documents where domain='settings'").fetchone()[0])
+for k in keys or sorted(s):
+    print(k, json.dumps(s.get(k), ensure_ascii=False))
+EOF
+    ;;
+  apply)
+    [[ -n ${2:-} ]] || die "usage: dots-orca-settings apply <fichier>"
+    [[ -f $2 ]] || die "fichier introuvable: $2"
+    if orca_app_running; then
+      echo "dots-orca-settings: Orca est ouvert — ferme-le, puis relance la commande" >&2
+      exit 4
+    fi
+    python3 - "$DB" "$2" <<'EOF'
+import hashlib, json, sqlite3, sys, time
+
+db, src = sys.argv[1], sys.argv[2]
+wanted = json.load(open(src, encoding="utf-8"))
+
+def merge(base, over):
+    for k, v in over.items():
+        if isinstance(v, dict) and isinstance(base.get(k), dict):
+            merge(base[k], v)
+        else:
+            base[k] = v
+
+con = sqlite3.connect(db, isolation_level=None)
+
+# Copie de la base avant d'y toucher : Orca garde ses propres sauvegardes,
+# mais pas d'une écriture qui vient d'ailleurs. AVANT la transaction : une
+# connexion qui tient le verrou d'écriture ne peut pas servir de source à
+# backup(), qui boucle alors indéfiniment sur SQLITE_LOCKED.
+backup = sqlite3.connect(f"{db}.dots-backup")
+con.backup(backup)
+backup.close()
+
+con.execute("BEGIN IMMEDIATE")
+row = con.execute(
+    "select payload, revision from profile_state_documents where domain='settings'").fetchone()
+if row is None:
+    con.execute("ROLLBACK")
+    sys.exit("dots-orca-settings: pas de document settings dans la base")
+payload, revision = row
+settings = json.loads(payload)
+merge(settings, wanted)
+new = json.dumps(settings, separators=(",", ":"), ensure_ascii=False)
+if new == payload:
+    con.execute("ROLLBACK")
+    print("réglages Orca déjà à jour")
+    sys.exit(0)
+
+con.execute(
+    "update profile_state_documents"
+    " set payload=?, revision=?, updated_at=?, content_hash=?"
+    " where domain='settings'",
+    (new, revision + 1, int(time.time() * 1000),
+     hashlib.sha256(new.encode("utf-8")).hexdigest()))
+con.execute("COMMIT")
+print(f"réglages Orca appliqués ({', '.join(wanted)}) — sauvegarde : {db}.dots-backup")
+EOF
+    ;;
+  *)
+    die "usage: dots-orca-settings apply <fichier> | show [clé…]"
+    ;;
+esac

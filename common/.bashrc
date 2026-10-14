@@ -47,7 +47,9 @@ __dots_mux="${DOTS_MUX:-orca}"
 
 # La popos n'a pas forcément Orca, ni herdr : plutôt que de retomber sur un
 # shell nu, elle descend orca → herdr → tmux jusqu'à ce qui est installé.
-if [ "$__dots_mux" = orca ] && ! command -v stably-orca &>/dev/null; then
+# stably-orca : paquet AUR (Omarchy) ; orca-ide : .deb officiel (popos).
+if [ "$__dots_mux" = orca ] && ! command -v stably-orca &>/dev/null \
+   && ! command -v orca-ide &>/dev/null; then
   __dots_mux=herdr
 fi
 if [ "$__dots_mux" = herdr ] && ! command -v herdr &>/dev/null; then

@@ -207,6 +207,25 @@ est impossible. Le préfixe tmux devient donc `Ctrl+Alt` :
 Les défauts qu'ils remplacent (`Ctrl+W`, `Ctrl+K`, `Ctrl+[`, `Ctrl+]`)
 rendent ces touches au shell et à nvim — `Ctrl+[` y est Échap.
 
+Les autres réglages d'Orca n'ont pas de fichier : ils vivent dans sa base
+SQLite (`~/.config/orca/profiles/local-default/profile-state.db`), avec des
+valeurs propres à la machine. `orca/settings.json` ne suit que ce qui doit
+voyager, et `dots-orca-settings apply` le fusionne dans la base :
+
+| Réglage | Valeur | Pourquoi |
+|---|---|---|
+| `terminalTuiScrollSensitivity` | `3` | Orca l'a forcé à 1 : la molette n'avançait plus que d'une ligne dans Claude |
+| `defaultTuiAgent` | `claude` | l'agent des nouveaux onglets |
+| `agentDefaultArgs.claude` (et `claude-agent-teams`) | `""` | Orca lance Claude avec `--dangerously-skip-permissions` par défaut ; sans lui, le mode auto et les règles de permissions s'appliquent, et `skipDangerousModePermissionPrompt` ne revient plus dans `settings.json` |
+
+L'app doit être fermée (son démon peut rester) : ouverte, elle réécrit ce
+document de mémoire. `install.sh` l'applique quand il le peut et sinon dit
+quoi relancer. Sur Pop!_OS, il installe Orca depuis le `.deb` officiel
+(`/usr/bin/orca-ide`) ; sur Omarchy, c'est le paquet AUR `stably-orca-bin`.
+Le `.deb` ne se met pas à jour seul, et `install.sh` ne le réinstalle pas
+s'il est déjà là : installer à la main le dernier `.deb` de
+https://github.com/stablyai/orca/releases.
+
 ---
 
 ## Omarchy 4

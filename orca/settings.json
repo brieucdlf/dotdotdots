@@ -1,0 +1,8 @@
+{
+  "terminalTuiScrollSensitivity": 3,
+  "defaultTuiAgent": "claude",
+  "agentDefaultArgs": {
+    "claude": "",
+    "claude-agent-teams": ""
+  }
+}
