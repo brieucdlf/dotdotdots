@@ -105,6 +105,7 @@ bootstrap_popos() {
   fi
 
   install_gitleaks
+  install_touch_detector
   setup_tailscale
   setup_webcam
 
@@ -138,6 +139,11 @@ bootstrap_omarchy() {
 
   # Voir install_gitleaks : ici le dépôt suit l'amont, le paquet suffit.
   sudo pacman -S --needed --noconfirm gitleaks
+
+  # Voir install_touch_detector : le paquet Arch suit l'amont et livre les
+  # unités systemd, il ne reste qu'à les activer.
+  sudo pacman -S --needed --noconfirm yubikey-touch-detector
+  enable_touch_detector
 
   # Voir setup_tailscale : même rôle, et ici encore aucun `tailscale up`.
   sudo pacman -S --needed --noconfirm tailscale
@@ -384,6 +390,91 @@ install_gitleaks() {
     && say "gitleaks $ver installé dans ~/.local/bin" \
     || warn "installation de gitleaks échouée"
   rm -rf "$tmp"
+}
+
+# yubikey-touch-detector : une notification quand la YubiKey attend une touche.
+# Sans elle, un commit signé ou un push semble simplement figé — rien ne dit
+# qu'il attend un doigt. La config est commune, voir
+# common/.config/yubikey-touch-detector/service.conf.
+#
+# Pop!_OS 24.04 n'a pas le paquet (Ubuntu ne l'a qu'à partir de 26.04, et en
+# 1.12, avant le renommage des options). On prend donc le binaire amont, vérifié
+# comme gitleaks. Il ne demande que libgpgme.so.11 et glibc 2.34 — vérifié sur
+# la 1.15.0 avec objdump. Le paquet Debian ne livrant pas les unités systemd non
+# plus, on les écrit nous-mêmes, à l'identique de celles de l'amont.
+install_touch_detector() {
+  local bin="$HOME/.local/bin/yubikey-touch-detector"
+  local units="$HOME/.config/systemd/user"
+
+  if [[ -x $bin ]]; then
+    say "yubikey-touch-detector déjà présent"
+  else
+    say "installation de yubikey-touch-detector (binaire amont)"
+    local tmp arch ver url
+    case "$(uname -m)" in
+      x86_64)  arch=x86_64 ;;
+      aarch64) arch=aarch64 ;;
+      *) warn "architecture $(uname -m) non gérée pour yubikey-touch-detector — passe"; return 0 ;;
+    esac
+
+    sudo apt-get install -y --no-install-recommends libgpgme11t64
+
+    ver="$(curl -fsSL https://api.github.com/repos/max-baz/yubikey-touch-detector/releases/latest \
+          | grep -o '"tag_name": *"[^"]*"' | head -1 | grep -o '[0-9][0-9.]*' || true)"
+    [[ -n $ver ]] || { warn "version de yubikey-touch-detector introuvable — passe"; return 0; }
+
+    tmp="$(mktemp -d)"
+    url="https://github.com/max-baz/yubikey-touch-detector/releases/download/$ver"
+    if ! curl -fsSL -o "$tmp/yubikey-touch-detector-$arch-linux-gnu" "$url/yubikey-touch-detector-$arch-linux-gnu" \
+       || ! curl -fsSL -o "$tmp/sums" "$url/SHA256SUMS"; then
+      warn "téléchargement de yubikey-touch-detector échoué — passe"; rm -rf "$tmp"; return 0
+    fi
+    if ! (cd "$tmp" && sha256sum --ignore-missing -c sums >/dev/null 2>&1); then
+      warn "empreinte SHA256 de yubikey-touch-detector invalide — RIEN n'est installé"; rm -rf "$tmp"; return 1
+    fi
+    install -Dm755 "$tmp/yubikey-touch-detector-$arch-linux-gnu" "$bin" \
+      && say "yubikey-touch-detector $ver installé dans ~/.local/bin" \
+      || { warn "installation de yubikey-touch-detector échouée"; rm -rf "$tmp"; return 0; }
+    rm -rf "$tmp"
+  fi
+
+  mkdir -p "$units"
+  cat >"$units/yubikey-touch-detector.socket" <<'UNIT'
+[Unit]
+Description=Unix socket activation for YubiKey touch detector service
+
+[Socket]
+ListenStream=%t/yubikey-touch-detector.socket
+RemoveOnStop=yes
+
+[Install]
+WantedBy=sockets.target
+UNIT
+  cat >"$units/yubikey-touch-detector.service" <<'UNIT'
+[Unit]
+Description=Detects when your YubiKey is waiting for a touch
+Requires=yubikey-touch-detector.socket
+
+[Service]
+ExecStart=%h/.local/bin/yubikey-touch-detector
+EnvironmentFile=-%E/yubikey-touch-detector/service.conf
+
+[Install]
+Also=yubikey-touch-detector.socket
+WantedBy=default.target
+UNIT
+  systemctl --user daemon-reload 2>/dev/null || true
+  enable_touch_detector
+}
+
+# Service UTILISATEUR, pas système : la notification doit atteindre le bus de la
+# session graphique. Sans session (install en SSH, par exemple), on prévient au
+# lieu d'échouer — il suffira de relancer la commande une fois connecté.
+enable_touch_detector() {
+  systemctl --user is-enabled --quiet yubikey-touch-detector.service 2>/dev/null && return 0
+  systemctl --user enable --now yubikey-touch-detector.service 2>/dev/null \
+    && say "yubikey-touch-detector activé (notification à chaque touche attendue)" \
+    || warn "yubikey-touch-detector non activé — une fois en session : systemctl --user enable --now yubikey-touch-detector.service"
 }
 
 install_ghostty_deb() {
