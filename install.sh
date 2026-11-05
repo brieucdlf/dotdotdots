@@ -654,6 +654,80 @@ prune_dead_repo_links() {
 
 prune_dead_repo_links
 
+# ── sortie d'Orca ────────────────────────────────────────────────────────────
+# Orca a été essayé puis retiré du dépôt : c'est l'app Herdr qui multiplexe (voir
+# « Multiplexeur » dans le README). Le dépôt ne le pose plus, mais une machine
+# qui l'avait le garde, avec ses worktrees et ~500 Mo d'état. Ce bloc l'en sort
+# une fois pour toutes, puis ne fait plus rien. Bloc jetable : à supprimer une
+# fois les deux machines passées.
+#
+# Attention au nom : le paquet `orca` (apt comme pacman) est le LECTEUR D'ÉCRAN
+# de GNOME, sans rapport. Seuls orca-ide (.deb) et stably-orca (AUR) sont visés.
+leave_orca() {
+  local ws="$HOME/orca/workspaces" wt repo dest left=0
+
+  # Rien à faire sur une machine qui n'a jamais eu Orca, ou qui en est sortie.
+  [[ -d $HOME/.config/orca || -d $HOME/.orca || -d $HOME/orca ]] \
+    || have orca-ide || have stably-orca || return 0
+
+  # Orca ouvert : ses terminaux, et ce qui y tourne, mourraient avec lui. -x et
+  # non -f : le nom exact du processus, pas une ligne de commande qui citerait
+  # « orca-ide » (comme ce script).
+  if pgrep -x 'orca-ide|stably-orca' >/dev/null 2>&1; then
+    warn "Orca tourne encore — quitte-le (et reprends ses sessions Claude ailleurs), puis relance ./install.sh"
+    return 0
+  fi
+
+  # Ses worktrees vont là où l'app Herdr range les siens : ~/.herdr/worktrees/<dépôt>/<nom>.
+  # `git worktree move` garde le dépôt principal au courant ; un simple mv le perdrait.
+  for wt in "$ws"/*/*/; do
+    wt="${wt%/}"
+    [[ -f $wt/.git ]] || continue                 # pas un worktree git
+    repo="${wt%/*}"; repo="${repo##*/}"
+    dest="$HOME/.herdr/worktrees/$repo/${wt##*/}"
+    if [[ -e $dest ]]; then
+      warn "worktree laissé en place, $dest existe déjà : ${wt#"$HOME"/}"
+      continue
+    fi
+    mkdir -p "${dest%/*}"
+    if git -C "$wt" worktree move "$wt" "$dest"; then
+      say "worktree déplacé: ${wt#"$HOME"/} -> ${dest#"$HOME"/}"
+    else
+      warn "worktree non déplacé : ${wt#"$HOME"/}"
+    fi
+  done
+
+  # Les dossiers de travail ne partent que vides : ce qui y reste est à toi.
+  rmdir "$ws"/.orca-preparing 2>/dev/null || true
+  rmdir "$ws"/* "$ws" "$HOME/orca" 2>/dev/null || true
+  if [[ -d $HOME/orca ]]; then
+    warn "~/orca n'est pas vide (worktree non déplacé ou fichier à toi) — laissé en place"
+    left=1
+  fi
+
+  if [[ $DO_PACKAGES -eq 1 ]]; then
+    if [[ $PROFILE == popos ]] && dpkg -s orca-ide >/dev/null 2>&1; then
+      say "désinstallation d'orca-ide"
+      sudo apt-get purge -y orca-ide || warn "orca-ide non désinstallé"
+    elif [[ $PROFILE == omarchy ]] && pacman -Q stably-orca >/dev/null 2>&1; then
+      say "désinstallation de stably-orca"
+      sudo pacman -Rns --noconfirm stably-orca || warn "stably-orca non désinstallé"
+    fi
+  fi
+
+  # Son état : base de sessions, caches Electron, journaux, mises à jour
+  # téléchargées. Les sessions Claude, elles, vivent dans ~/.claude et restent.
+  rm -rf "$HOME/.config/orca" "$HOME/.orca" "$HOME/.cache/orca-updater" \
+         "$HOME/.cache/orca/appimage"
+  rmdir "$HOME/.cache/orca" 2>/dev/null || true
+  [[ -L $HOME/.local/bin/orca-ide && ! -e $HOME/.local/bin/orca-ide ]] \
+    && rm -f "$HOME/.local/bin/orca-ide"
+  [[ $left -eq 0 ]] && say "Orca retiré de cette machine"
+  return 0
+}
+
+leave_orca
+
 # ── mise à l'abri des fichiers qui bloqueraient stow ─────────────────────────
 # stow refuse d'écraser un vrai fichier (ex: le ~/.bashrc par défaut de Pop!_OS).
 # On déplace ces conflits dans ~/.dotfiles-backup/<horodatage>/ plutôt que de
