@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/runkids/skillshare/main/schemas/config.schema.json
+
+sources:
+  skills: ~/.config/skillshare/skills
+  agents: ~/.config/skillshare/agents
+
+mode: merge
+
+targets:
+  claude:
+    skills:
+      path: ~/.claude/skills
+      # Les skills des dotfiles arrivent déjà dans Claude par stow, sous leur vrai nom.
+      exclude:
+        - _dotfiles__*
+  cursor:
+    skills:
+      path: ~/.cursor/skills
+  opencode:
+    skills:
+      path: ~/.config/opencode/skills
+  universal:
+    skills:
+      path: ~/.agents/skills
+
+ignore:
+  - .DS_Store
+  - .git/
+  - __pycache__/
+
+audit:
+  block_threshold: CRITICAL
+
+follow_source_links: true

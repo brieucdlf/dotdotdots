@@ -783,6 +783,8 @@ mkdir -p "$STAMPS"
   touch "$(stamp_of .claude/settings.json)"
 
 reclaim .claude/settings.json          "$ROOT/common/.claude/settings.json"
+# skillshare réécrit sa config (link, target add…) : même risque qu'au-dessus.
+reclaim .config/skillshare/config.yaml "$ROOT/common/.config/skillshare/config.yaml"
 # Sous $PROFILE et pas common : sur Pop!_OS le fichier n'existe pas dans le
 # dépôt, la garde -f suffit alors à ne rien reprendre d'un homonyme local.
 reclaim .config/omarchy/shell.json     "$ROOT/$PROFILE/.config/omarchy/shell.json"
@@ -805,6 +807,9 @@ mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
 # recevrait ses layouts, ses mods livrés et son état. Ses sous-dossiers mods/ et
 # layouts/ aussi, pour que stow n'y lie que les nôtres, un par un.
 mkdir -p "$HOME/.config/herdr-app/mods" "$HOME/.config/herdr-app/layouts"
+# Et pour ~/.config/skillshare : plié en lien, la source des skills et son dépôt
+# git atterriraient dans les dotfiles. Seul config.yaml y est versionné.
+mkdir -p "$HOME/.config/skillshare/skills" "$HOME/.config/skillshare/agents"
 # ssh ne crée pas le dossier de sockets du multiplexage et échoue sans bruit.
 mkdir -p "$HOME/.ssh/sockets" && chmod 700 "$HOME/.ssh/sockets"
 
@@ -825,6 +830,8 @@ fi
 [[ -d "$ROOT/common/.claude" ]] && touch "$STAMP"
 mkdir -p "$STAMPS"
 touch "$(stamp_of .claude/settings.json)"
+[[ -f "$ROOT/common/.config/skillshare/config.yaml" ]] &&
+  touch "$(stamp_of .config/skillshare/config.yaml)"
 [[ -f "$ROOT/$PROFILE/.config/omarchy/shell.json" ]] &&
   touch "$(stamp_of .config/omarchy/shell.json)"
 
@@ -896,6 +903,15 @@ fi
 # quelques dossiers fixes. Le shim, lui, marche sans mise dans le PATH.
 if [[ -x "$HOME/.local/share/mise/shims/skillshare" ]]; then
   ln -sfn "$HOME/.local/share/mise/shims/skillshare" "$HOME/.local/bin/skillshare"
+fi
+# Nos skills (common/.claude/skills) entrent dans la source skillshare par un
+# lien, pas par copie : un seul exemplaire, celui du dépôt. Le lien vit dans la
+# source et non dans config.yaml, d'où ce rattrapage sur une machine neuve. Claude
+# les reçoit déjà par stow ; config.yaml les exclut de sa cible.
+if [[ -x "$HOME/.local/bin/skillshare" && ! -e "$HOME/.config/skillshare/skills/_dotfiles" ]]; then
+  "$HOME/.local/bin/skillshare" link "$ROOT/common/.claude/skills" --name _dotfiles \
+    && "$HOME/.local/bin/skillshare" sync >/dev/null \
+    || warn "skills des dotfiles non liés dans skillshare — skillshare link $ROOT/common/.claude/skills --name _dotfiles"
 fi
 
 # ── secrets ──────────────────────────────────────────────────────────────────
