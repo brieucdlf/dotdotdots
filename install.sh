@@ -764,10 +764,6 @@ mkdir -p "$STAMPS"
   touch "$(stamp_of .claude/settings.json)"
 
 reclaim .claude/settings.json          "$ROOT/common/.claude/settings.json"
-# herdr réécrit son propre crochet à chaque mise à jour de son intégration
-# (« managed by herdr » en tête du fichier), et il est stowé : sans reprise, sa
-# version écraserait celle du dépôt À TRAVERS le lien, en silence.
-reclaim .claude/hooks/herdr-agent-state.sh "$ROOT/common/.claude/hooks/herdr-agent-state.sh"
 # Sous $PROFILE et pas common : sur Pop!_OS le fichier n'existe pas dans le
 # dépôt, la garde -f suffit alors à ne rien reprendre d'un homonyme local.
 reclaim .config/omarchy/shell.json     "$ROOT/$PROFILE/.config/omarchy/shell.json"
@@ -806,8 +802,6 @@ fi
 [[ -d "$ROOT/common/.claude" ]] && touch "$STAMP"
 mkdir -p "$STAMPS"
 touch "$(stamp_of .claude/settings.json)"
-[[ -f "$ROOT/common/.claude/hooks/herdr-agent-state.sh" ]] &&
-  touch "$(stamp_of .claude/hooks/herdr-agent-state.sh)"
 [[ -f "$ROOT/$PROFILE/.config/omarchy/shell.json" ]] &&
   touch "$(stamp_of .config/omarchy/shell.json)"
 
@@ -868,55 +862,6 @@ theme_to_render() {
 THEME="$(theme_to_render)"
 say "rendu du thème ($THEME)"
 "$ROOT/theme/render.sh" "$THEME" "$HOME/.config/theme/current"
-
-# herdr est thémé ici et pas seulement par le crochet theme-set : ce crochet
-# vit dans le paquet `omarchy` et n'est donc pas posé sur Pop!_OS, où .bashrc
-# préfère pourtant herdr dès qu'il est installé. Sans cet appel il y tournait
-# avec ses couleurs par défaut, le herdr-theme.toml rendu juste à côté n'étant
-# lu par personne. Sortie 2 = pas de config herdr sur cette machine.
-# Config herdr du profil, copiée et non stowée : voir popos/.stow-local-ignore.
-# Elle est posée AVANT la greffe du thème juste en dessous, sinon la copie
-# écraserait le bloc [theme] que la greffe vient d'écrire. Aucun profil n'est
-# obligé d'en fournir une — Omarchy livre la sienne, et ce fichier lui
-# appartient.
-HERDR_CFG_SRC="$ROOT/$PROFILE/.config/herdr/config.toml"
-if [[ -f $HERDR_CFG_SRC ]]; then
-  mkdir -p "$HOME/.config/herdr"
-  cp -f "$HERDR_CFG_SRC" "$HOME/.config/herdr/config.toml"
-  say "config herdr posée (raccourcis)"
-fi
-
-HERDR_GRAFT="$ROOT/common/.local/bin/dots-herdr-graft"
-if [[ -x $HERDR_GRAFT ]]; then
-  # shellcheck source=/dev/null
-  if [[ -f "$HOME/.config/theme/current/palette.sh" ]]; then
-    . "$HOME/.config/theme/current/palette.sh"
-  fi
-  # `cmd` puis `case $?` sur la ligne suivante ne protège de rien : le statut
-  # n'est pas testé dans une condition, donc `set -e` tue le script AVANT le
-  # case. Sortie 2 = pas de herdr ici — et tout ce qui suit (mise, post_popos,
-  # thème COSMIC, override ghostty, Signal) ne tournait plus depuis.
-  rc=0
-  "$HERDR_GRAFT" graft theme "$HOME/.config/theme/current/herdr-theme.toml" "${THEME_ACCENT:-}" || rc=$?
-  case $rc in
-    0) say "herdr thémé" ;;
-    2) ;;
-    *) warn "herdr non thémé — sa configuration a été laissée telle quelle" ;;
-  esac
-
-  # Les raccourcis, eux, sont greffés sur LES DEUX profils : herdr/keys.toml est
-  # la seule source, et sur Omarchy la config appartient à la distribution — la
-  # copie ci-dessus n'y met donc rien. Sans cette greffe, Omarchy gardait ses
-  # propres raccourcis (onglets sur alt+left/right) pendant que le dépôt
-  # décrivait ceux de tmux.
-  rc=0
-  "$HERDR_GRAFT" graft keys "$ROOT/herdr/keys.toml" || rc=$?
-  case $rc in
-    0) say "raccourcis herdr greffés" ;;
-    2) ;;
-    *) warn "raccourcis herdr non greffés — sa configuration a été laissée telle quelle" ;;
-  esac
-fi
 
 # ── outils ───────────────────────────────────────────────────────────────────
 if [[ $DO_PACKAGES -eq 1 ]] && have mise; then

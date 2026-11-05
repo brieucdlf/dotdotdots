@@ -203,8 +203,8 @@ du dispositif. Ce qui ne doit pas l'être, ce sont les défauts encore ouverts.
       rendu dans `~/.config/theme/current/` n'est lu par personne — vrai pour
       les deux thèmes, pas une régression de kreide
 - [ ] `install.sh` : `reclaim()` recopie la config vivante dans le dépôt sans
-      montrer de diff. C'est par là que le crochet herdr et `shell.json` sont
-      entrés sans relecture
+      montrer de diff. C'est par là que `shell.json` est
+      entré sans relecture
 - [ ] `theme/render.sh` publie en effaçant-puis-copiant : une panne au milieu
       laisse `~/.config/theme/current` à moitié. Un `mv` de dossier serait atomique
 - [ ] `common/.config/nvim/colors/{nurburgreen,kreide}.lua` ont encore leur
@@ -212,19 +212,6 @@ du dispositif. Ce qui ne doit pas l'être, ce sont les défauts encore ouverts.
       *choix* du colorscheme, lui, suit désormais le thème actif
       (`plugins/theme.lua` charge `~/.config/theme/current/neovim.lua`), et
       lualine lit les groupes `MiniStatusline*` au lieu de figer des hexas.
-- [ ] `dots-herdr-graft ungraft theme|keys` ne marche pas sur Pop!_OS : il lit
-      la config d'origine dans `/usr/share/omarchy/config/herdr/config.toml`,
-      qui n'y existe pas, et refuse (`config d'origine introuvable`). Depuis que
-      `popos/.config/herdr/config.toml` existe, il y a une source à lui donner —
-      `HERDR_STOCK` pourrait retomber sur le fichier du profil. Vaut pour les
-      deux blocs : là-bas, « d'origine » ne veut de toute façon rien dire pour
-      `[keys]`, dont le dépôt est la seule source
-- [ ] herdr sur Pop!_OS n'a pas d'équivalent du `after-new-session` de tmux, qui
-      ouvrait le split `~/todo` + `claude`. Ni du `C-b` d'effacement de
-      l'historique — herdr n'expose aucune action qui vide un scrollback.
-      L'entrée en mode copie, elle, existe : `copy_mode` est lié à `prefix+[`
-      comme dans tmux. Ce sont les touches DANS le mode (`v`/`C-v`/`y`) qui ne
-      se configurent pas
 - [ ] `bin/oh-my-posh` (19 Mo) reste dans l'historique git ; un `filter-repo`
       allégerait les clones, mais réécrit les hashes
 - [ ] COSMIC : `corner_radii` laissé au barème stock, on pourrait l'aligner sur

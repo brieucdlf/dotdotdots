@@ -76,7 +76,7 @@ common/            # les 2 machines, identique au byte près
 │   ├── mise/config.toml        # ← versions des outils, la clé de l'iso
 │   └── zed/
 ├── .claude/                    # config Claude Code (settings, skills, statusline)
-└── .local/bin/                 # dots-herdr-graft, dots-secrets, dots-shell-dump
+└── .local/bin/                 # dots-secrets, dots-shell-dump
 
 theme/
 ├── nurburgreen/    # colors.toml = SOURCE UNIQUE des couleurs (+ ui.toml)
@@ -123,7 +123,7 @@ accent      #e8b33c   étrier de frein
 ```
 
 Le `colors.toml` du thème est la seule source de vérité. `theme/render.sh`
-en dérive les fichiers consommés par ghostty, tmux, fzf, eza, btop et herdr dans
+en dérive les fichiers consommés par ghostty, tmux, fzf, eza et btop dans
 `~/.config/theme/current/` — **aucune couleur n'est codée en dur dans une config**.
 
 Sur Omarchy, `install.sh` rend le thème **actif** — le bureau fait foi. Ailleurs
@@ -137,16 +137,9 @@ Le choix est retenu : `render.sh` laisse le nom dans
 `~/.config/theme/current/.theme-name`, et les passages suivants le reprennent.
 Sans quoi `--theme` n'aurait valu que pour une fois.
 
-herdr est thémé par `install.sh` sur les deux machines, pas seulement par le
-crochet `theme-set` — ce crochet est dans le paquet `omarchy` et n'existe pas
-sur Pop!_OS, où `.bashrc` préfère pourtant herdr dès qu'il est installé. Les
-deux appellent `common/.local/bin/dots-herdr-graft`.
-
-Le même exécutable greffe les **raccourcis**, mais seulement depuis
-`install.sh` : `herdr/keys.toml` est la source unique des deux machines, et la
-greffe remplace la section `[keys]` en place. Les deux blocs sont indépendants
-— changer de thème ne touche pas aux touches, et `ungraft keys` rend les
-raccourcis d'Omarchy sans défaire le thème.
+`render.sh` produit encore un `herdr-theme.toml` à partir des clés `herdr_*` :
+plus rien ne le lit depuis le départ de herdr TUI, il est gardé pour thémer
+l'app Herdr.
 
 Deux contraintes valent pour **tout** thème ajouté ici :
 
@@ -174,18 +167,19 @@ Importer un thème**. Détail du mapping dans `popos/README.md`.
 
 ## Multiplexeur
 
-Le shell interactif attache **herdr** au démarrage — un serveur en arrière-plan
-dans lequel les terminaux vivent, à la place de tmux et non dedans. `DOTS_MUX`
-en décide :
+C'est l'**app Herdr** qui multiplexe : ses terminaux vivent dans herdr-core
+(`hc`), et survivent à la fermeture de la fenêtre. Le shell interactif n'attache
+donc rien au démarrage. `DOTS_MUX` en décide :
 
 | Valeur | Effet |
 |---|---|
-| *(vide)* | herdr, et tmux s'il n'est pas installé |
-| `tmux` | l'ancien comportement |
+| *(vide)* | shell nu |
+| `tmux` | attache tmux |
 | `none` | shell nu — `DOTS_NO_TMUX=1` fait pareil |
 
-Le garde est `HERDR_PANE_ID`, ce que `TMUX` est à tmux : posé seulement dans un
-pane. La conf tmux reste en place et thémée ; elle sert dès que `DOTS_MUX=tmux`.
+Dans un terminal de l'app, `HC_TERMINAL_ID` est posé et le shell reste nu quoi
+que dise `DOTS_MUX` : un tmux s'y emboîterait. La conf tmux reste en place et
+thémée.
 
 ---
 
@@ -806,7 +800,7 @@ pas cette protection** : le hook `pre-commit` est là pour ce cas.
 
 Le panneau tmux qui les relisait a été retiré : les agents en cours et la conso
 se lisent dans le module `omarchy.agents` de la barre, et le multiplexeur est
-herdr (voir « Multiplexeur »).
+l'app Herdr (voir « Multiplexeur »).
 
 Contrepartie : avec une statusline active, Claude Code masque la plupart des
 rappels de raccourcis du footer (dont `esc to interrupt`). Retirer la clé

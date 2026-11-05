@@ -24,30 +24,19 @@ source "$HOME/.config/bash/init.bash"
 source "$HOME/.config/bash/exports.bash"
 source "$HOME/.config/bash/aliases.bash"
 
-# Multiplexeur au démarrage. DOTS_MUX choisit lequel : herdr (défaut), tmux,
-# ou none pour un shell nu (outillage, scripts d'inspection type
-# dots-shell-dump). DOTS_NO_TMUX=1 reste honoré — c'est l'ancien nom de none.
+# Multiplexeur au démarrage. DOTS_MUX choisit lequel : none (défaut, shell nu)
+# ou tmux. DOTS_NO_TMUX=1 reste honoré — c'est l'ancien nom de none.
 #
-# herdr n'est pas un pane de plus dans tmux, c'est un multiplexeur à sa place :
-# un serveur en arrière-plan dans lequel les terminaux vivent. Les emboîter
-# donnerait deux jeux de touches de préfixe pour le même geste.
-__dots_mux="${DOTS_MUX:-herdr}"
+# Shell nu par défaut : c'est l'app Herdr qui multiplexe, et ses terminaux
+# vivent dans herdr-core. Un multiplexeur lancé d'ici s'y emboîterait.
+__dots_mux="${DOTS_MUX:-none}"
 [ -n "${DOTS_NO_TMUX:-}" ] && __dots_mux=none
 
-# La popos n'a pas forcément herdr : plutôt que de retomber sur un shell nu,
-# elle retombe sur tmux, qui y est installé.
-if [ "$__dots_mux" = herdr ] && ! command -v herdr &>/dev/null; then
-  __dots_mux=tmux
-fi
+# HC_TERMINAL_ID est à herdr-core ce que TMUX est à tmux : posé seulement dans
+# un de ses terminaux. Même un DOTS_MUX=tmux exporté ne doit pas s'y emboîter.
+[ -n "${HC_TERMINAL_ID:-}" ] && __dots_mux=none
 
 case "$__dots_mux" in
-  herdr)
-    # HERDR_PANE_ID est à herdr ce que TMUX est à tmux : posé seulement DANS
-    # un pane. Sans ce garde, chaque shell ouvert relancerait le multiplexeur.
-    if [ -z "${HERDR_PANE_ID:-}" ] && [ -z "${TMUX:-}" ]; then
-      herdr
-    fi
-    ;;
   tmux)
     if [ -z "${TMUX:-}" ] && command -v tmux &>/dev/null; then
       tmux
