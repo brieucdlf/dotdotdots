@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# xclip, sauf pour lire une image sous Wayland : là, c'est wl-paste qui répond.
+#
+# Les compositeurs Wayland (COSMIC, Hyprland) ne recopient que le texte vers le
+# presse-papiers de XWayland, pas les images. `xclip -t image/png -o` y rend
+# alors le dernier TEXTE copié, avec un code de succès. Claude Code lit une
+# image collée par `xclip … || wl-paste …` : le `||` ne passe jamais, et Ctrl+V
+# annonçait « pas d'image » juste après une capture d'écran.
+#
+# Seules les lectures du presse-papiers (-selection clipboard … -o) de TARGETS
+# ou d'un type image/* sont détournées. Tout le reste va au vrai xclip.
+set -u
+
+real=/usr/bin/xclip
+
+if [[ -n ${WAYLAND_DISPLAY:-} ]] && command -v wl-paste >/dev/null; then
+  out=0 sel=primary type=
+  args=("$@")
+  for ((i = 0; i < ${#args[@]}; i++)); do
+    case ${args[i]} in
+      -o | -out) out=1 ;;
+      -t | -target) type=${args[i + 1]:-} ;;
+      -selection | -sel) sel=${args[i + 1]:-} ;;
+    esac
+  done
+  if [[ $out == 1 && $sel == c* ]]; then
+    case $type in
+      TARGETS) exec wl-paste --list-types ;;
+      image/*) exec wl-paste --no-newline --type "$type" ;;
+    esac
+  fi
+fi
+
+exec "$real" "$@"

@@ -137,9 +137,21 @@ Le choix est retenu : `render.sh` laisse le nom dans
 `~/.config/theme/current/.theme-name`, et les passages suivants le reprennent.
 Sans quoi `--theme` n'aurait valu que pour une fois.
 
-`render.sh` produit encore un `herdr-theme.toml` à partir des clés `herdr_*` :
-plus rien ne le lit depuis le départ de herdr TUI, il est gardé pour thémer
-l'app Herdr.
+L'app Herdr suit aussi : `render.sh` produit un `herdr-app.json` (palette ANSI,
+plus les panneaux et les statuts d'agents tirés des clés `herdr_*`) et le
+recopie en `~/.config/herdr-app/themes/dots.json`, le thème que nomme
+`settings.json`. L'app le relit à chaud.
+
+Il en produit aussi une variante translucide, `herdr-app-glass.json`, publiée en
+`themes/yoru.json` avec le premier fond d'écran du thème
+(`~/.config/herdr-app/backgrounds/dots.jpg`). C'est le look du layout `yoru` :
+la structure de `herdr-skillshare`, bord à bord, avec le fond d'écran qui
+transparaît sous les panneaux et les terminaux (`terminal_opacity`). Les
+colonnes gardent leur fond `chrome` : les mods livrés ne peignent pas tout leur
+bloc, et sans lui la photo passait nue dans leurs marges. C'est notre version du Yoru de la galerie herdr.dev, dont
+les fichiers ne sont pas publiés. Côté app, l'alpha ne passe que dans `colors`,
+jamais dans le `background` du haut, et il n'y a pas de flou : un fond d'écran
+clair demanderait des alphas plus forts.
 
 Deux contraintes valent pour **tout** thème ajouté ici :
 
@@ -185,8 +197,18 @@ thémée.
 elle se met ensuite à jour seule. Le dépôt ne porte que nos ajouts dans
 `~/.config/herdr-app` : le layout `herdr-skillshare` et son mod (le panneau de
 [skillshare](https://github.com/runkids/skillshare/tree/main/herdr/skillshare),
-copié tel quel). Le reste du dossier appartient à l'app, d'où le `mkdir` avant
-stow. La CLI `skillshare` vient de mise, avec un lien dans `~/.local/bin` : le
+copié tel quel), `settings.json` (thème `dots`, police de Ghostty), et
+`keys.json` avec le mod `dots-prefix`. Le reste du dossier appartient à l'app, d'où le `mkdir` avant
+stow.
+
+Les raccourcis de tmux y sont repris. L'app ne sait pas faire de préfixe en
+natif, alors `C-Space` ouvre un popup qui attend la touche suivante (tiré du mod
+« Tmux prefix » de herdrdev) : `v`/`s` splittent, `hjkl` changent de pane,
+`HJKL` les échangent, `c`, `x`, `z`, `n`/`p`, `1`–`9` et `,` font comme dans
+tmux, `?` liste tout, et `C-Space` deux fois envoie le préfixe au programme.
+`alt-shift-h`/`l` changent d'onglet, comme `M-H`/`M-L`. Ce qui n'a pas
+d'équivalent : le redimensionnement (`C-M-hjkl`, l'app n'a pas de commande de
+redimensionnement), `C-b` qui vide l'historique, et le mode copie vi. La CLI `skillshare` vient de mise, avec un lien dans `~/.local/bin` : le
 panneau ne la cherche pas ailleurs.
 
 La config de skillshare (`~/.config/skillshare/config.yaml`) est versionnée,

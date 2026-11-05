@@ -64,6 +64,10 @@ bootstrap_popos() {
   # pcscd : l'accès CCID à l'applet PIV de la YubiKey, d'où age tire la clé de
   # déchiffrement des secrets. Sans lui, `dots-secrets` ne voit aucun token.
   sudo apt-get install -y --no-install-recommends pcscd
+  # wl-clipboard : COSMIC est sous Wayland, et Claude Code y lit les images
+  # collées avec wl-paste. xclip ne voit que le presse-papiers de XWayland,
+  # où une capture d'écran n'arrive qu'en texte — Ctrl+V ne collait rien.
+  sudo apt-get install -y --no-install-recommends wl-clipboard
   enable_pcscd
 
   # ykman : le seul outil qui inspecte et reconfigure les applets du token —
@@ -859,6 +863,10 @@ mkdir -p "$STAMPS"
 reclaim .claude/settings.json          "$ROOT/common/.claude/settings.json"
 # skillshare réécrit sa config (link, target add…) : même risque qu'au-dessus.
 reclaim .config/skillshare/config.yaml "$ROOT/common/.config/skillshare/config.yaml"
+# L'app Herdr réécrit settings.json (zoom, thème choisi dans ses réglages) et
+# keys.json (raccourcis changés depuis l'app) : même risque.
+reclaim .config/herdr-app/settings.json "$ROOT/common/.config/herdr-app/settings.json"
+reclaim .config/herdr-app/keys.json     "$ROOT/common/.config/herdr-app/keys.json"
 # Sous $PROFILE et pas common : sur Pop!_OS le fichier n'existe pas dans le
 # dépôt, la garde -f suffit alors à ne rien reprendre d'un homonyme local.
 reclaim .config/omarchy/shell.json     "$ROOT/$PROFILE/.config/omarchy/shell.json"
@@ -906,6 +914,10 @@ mkdir -p "$STAMPS"
 touch "$(stamp_of .claude/settings.json)"
 [[ -f "$ROOT/common/.config/skillshare/config.yaml" ]] &&
   touch "$(stamp_of .config/skillshare/config.yaml)"
+for f in settings.json keys.json; do
+  [[ -f "$ROOT/common/.config/herdr-app/$f" ]] &&
+    touch "$(stamp_of ".config/herdr-app/$f")"
+done
 [[ -f "$ROOT/$PROFILE/.config/omarchy/shell.json" ]] &&
   touch "$(stamp_of .config/omarchy/shell.json)"
 

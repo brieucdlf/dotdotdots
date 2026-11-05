@@ -179,47 +179,73 @@ set -g message-command-style "fg=$(get foreground),bg=$(get statusbar_bg)"
 set -g mode-style            "fg=$(get color0),bg=$(get color13)"
 EOF
 
-# --- herdr -------------------------------------------------------------------
-# Seulement les deux sections de thème : le reste de ~/.config/herdr/config.toml
-# (raccourcis, prefix, new_cwd) vient d'Omarchy et lui appartient. Le crochet
-# theme-set greffe ce bloc dedans, entre marqueurs.
+# --- app Herdr -----------------------------------------------------------------
+# Un thème de l'app (~/.config/herdr-app/themes/<nom>.json) : la palette du
+# terminal en entier, puis les couleurs des panneaux, que l'app dériverait
+# sinon de background et foreground. settings.json choisit "dots", et la
+# publication en bas recopie ce fichier sous ce nom : changer de thème repeint
+# l'app à chaud, sans toucher sa config.
 #
-# `name = "terminal"` et non un thème intégré : herdr prend alors la palette
-# ANSI du terminal, que ghostty.conf ci-dessus vient justement de dériver du
-# même colors.toml. Les jetons ci-dessous ne recouvrent que ce que « terminal »
-# ne sait pas peindre — les surfaces du châssis.
-cat >"$OUT/herdr-theme.toml" <<EOF
-# généré par theme/render.sh depuis $THEME/colors.toml — ne pas éditer
-[theme]
-name = "terminal"
-
-[theme.custom]
-accent        = "$(get accent)"
-panel_bg      = "$(get herdr_panel_bg "$(get launcher_rail "$(get color0)")")"
-sidebar_bg    = "$(get herdr_panel_bg "$(get launcher_rail "$(get color0)")")"
-active_row_bg = "$(get herdr_row_bg   "$(get statusbar_bg)")"
-selection_bg  = "$(get border_inactive)"
-surface0      = "$(get herdr_surface0 "$(get color0)")"
-surface1      = "$(get herdr_surface1 "$(get color8)")"
-surface_dim   = "$(get statusbar_bg)"
-overlay0      = "$(get herdr_overlay0 "$(get color5)")"
-overlay1      = "$(get herdr_overlay1 "$(get color7)")"
-text          = "$(get foreground)"
-subtext0      = "$(get color7)"
-# Les sept sémantiques viennent de herdr_* dans ui.toml et NON des slots ANSI.
-# herdr les pose en avant-plan sur ses surfaces, ligne sélectionnée comprise :
-# sur nurburgreen, color4 y tombait à 1,00:1 — même luminance que le fond,
-# donc invisible. Le repli sur la rampe « bright » vaut mieux que la sombre
-# pour un thème qui n'aurait pas encore ces clés, sans être une garantie :
-# c'est à chaque thème de vérifier les siennes (voir le bloc dans ui.toml).
-mauve         = "$(get herdr_mauve    "$(get color13)")"
-green         = "$(get herdr_green    "$(get color10)")"
-yellow        = "$(get herdr_yellow   "$(get color11)")"
-red           = "$(get herdr_red      "$(get color9)")"
-blue          = "$(get herdr_blue     "$(get color12)")"
-teal          = "$(get herdr_teal     "$(get color14)")"
-peach         = "$(get herdr_peach    "$(get color9)")"
+# Les couleurs de statut et des panneaux viennent de herdr_* dans ui.toml et
+# NON des slots ANSI. L'app les pose en avant-plan sur ses surfaces, ligne
+# sélectionnée comprise : sur nurburgreen, color4 y tombait à 1,00:1 — même
+# luminance que le fond, donc invisible. Le repli sur la rampe « bright » vaut
+# mieux que la sombre pour un thème qui n'aurait pas encore ces clés, sans être
+# une garantie : c'est à chaque thème de vérifier les siennes (voir ui.toml).
+#
+# Le JSON n'a pas de commentaire : l'avertissement « ne pas éditer » est ici.
+#
+# herdr_app_theme <fichier> <alpha fond> <alpha canevas> <alpha panneaux> <alpha menus>
+# Chaque alpha est un suffixe #rrggbbAA, vide pour opaque. "dots" est opaque ;
+# "yoru" est translucide : c'est le thème propre au layout du même nom (l'app
+# ne le propose que là), où le fond d'écran passe derrière les panneaux. Les
+# terminaux, eux, ne deviennent translucides que par le terminal_opacity du
+# layout : l'alpha de "background" (dans colors : le champ du haut refuse
+# l'alpha) ne vaut que pour les cadres des menus et dialogues, que l'app peint
+# dans cette couleur.
+herdr_app_theme() {
+  local file=$1 a_back=$2 a_canvas=$3 a_panel=$4 a_pop=$5
+  local panel row
+  panel="$(get herdr_panel_bg "$(get launcher_rail "$(get color0)")")"
+  row="$(get herdr_row_bg "$(get statusbar_bg)")"
+  cat >"$file" <<EOF
+{
+  "background": "$(get background)",
+  "foreground": "$(get foreground)",
+  "selection": "$(get selection_background)",
+  "cursor": "$(get cursor)",
+  "ansi": [
+    "$(get color0)", "$(get color1)", "$(get color2)", "$(get color3)",
+    "$(get color4)", "$(get color5)", "$(get color6)", "$(get color7)",
+    "$(get color8)", "$(get color9)", "$(get color10)", "$(get color11)",
+    "$(get color12)", "$(get color13)", "$(get color14)", "$(get color15)"
+  ],
+  "colors": {
+    "background": "$(get background)$a_back",
+    "canvas": "$panel$a_canvas",
+    "chrome": "$panel$a_panel",
+    "surface": "$(get herdr_surface0 "$(get color0)")$a_panel",
+    "popover": "$(get statusbar_bg)$a_pop",
+    "raised": "$(get herdr_surface1 "$(get color8)")",
+    "input": "$(get herdr_surface0 "$(get color0)")",
+    "hover": "$row",
+    "selected": "$row",
+    "border": "$(get border_inactive)",
+    "muted": "$(get color7)",
+    "dim": "$(get herdr_overlay1 "$(get color7)")",
+    "accent": "$(get accent)",
+    "accent_foreground": "$(get color0)",
+    "working": "$(get herdr_yellow "$(get color11)")",
+    "blocked": "$(get herdr_red "$(get color9)")",
+    "done": "$(get herdr_green "$(get color10)")",
+    "idle": "$(get herdr_overlay0 "$(get color5)")"
+  }
+}
 EOF
+}
+herdr_app_theme "$OUT/herdr-app.json" "" "" "" ""
+# Canevas transparent : c'est lui qui laisse voir l'image entre les îlots.
+herdr_app_theme "$OUT/herdr-app-glass.json" "f2" "00" "e0" "f2"
 
 # --- COSMIC (Pop!_OS) ------------------------------------------------------
 # Fichier importable via Réglages > Apparence > Importer un thème.
@@ -350,7 +376,7 @@ mkdir -p "$DEST"
 # Ce que render.sh possède dans $DEST. Un fichier que le thème courant ne
 # fournit PAS doit disparaître, sinon celui du thème précédent survit : c'est
 # ce qui laissait neovim.lua pointer sur nurburgreen sous kreide.
-for f in ghostty.conf colors.sh palette.sh tmux.conf herdr-theme.toml \
+for f in ghostty.conf colors.sh palette.sh tmux.conf herdr-app.json herdr-app-glass.json herdr-theme.toml \
          btop.theme neovim.lua icons.theme backgrounds .theme-name; do
   if [[ ! -e $OUT/$f && ! -L $OUT/$f ]] && [[ -e $DEST/$f || -L $DEST/$f ]]; then
     rm -rf "$DEST/$f"
@@ -368,5 +394,26 @@ shopt -u nullglob
 # `.` de la source imposerait 0700 à $DEST, qui était en 0755.
 chmod 755 "$OUT"
 cp -a "$OUT"/. "$DEST"/
+
+# L'app Herdr lit ses thèmes dans son propre dossier, pas dans $DEST. On n'y
+# publie que pour la sortie par défaut : un rendu d'essai vers un autre dossier
+# ne doit pas repeindre l'app ouverte. Écrit à côté puis renommé : l'app relit
+# le fichier dès qu'il change et ne doit jamais le voir à moitié écrit.
+if [[ $DEST == "$HOME/.config/theme/current" && -d $HOME/.config/herdr-app ]]; then
+  mkdir -p "$HOME/.config/herdr-app/themes"
+  cp -f "$DEST/herdr-app.json" "$HOME/.config/herdr-app/themes/.dots.json.tmp"
+  mv -f "$HOME/.config/herdr-app/themes/.dots.json.tmp" "$HOME/.config/herdr-app/themes/dots.json"
+  cp -f "$DEST/herdr-app-glass.json" "$HOME/.config/herdr-app/themes/.yoru.json.tmp"
+  mv -f "$HOME/.config/herdr-app/themes/.yoru.json.tmp" "$HOME/.config/herdr-app/themes/yoru.json"
+  # Le fond d'écran du layout yoru : le premier du thème, comme celui que pose
+  # le bureau. L'app ne lit une image que dans son propre dossier, d'où la
+  # copie ; un lien vers le thème casserait au rendu suivant, qui le remplace.
+  wall="$(find -L "$DEST/backgrounds/" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) 2>/dev/null | sort | head -n 1)"
+  if [[ -n $wall ]]; then
+    mkdir -p "$HOME/.config/herdr-app/backgrounds"
+    cp -f "$wall" "$HOME/.config/herdr-app/backgrounds/.dots.tmp"
+    mv -f "$HOME/.config/herdr-app/backgrounds/.dots.tmp" "$HOME/.config/herdr-app/backgrounds/dots.jpg"
+  fi
+fi
 
 echo "theme: $THEME rendu dans $DEST"
