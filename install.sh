@@ -111,7 +111,6 @@ bootstrap_popos() {
 
   install_nerd_font
   install_ghostty_deb
-  install_orca_deb
 }
 
 bootstrap_omarchy() {
@@ -499,26 +498,6 @@ install_ghostty_deb() {
   rm -rf "$tmp"
 }
 
-install_orca_deb() {
-  # Le .deb officiel installe /opt/Orca et un lien /usr/bin/orca-ide (pas
-  # `stably-orca`, le nom du paquet AUR côté Omarchy — .bashrc teste les deux).
-  have orca-ide && { say "orca déjà présent"; return 0; }
-  say "installation d'orca (.deb stablyai/orca)"
-  local tmp url
-  tmp="$(mktemp -d)"
-  url="$(curl -fsSL https://api.github.com/repos/stablyai/orca/releases/latest \
-        | grep -o 'https://[^"]*/orca-ide_[^"/]*_amd64\.deb' | head -1 || true)"
-  if [[ -z $url ]]; then
-    warn "aucun .deb orca trouvé — installe-le à la main:"
-    warn "  https://github.com/stablyai/orca/releases"
-  elif curl -fsSL -o "$tmp/orca.deb" "$url"; then
-    sudo apt-get install -y "$tmp/orca.deb"
-  else
-    warn "téléchargement d'orca échoué: $url"
-  fi
-  rm -rf "$tmp"
-}
-
 # ATTENTION : toute fonction appelée depuis bootstrap_popos ou bootstrap_omarchy
 # doit être définie AU-DESSUS de cette ligne. Bash lit le fichier de haut en bas
 # et n'a pas connaissance d'une fonction déclarée plus bas : l'appel échoue sur
@@ -809,9 +788,6 @@ backup_conflicts "$ROOT/$PROFILE"
 mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
 # ssh ne crée pas le dossier de sockets du multiplexage et échoue sans bruit.
 mkdir -p "$HOME/.ssh/sockets" && chmod 700 "$HOME/.ssh/sockets"
-# Même piège pour ~/.orca : plié en lien, il recevrait agent-hooks/ d'Orca —
-# dont endpoint.env et son jeton — dans le dépôt. Seul keybindings.json y est lié.
-mkdir -p "$HOME/.orca"
 
 say "stow common + $PROFILE"
 if ! stow --dir="$ROOT" --target="$HOME" --restow common "$PROFILE"; then
@@ -939,22 +915,6 @@ if [[ -x $HERDR_GRAFT ]]; then
     0) say "raccourcis herdr greffés" ;;
     2) ;;
     *) warn "raccourcis herdr non greffés — sa configuration a été laissée telle quelle" ;;
-  esac
-fi
-
-# Réglages d'Orca : ils vivent dans sa base SQLite, pas dans un fichier que
-# stow pourrait lier. Le profil n'existe qu'après un premier lancement, et
-# l'app doit être fermée — sinon elle écraserait l'écriture. Dans les deux cas
-# on le dit, et la commande à relancer, plutôt que d'échouer.
-ORCA_SETTINGS="$ROOT/common/.local/bin/dots-orca-settings"
-if [[ -x $ORCA_SETTINGS ]] && { have orca-ide || have stably-orca; }; then
-  rc=0
-  "$ORCA_SETTINGS" apply "$ROOT/orca/settings.json" || rc=$?
-  case $rc in
-    0) ;;
-    2) warn "orca : lance-le une fois, ferme-le, puis : dots-orca-settings apply $ROOT/orca/settings.json" ;;
-    4) warn "orca ouvert : ferme-le, puis : dots-orca-settings apply $ROOT/orca/settings.json" ;;
-    *) warn "réglages orca non appliqués" ;;
   esac
 fi
 
