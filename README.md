@@ -190,7 +190,8 @@ stow. La CLI `skillshare` vient de mise, avec un lien dans `~/.local/bin` : le
 panneau ne la cherche pas ailleurs.
 
 La config de skillshare (`~/.config/skillshare/config.yaml`) est versionnée,
-pas sa source de skills : celle-ci est un dépôt git à part. Nos propres skills
+pas sa source de skills : celle-ci est un dépôt git à part, privé
+(`brieucdlf/skillshare-skills`), qu'`install.sh` clone quand le dossier est vide. Nos propres skills
 (`common/.claude/skills`) y entrent par un lien `_dotfiles`, que `install.sh`
 recrée ; Claude les reçoit par stow et la config les exclut de sa cible. gstack
 n'y passe pas : ses skills sont des dossiers de liens que l'import de skillshare

@@ -904,11 +904,22 @@ fi
 if [[ -x "$HOME/.local/share/mise/shims/skillshare" ]]; then
   ln -sfn "$HOME/.local/share/mise/shims/skillshare" "$HOME/.local/bin/skillshare"
 fi
+# La source skillshare a son propre dépôt, privé : seule sa config est ici. Sur
+# une machine neuve, son dossier est vide (créé avant stow) et on le clone. SSH,
+# donc une touche de YubiKey. Un dossier déjà rempli n'est jamais touché.
+SS_SRC="$HOME/.config/skillshare/skills"
+if [[ ! -d $SS_SRC/.git && -z "$(ls -A "$SS_SRC" 2>/dev/null)" ]]; then
+  say "clone de la source skillshare (touche la YubiKey)"
+  git clone -q git@github.com:brieucdlf/skillshare-skills.git "$SS_SRC" \
+    || warn "source skillshare non clonée — relance ./install.sh une fois SSH prêt"
+fi
 # Nos skills (common/.claude/skills) entrent dans la source skillshare par un
 # lien, pas par copie : un seul exemplaire, celui du dépôt. Le lien vit dans la
 # source et non dans config.yaml, d'où ce rattrapage sur une machine neuve. Claude
 # les reçoit déjà par stow ; config.yaml les exclut de sa cible.
-if [[ -x "$HOME/.local/bin/skillshare" && ! -e "$HOME/.config/skillshare/skills/_dotfiles" ]]; then
+# Seulement dans un clone : posé dans le dossier vide d'un clone raté, le lien
+# l'aurait rempli et empêché le prochain passage de cloner.
+if [[ -x "$HOME/.local/bin/skillshare" && -d $SS_SRC/.git && ! -e "$SS_SRC/_dotfiles" ]]; then
   "$HOME/.local/bin/skillshare" link "$ROOT/common/.claude/skills" --name _dotfiles \
     && "$HOME/.local/bin/skillshare" sync >/dev/null \
     || warn "skills des dotfiles non liés dans skillshare — skillshare link $ROOT/common/.claude/skills --name _dotfiles"
