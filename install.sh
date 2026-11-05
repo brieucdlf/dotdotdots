@@ -111,6 +111,7 @@ bootstrap_popos() {
 
   install_nerd_font
   install_ghostty_deb
+  install_herdr_app
 }
 
 bootstrap_omarchy() {
@@ -143,6 +144,9 @@ bootstrap_omarchy() {
   # unités systemd, il ne reste qu'à les activer.
   sudo pacman -S --needed --noconfirm yubikey-touch-detector
   enable_touch_detector
+
+  # Voir install_herdr_app : même installateur, Omarchy ne fournit que herdr TUI.
+  install_herdr_app
 
   # Voir setup_tailscale : même rôle, et ici encore aucun `tailscale up`.
   sudo pacman -S --needed --noconfirm tailscale
@@ -389,6 +393,21 @@ install_gitleaks() {
     && say "gitleaks $ver installé dans ~/.local/bin" \
     || warn "installation de gitleaks échouée"
   rm -rf "$tmp"
+}
+
+# L'app Herdr : multiplexeur et fenêtre des agents (voir « Multiplexeur » dans
+# le README). Ni paquet apt ni AUR : l'installateur officiel la pose dans
+# ~/.local/share/herdr-app, sans sudo, avec herdr-core (`hc`) s'il manque. Il
+# vérifie le SHA-256 de l'archive. Lancé seulement si l'app est absente : elle se
+# met ensuite à jour d'elle-même, herdr-core compris.
+install_herdr_app() {
+  if [[ -x "$HOME/.local/bin/herdr-app" ]] || have herdr-app; then
+    say "app Herdr déjà présente"
+    return 0
+  fi
+  say "installation de l'app Herdr (et de herdr-core)"
+  curl -fsSL https://releases.herdr.dev/app/install.sh | sh \
+    || warn "installation de l'app Herdr échouée — https://github.com/herdrdev/herdr-app"
 }
 
 # yubikey-touch-detector : une notification quand la YubiKey attend une touche.
@@ -782,6 +801,10 @@ backup_conflicts "$ROOT/$PROFILE"
 # le dépôt, public. Le créer d'abord force stow à ne lier que `config` dedans.
 # Même piège que ~/.config/git, qui est bien un lien : là c'est voulu, ici non.
 mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+# Même piège pour ~/.config/herdr-app, qui appartient à l'app : plié en lien, il
+# recevrait ses layouts, ses mods livrés et son état. Ses sous-dossiers mods/ et
+# layouts/ aussi, pour que stow n'y lie que les nôtres, un par un.
+mkdir -p "$HOME/.config/herdr-app/mods" "$HOME/.config/herdr-app/layouts"
 # ssh ne crée pas le dossier de sockets du multiplexage et échoue sans bruit.
 mkdir -p "$HOME/.ssh/sockets" && chmod 700 "$HOME/.ssh/sockets"
 
@@ -867,6 +890,12 @@ say "rendu du thème ($THEME)"
 if [[ $DO_PACKAGES -eq 1 ]] && have mise; then
   say "mise install (peut être long au premier passage)"
   mise install -y || warn "certains outils mise ont échoué — relance 'mise install'"
+fi
+# Le panneau skillshare de l'app Herdr lance `skillshare` hors de tout shell
+# interactif, donc sans `mise activate` : il ne cherche que dans ~/.local/bin et
+# quelques dossiers fixes. Le shim, lui, marche sans mise dans le PATH.
+if [[ -x "$HOME/.local/share/mise/shims/skillshare" ]]; then
+  ln -sfn "$HOME/.local/share/mise/shims/skillshare" "$HOME/.local/bin/skillshare"
 fi
 
 # ── secrets ──────────────────────────────────────────────────────────────────

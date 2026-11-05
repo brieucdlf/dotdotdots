@@ -181,6 +181,14 @@ Dans un terminal de l'app, `HC_TERMINAL_ID` est posé et le shell reste nu quoi
 que dise `DOTS_MUX` : un tmux s'y emboîterait. La conf tmux reste en place et
 thémée.
 
+`install.sh` installe l'app si elle manque, par son installateur officiel ;
+elle se met ensuite à jour seule. Le dépôt ne porte que nos ajouts dans
+`~/.config/herdr-app` : le layout `herdr-skillshare` et son mod (le panneau de
+[skillshare](https://github.com/runkids/skillshare/tree/main/herdr/skillshare),
+copié tel quel). Le reste du dossier appartient à l'app, d'où le `mkdir` avant
+stow. La CLI `skillshare` vient de mise, avec un lien dans `~/.local/bin` : le
+panneau ne la cherche pas ailleurs.
+
 ---
 
 ## Omarchy 4

@@ -30,6 +30,10 @@ neovim = "latest"
 ripgrep = "latest"
 starship = "latest"
 zoxide = "latest"
+# skillshare : synchronise skills, agents et MCP entre outils d'IA. Lu aussi par
+# le panneau skillshare de l'app Herdr. Absent du registre mise, d'où le
+# backend github (binaire Go des releases).
+"github:runkids/skillshare" = "latest"
 
 # Chaîne de secrets. Épinglés au patch près, contrairement au reste : ce sont
 # les seuls outils dont une régression casserait l'accès aux secrets plutôt

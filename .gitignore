@@ -72,3 +72,8 @@ __pycache__/
 # À GARDER AILLEURS QU'ICI : le dépôt ne les sauvegarde plus.
 theme/*/assets/*.jpg
 theme/*/assets/*.jpeg
+
+# app Herdr : elle écrit ses types et sa config d'éditeur dans chaque mod, donc
+# dans le dépôt à travers le lien stow.
+common/.config/herdr-app/mods/*/jsconfig.json
+common/.config/herdr-app/mods/*/*.d.ts
