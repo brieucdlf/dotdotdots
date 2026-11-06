@@ -732,6 +732,70 @@ leave_orca() {
 
 leave_orca
 
+# Les intégrations qu'Orca et herdr TUI avaient posées dans les agents : des
+# hooks Codex et un plugin OpenCode. Inertes sans eux (ils testent leurs
+# variables et sortent), mais chaque événement lance encore un shell. Hors de
+# leave_orca, qui ne tourne que tant qu'Orca est là : ces restes lui survivent.
+# On ne retire que ce qui porte leur marque ; un hook à toi reste.
+drop_agent_integrations() {
+  rm -f "$HOME/.codex/herdr-agent-state.sh"
+  rm -rf "$HOME/.config/opencode/plugins/orca-opencode-status.js" \
+         "$HOME/.config/opencode/plugins/orca-opencode-status-tui"
+  rmdir "$HOME/.config/opencode/plugins" 2>/dev/null || true
+  python3 - "$HOME" <<'PY' || warn "restes Orca/herdr non retirés des configs Codex et OpenCode"
+import json, os, re, sys
+home = sys.argv[1]
+mark = ("orca-agent-hook", "herdr-agent-state.sh", "orca-opencode-status")
+ours = lambda v: isinstance(v, str) and any(m in v for m in mark)
+
+# Codex : hooks.json, groupe par groupe ; vidé, il part avec ses hashes de
+# confiance dans config.toml, qui ne désignent plus rien.
+p = os.path.join(home, ".codex/hooks.json")
+if os.path.exists(p):
+    d = json.load(open(p))
+    hooks = {}
+    for ev, groups in d.get("hooks", {}).items():
+        kept = []
+        for g in groups:
+            g["hooks"] = [h for h in g.get("hooks", []) if not ours(h.get("command"))]
+            if g["hooks"]:
+                kept.append(g)
+        if kept:
+            hooks[ev] = kept
+    if hooks:
+        d["hooks"] = hooks
+        json.dump(d, open(p, "w"), indent=2)
+    else:
+        os.remove(p)
+        c = os.path.join(home, ".codex/config.toml")
+        if os.path.exists(c):
+            s = open(c).read()
+            s = re.sub(r'(?ms)^\[hooks\.state(\.[^\]]*)?\]\n.*?(?=^\[(?!hooks\.state)|\Z)', "", s)
+            open(c, "w").write(s.lstrip("\n"))
+
+# OpenCode : la liste de plugins, sous « plugins » ou « plugin » selon la version.
+for name in ("cli.json", "tui.json"):
+    p = os.path.join(home, ".config/opencode", name)
+    if not os.path.isfile(p):
+        continue
+    d = json.load(open(p))
+    changed = False
+    for key in ("plugins", "plugin"):
+        if isinstance(d.get(key), list):
+            kept = [x for x in d[key] if not ours(x)]
+            if kept != d[key]:
+                changed = True
+                if kept:
+                    d[key] = kept
+                else:
+                    del d[key]
+    if changed:
+        json.dump(d, open(p, "w"), indent=2)
+        open(p, "a").write("\n")
+PY
+}
+drop_agent_integrations
+
 # ── mise à l'abri des fichiers qui bloqueraient stow ─────────────────────────
 # stow refuse d'écraser un vrai fichier (ex: le ~/.bashrc par défaut de Pop!_OS).
 # On déplace ces conflits dans ~/.dotfiles-backup/<horodatage>/ plutôt que de
@@ -867,6 +931,8 @@ reclaim .config/skillshare/config.yaml "$ROOT/common/.config/skillshare/config.y
 # keys.json (raccourcis changés depuis l'app) : même risque.
 reclaim .config/herdr-app/settings.json "$ROOT/common/.config/herdr-app/settings.json"
 reclaim .config/herdr-app/keys.json     "$ROOT/common/.config/herdr-app/keys.json"
+# OpenCode réécrit tui.json quand on choisit un thème avec /theme.
+reclaim .config/opencode/tui.json       "$ROOT/common/.config/opencode/tui.json"
 # Sous $PROFILE et pas common : sur Pop!_OS le fichier n'existe pas dans le
 # dépôt, la garde -f suffit alors à ne rien reprendre d'un homonyme local.
 reclaim .config/omarchy/shell.json     "$ROOT/$PROFILE/.config/omarchy/shell.json"
@@ -892,6 +958,9 @@ mkdir -p "$HOME/.config/herdr-app/mods" "$HOME/.config/herdr-app/layouts"
 # Et pour ~/.config/skillshare : plié en lien, la source des skills et son dépôt
 # git atterriraient dans les dotfiles. Seul config.yaml y est versionné.
 mkdir -p "$HOME/.config/skillshare/skills" "$HOME/.config/skillshare/agents"
+# Et pour ~/.config/opencode : skillshare y écrit les skills, OpenCode ses
+# plugins et le mot de passe de son service. Seul tui.json est versionné.
+mkdir -p "$HOME/.config/opencode"
 # ssh ne crée pas le dossier de sockets du multiplexage et échoue sans bruit.
 mkdir -p "$HOME/.ssh/sockets" && chmod 700 "$HOME/.ssh/sockets"
 
@@ -918,6 +987,8 @@ for f in settings.json keys.json; do
   [[ -f "$ROOT/common/.config/herdr-app/$f" ]] &&
     touch "$(stamp_of ".config/herdr-app/$f")"
 done
+[[ -f "$ROOT/common/.config/opencode/tui.json" ]] &&
+  touch "$(stamp_of .config/opencode/tui.json)"
 [[ -f "$ROOT/$PROFILE/.config/omarchy/shell.json" ]] &&
   touch "$(stamp_of .config/omarchy/shell.json)"
 
@@ -1009,6 +1080,25 @@ if [[ -x "$HOME/.local/bin/skillshare" && -d $SS_SRC/.git && ! -e "$SS_SRC/_dotf
   "$HOME/.local/bin/skillshare" link "$ROOT/common/.claude/skills" --name _dotfiles \
     && "$HOME/.local/bin/skillshare" sync >/dev/null \
     || warn "skills des dotfiles non liés dans skillshare — skillshare link $ROOT/common/.claude/skills --name _dotfiles"
+fi
+
+# Codex colore son code avec le thème `base16`, qui reprend les 16 couleurs du
+# terminal : il suit donc theme/render.sh comme Claude Code (dark-ansi) et
+# OpenCode (system). ~/.codex/config.toml n'est pas versionné, il porte les
+# hashes de confiance de chaque machine : on n'y pose que cette clé, et
+# seulement si elle manque. Un thème choisi avec /theme est donc respecté.
+if [[ -d "$HOME/.codex" ]]; then
+  python3 - "$HOME/.codex/config.toml" <<'PY' || warn "thème de Codex non posé — /theme dans codex, puis base16"
+import os, re, sys
+p = sys.argv[1]
+s = open(p).read() if os.path.exists(p) else ""
+if re.search(r"(?m)^\[tui\]\s*$", s):
+    if not re.search(r"(?ms)^\[tui\][^\[]*^theme\s*=", s):
+        s = re.sub(r"(?m)^\[tui\]\s*$", '[tui]\ntheme = "base16"', s, count=1)
+else:
+    s = s.rstrip("\n") + ('\n\n' if s else '') + '[tui]\ntheme = "base16"\n'
+open(p, "w").write(s)
+PY
 fi
 
 # ── secrets ──────────────────────────────────────────────────────────────────

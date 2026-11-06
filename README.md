@@ -153,6 +153,13 @@ les fichiers ne sont pas publiés. Côté app, l'alpha ne passe que dans `colors
 jamais dans le `background` du haut, et il n'y a pas de flou : un fond d'écran
 clair demanderait des alphas plus forts.
 
+Les agents suivent la palette du terminal, donc le thème, sans fichier généré :
+Claude Code par `"theme": "dark-ansi"` (settings.json), OpenCode par
+`"theme": "system"` (`common/.config/opencode/tui.json`), Codex par
+`[tui] theme = "base16"`, qu'`install.sh` pose dans `~/.codex/config.toml` s'il
+manque (le fichier n'est pas versionné : il porte les hashes de confiance de la
+machine).
+
 Deux contraintes valent pour **tout** thème ajouté ici :
 
 - son fond d'écran doit porter l'assombrissement du haut (la barre ne peint
