@@ -1054,6 +1054,14 @@ say "rendu du thème ($THEME)"
 if [[ $DO_PACKAGES -eq 1 ]] && have mise; then
   say "mise install (peut être long au premier passage)"
   mise install -y || warn "certains outils mise ont échoué — relance 'mise install'"
+  # `latest` n'est résolu qu'à la première installation : ensuite mise garde la
+  # version posée, et les agents prenaient des semaines de retard. Seulement les
+  # agents, qui sortent une version par jour ou presque ; le reste (node, go,
+  # erlang compilé) ne bouge pas sans qu'on le demande. mise n'installe pas une
+  # version publiée depuis moins de 24 h (minimum_release_age) : une version
+  # cassée ou piégée a le temps d'être retirée.
+  say "mise upgrade des agents"
+  mise upgrade claude codex opencode || warn "agents non mis à jour — relance 'mise upgrade claude codex opencode'"
 fi
 # Le panneau skillshare de l'app Herdr lance `skillshare` hors de tout shell
 # interactif, donc sans `mise activate` : il ne cherche que dans ~/.local/bin et
