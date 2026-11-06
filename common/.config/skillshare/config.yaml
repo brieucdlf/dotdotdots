@@ -11,8 +11,11 @@ targets:
     skills:
       path: ~/.claude/skills
       # Les skills des dotfiles arrivent déjà dans Claude par stow, sous leur vrai nom.
+      # synced/ : les skills de claude.ai, importés par `skillshare init`. Claude
+      # les a nativement (anthropic-skills:*) ; les autres agents gardent la copie.
       exclude:
         - _dotfiles__*
+        - synced__*
   cursor:
     skills:
       path: ~/.cursor/skills
