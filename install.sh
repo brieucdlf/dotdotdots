@@ -961,6 +961,9 @@ mkdir -p "$HOME/.config/skillshare/skills" "$HOME/.config/skillshare/agents"
 # Et pour ~/.config/opencode : skillshare y écrit les skills, OpenCode ses
 # plugins et le mot de passe de son service. Seul tui.json est versionné.
 mkdir -p "$HOME/.config/opencode"
+# Et pour ~/.codex : Codex y range auth.json, ses sessions et ses bases. Plié
+# en lien, tout ça partirait dans un dépôt public. Seul AGENTS.md est à nous.
+mkdir -p "$HOME/.codex"
 # ssh ne crée pas le dossier de sockets du multiplexage et échoue sans bruit.
 mkdir -p "$HOME/.ssh/sockets" && chmod 700 "$HOME/.ssh/sockets"
 

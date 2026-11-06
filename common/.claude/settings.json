@@ -1,6 +1,7 @@
 {
   "env": {
-    "ENABLE_TOOL_SEARCH": "true"
+    "ENABLE_TOOL_SEARCH": "true",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "claude-sonnet-5-5"
   },
   "permissions": {
     "allow": [

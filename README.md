@@ -160,6 +160,14 @@ Claude Code par `"theme": "dark-ansi"` (settings.json), OpenCode par
 manque (le fichier n'est pas versionné : il porte les hashes de confiance de la
 machine).
 
+Les consignes globales des agents tiennent dans un seul fichier,
+`common/.claude/CLAUDE.md` : `~/.codex/AGENTS.md` et
+`~/.config/opencode/AGENTS.md` sont des liens dessus. Les consignes d'un projet
+vont dans son `AGENTS.md`, que Claude Code lit en l'absence de `CLAUDE.md`
+(celui de ce dépôt est à la racine). Les sous-agents de Claude Code tournent
+sur Sonnet 5.5 (`CLAUDE_CODE_SUBAGENT_MODEL`), moins cher : la session
+principale reste sur Opus.
+
 Deux contraintes valent pour **tout** thème ajouté ici :
 
 - son fond d'écran doit porter l'assombrissement du haut (la barre ne peint
