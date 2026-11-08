@@ -1,6 +1,6 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { closeOverlay, focused, hc, nextCommand, props, run, theme } from "herdr";
+import { closeOverlay, focused, hc, nextCommand, openOverlay, panes, props, run, spaces, theme } from "herdr";
 
 // Les raccourcis de common/.config/tmux/tmux.conf, au préfixe près : C-Space,
 // puis une touche. Tiré du mod « Tmux prefix » de herdrdev
@@ -39,10 +39,21 @@ const BINDINGS = [
   [")", "Espace suivant", "space.next", {}, true],
   ["(", "Espace précédent", "space.prev", {}, true],
   ["w", "Chercher (picker)", "mod.open", { name: "picker" }],
+  // Le dialogue du mod worktree n'a pas de commande : `worktree` l'ouvre comme
+  // le bouton « + » des onglets (mods/new-menu), voir openWorktree.
+  ["W", "Nouveau worktree", "worktree", { action: "new" }],
+  ["o", "Ouvrir un worktree", "worktree", { action: "open" }],
   ["d", "Réduire la fenêtre", "window.minimize"],
   // base-index 1, comme dans tmux.conf : 1 est le premier onglet.
   ...Array.from({ length: 9 }, (_, i) => [String(i + 1), `Onglet ${i + 1}`, "tab.select", { index: i + 1 }]),
 ];
+
+function openWorktree(action) {
+  const space = spaces().find((s) => s.active);
+  if (!space) return;
+  const size = action === "open" ? { width: 560, height: 480 } : { width: 460, height: 280 };
+  openOverlay({ mod: "worktree", kind: "dialog", ...size, props: { space: space.id, folder: panes().find((p) => p.focused)?.cwd, action } });
+}
 
 function forwardKey(e, key) {
   if (["enter", "tab", "backspace", "left", "right", "up", "down", "space"].includes(e.key)) return e.key;
@@ -108,6 +119,7 @@ export default class DotsPrefix extends View {
     }
     const [, , command, args = {}, repeatable = false] = binding;
     if (!repeatable) this.dismiss();
+    if (command === "worktree") return openWorktree(args.action);
     run(command, args);
     if (repeatable) {
       this.repeat = true;

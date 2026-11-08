@@ -220,7 +220,8 @@ Les raccourcis de tmux y sont repris. L'app ne sait pas faire de préfixe en
 natif, alors `C-Space` ouvre un popup qui attend la touche suivante (tiré du mod
 « Tmux prefix » de herdrdev) : `v`/`s` splittent, `hjkl` changent de pane,
 `HJKL` les échangent, `c`, `x`, `z`, `n`/`p`, `1`–`9` et `,` font comme dans
-tmux, `?` liste tout, et `C-Space` deux fois envoie le préfixe au programme.
+tmux, `W` crée un worktree et `o` en ouvre un (le dialogue du mod `worktree`),
+`?` liste tout, et `C-Space` deux fois envoie le préfixe au programme.
 `alt-shift-h`/`l` changent d'onglet, comme `M-H`/`M-L`. Ce qui n'a pas
 d'équivalent : le redimensionnement (`C-M-hjkl`, l'app n'a pas de commande de
 redimensionnement), `C-b` qui vide l'historique, et le mode copie vi. La CLI `skillshare` vient de mise, avec un lien dans `~/.local/bin` : le
