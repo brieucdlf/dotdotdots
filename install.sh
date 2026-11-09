@@ -692,7 +692,7 @@ prune_dead_repo_links
 # Attention au nom : le paquet `orca` (apt comme pacman) est le LECTEUR D'ÉCRAN
 # de GNOME, sans rapport. Seuls orca-ide (.deb) et stably-orca (AUR) sont visés.
 leave_orca() {
-  local ws="$HOME/orca/workspaces" wt repo dest left=0
+  local ws="$HOME/orca/workspaces" wt repo dest pkg left=0
 
   # Rien à faire sur une machine qui n'a jamais eu Orca, ou qui en est sortie.
   [[ -d $HOME/.config/orca || -d $HOME/.orca || -d $HOME/orca ]] \
@@ -737,9 +737,11 @@ leave_orca() {
     if [[ $PROFILE == popos ]] && dpkg -s orca-ide >/dev/null 2>&1; then
       say "désinstallation d'orca-ide"
       sudo apt-get purge -y orca-ide || warn "orca-ide non désinstallé"
-    elif [[ $PROFILE == omarchy ]] && pacman -Q stably-orca >/dev/null 2>&1; then
-      say "désinstallation de stably-orca"
-      sudo pacman -Rns --noconfirm stably-orca || warn "stably-orca non désinstallé"
+    elif [[ $PROFILE == omarchy ]] && pkg="$(pacman -Qq stably-orca 2>/dev/null)"; then
+      # L'AUR le livre aussi en stably-orca-bin. -Q trouve le paquet par ce qu'il
+      # fournit, -R seulement par son vrai nom : il faut passer celui que -Qq rend.
+      say "désinstallation de $pkg"
+      sudo pacman -Rns --noconfirm "$pkg" || warn "$pkg non désinstallé"
     fi
   fi
 
