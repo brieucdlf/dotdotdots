@@ -152,6 +152,8 @@ bootstrap_omarchy() {
   # Voir install_herdr_app : même installateur, Omarchy ne fournit que herdr TUI.
   install_herdr_app
 
+  setup_audit
+
   # Voir setup_tailscale : même rôle, et ici encore aucun `tailscale up`.
   sudo pacman -S --needed --noconfirm tailscale
   enable_tailscaled
@@ -422,8 +424,8 @@ install_herdr_app() {
 # Pop!_OS 24.04 n'a pas le paquet (Ubuntu ne l'a qu'à partir de 26.04, et en
 # 1.12, avant le renommage des options). On prend donc le binaire amont, vérifié
 # comme gitleaks. Il ne demande que libgpgme.so.11 et glibc 2.34 — vérifié sur
-# la 1.15.0 avec objdump. Le paquet Debian ne livrant pas les unités systemd non
-# plus, on les écrit nous-mêmes, à l'identique de celles de l'amont.
+# la 1.15.0 avec objdump. Sans paquet, pas d'unités systemd non plus : on les
+# écrit nous-mêmes, à l'identique de celles de l'amont, au chemin du binaire près.
 install_touch_detector() {
   local bin="$HOME/.local/bin/yubikey-touch-detector"
   local units="$HOME/.config/systemd/user"
@@ -497,6 +499,28 @@ enable_touch_detector() {
   systemctl --user enable --now yubikey-touch-detector.service 2>/dev/null \
     && say "yubikey-touch-detector activé (notification à chaque touche attendue)" \
     || warn "yubikey-touch-detector non activé — une fois en session : systemctl --user enable --now yubikey-touch-detector.service"
+}
+
+# Contrôle du poste pro : journal d'audit et outils de vérification. Côté
+# Omarchy seulement : les règles surveillent des chemins propres à cette machine
+# (Limine, mkinitcpio).
+setup_audit() {
+  sudo pacman -S --needed --noconfirm audit arch-audit lynis rkhunter
+
+  sudo install -Dm640 "$ROOT/audit/50-poste.rules" /etc/audit/rules.d/50-poste.rules
+  sudo systemctl enable --now auditd.service || { warn "auditd non activé"; return 0; }
+  sudo augenrules --load >/dev/null || warn "règles d'audit non chargées — voir sudo augenrules --check"
+
+  # journald lit aussi les événements d'audit : sans ça, tout est en double
+  # dans le journal en plus de /var/log/audit/audit.log.
+  sudo systemctl mask --now systemd-journald-audit.socket 2>/dev/null \
+    || warn "systemd-journald-audit.socket non masqué — événements en double dans le journal"
+
+  # La référence ne se pose qu'une fois : la refaire à chaque install validerait
+  # sans le dire des binaires modifiés entre-temps.
+  sudo test -s /var/lib/rkhunter/db/rkhunter.dat \
+    || sudo rkhunter --propupd >/dev/null 2>&1 \
+    || warn "référence rkhunter non créée — sudo rkhunter --propupd"
 }
 
 install_ghostty_deb() {

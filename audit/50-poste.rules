@@ -1,0 +1,40 @@
+## Règles d'audit du poste. Ciblées : ce qu'un audit demande, sans journaliser
+## chaque exécution de l'utilisateur (mise, node et les builds noieraient tout).
+## Installées dans /etc/audit/rules.d/ par install.sh, voir setup_audit.
+
+-D
+-b 8192
+-f 1
+--backlog_wait_time 60000
+
+## Identité et authentification
+-w /etc/passwd -p wa -k identity
+-w /etc/shadow -p wa -k identity
+-w /etc/group -p wa -k identity
+-w /etc/gshadow -p wa -k identity
+-w /etc/sudoers -p wa -k privilege
+-w /etc/sudoers.d/ -p wa -k privilege
+-w /etc/pam.d/ -p wa -k pam
+-w /etc/security/ -p wa -k pam
+-w /etc/ssh/ -p wa -k ssh
+
+## Démarrage, persistance, configuration de l'audit lui-même
+-w /etc/default/limine -p wa -k boot
+-w /etc/mkinitcpio.conf -p wa -k boot
+-w /etc/mkinitcpio.conf.d/ -p wa -k boot
+-w /etc/systemd/system/ -p wa -k persistence
+-w /etc/audit/ -p wa -k auditconfig
+
+## Élévation de privilèges
+-w /usr/bin/sudo -p x -k priv_esc
+-w /usr/bin/su -p x -k priv_esc
+-w /usr/bin/pkexec -p x -k priv_esc
+
+## Tout ce qui s'exécute en root à l'initiative d'un humain connecté
+## (auid = l'utilisateur de la session, même après sudo)
+-a always,exit -F arch=b64 -S execve -F euid=0 -F auid>=1000 -F auid!=unset -k root_exec
+-a always,exit -F arch=b32 -S execve -F euid=0 -F auid>=1000 -F auid!=unset -k root_exec
+
+## Chargement et retrait de modules noyau
+-a always,exit -F arch=b64 -S init_module,finit_module,delete_module -k modules
+-w /usr/bin/kmod -p x -k modules
